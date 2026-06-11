@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Prism Archive — OBELISK</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Noto+Serif+SC:wght@300;400;600&family=Courier+Prime&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0a0a0a;--parchment:#e8e4dc;--bronze:#b8956a;--sage:#6b8a7a;--muted:#3a3a38;--line:rgba(184,149,106,0.12);--danger:#8b4545;--success:#5a7a6a}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--parchment);font-family:'Cormorant Garamond','Noto Serif SC',serif;overflow:hidden;height:100vh;width:100vw;letter-spacing:0.04em}
+::-webkit-scrollbar{width:0;height:0;background:transparent}
+.page-transition{position:fixed;inset:0;background:var(--bg);z-index:99999;pointer-events:none;opacity:1;clip-path:circle(150% at 50% 50%);transition:clip-path 0.8s cubic-bezier(0.7,0,0.3,1),opacity 0.4s 0.4s}
+.page-transition.done{clip-path:circle(0% at 50% 50%);opacity:0}
+.strings-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.string-line{position:absolute;left:0;right:0;height:1px;background:rgba(184,149,106,0.04);transform-origin:center;animation:strum 8s ease-in-out infinite}
+@keyframes strum{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.02)}}
+.app{position:relative;z-index:1;display:flex;height:100vh;width:100vw}
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid rgba(184,149,106,0.08);background:rgba(0,0,0,0.3);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:32px 0;transition:all 0.4s}
+.sidebar-logo{font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:0.35em;font-weight:400;color:rgba(232,228,220,0.5);text-align:center;margin-bottom:6px}
+.sidebar-greek{font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(184,149,106,0.3);text-align:center;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:48px}
+.nav-item{padding:16px 32px;font-size:0.8rem;color:rgba(232,228,220,0.3);cursor:pointer;transition:all 0.4s;letter-spacing:0.05em;border-left:2px solid transparent;display:flex;align-items:center;gap:14px;font-family:'Noto Serif SC',serif}
+.nav-item:hover{background:rgba(232,228,220,0.02);color:rgba(232,228,220,0.6)}
+.nav-item.active{border-left-color:rgba(184,149,106,0.4);background:rgba(184,149,106,0.03);color:rgba(232,228,220,0.85)}
+.nav-icon{font-family:'Cinzel',serif;font-size:1rem;opacity:0.5;width:22px;text-align:center;transition:all 0.3s}
+.nav-item.active .nav-icon{opacity:1;color:var(--bronze)}
+.sidebar-footer{margin-top:auto;padding:24px 32px;font-size:0.65rem;color:rgba(232,228,220,0.1);letter-spacing:0.1em;line-height:1.8;font-family:'Cinzel',serif}
+.sidebar-footer a{color:rgba(232,228,220,0.2);text-decoration:none;transition:color 0.3s;display:block;margin-bottom:8px}
+.sidebar-footer a:hover{color:var(--bronze)}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-ms-overflow-style:none}
+.content::-webkit-scrollbar{display:none}
+.identity-card{margin:28px;padding:32px;background:rgba(232,228,220,0.015);border:1px solid rgba(184,149,106,0.06);backdrop-filter:blur(20px);display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;transition:all 0.4s}
+.identity-card:hover{border-color:rgba(184,149,106,0.1)}
+.identity-card::before{content:'';position:absolute;top:0;right:0;width:300px;height:100%;background:radial-gradient(circle at 100% 50%,rgba(184,149,106,0.04) 0%,transparent 70%);pointer-events:none}
+.id-avatar{width:80px;height:80px;border-radius:50%;border:1px solid rgba(184,149,106,0.15);object-fit:cover;position:relative;z-index:1;transition:all 0.4s}
+.id-avatar:hover{transform:scale(1.03);border-color:var(--bronze);box-shadow:0 0 20px rgba(184,149,106,0.08)}
+.id-info{flex:1;position:relative;z-index:1}
+.id-name-row{display:flex;align-items:baseline;gap:20px;margin-bottom:8px}
+.id-codename{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:400;letter-spacing:0.1em;color:var(--parchment)}
+.id-badge{font-family:'Cinzel',serif;font-size:0.65rem;padding:4px 12px;border:1px solid rgba(184,149,106,0.25);color:var(--bronze);letter-spacing:0.15em;text-transform:uppercase;border-radius:2px;background:rgba(184,149,106,0.03)}
+.id-email{font-size:0.8rem;color:rgba(232,228,220,0.25);letter-spacing:0.03em;margin-bottom:20px;font-family:'Cormorant Garamond',serif}
+.id-stats-row{display:flex;gap:40px}
+.id-stat{text-align:left}
+.id-stat-val{font-family:'Courier Prime','Courier New',monospace;font-size:1.2rem;color:rgba(232,228,220,0.8);letter-spacing:0.05em;line-height:1.2}
+.id-stat-label{font-size:0.65rem;color:rgba(232,228,220,0.2);letter-spacing:0.1em;text-transform:uppercase;margin-top:6px;font-family:'Cinzel',serif}
+.id-stat-val.bronze{color:var(--bronze)}
+.id-stat-val.sage{color:var(--sage)}
+.tab-content{display:none;padding:0 28px 28px;animation:tabEnter 0.5s cubic-bezier(0.4,0,0.2,1)}
+.tab-content.active{display:block}
+@keyframes tabEnter{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.section-title{font-family:'Cinzel',serif;font-size:0.9rem;font-weight:400;letter-spacing:0.18em;color:rgba(232,228,220,0.5);margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.section-title::after{content:'';flex:1;height:1px;background:rgba(184,149,106,0.06);margin-left:8px}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+.glass-panel{background:rgba(232,228,220,0.01);border:1px solid rgba(184,149,106,0.06);backdrop-filter:blur(10px);padding:24px;position:relative;overflow:hidden;transition:all 0.4s}
+.glass-panel:hover{border-color:rgba(184,149,106,0.1)}
+.glass-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(184,149,106,0.04) 0%,transparent 70%);opacity:0;transition:opacity 0.4s;pointer-events:none}
+.glass-panel:hover::before{opacity:1}
+.panel-header{font-family:'Cinzel',serif;font-size:0.7rem;color:rgba(232,228,220,0.25);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+.panel-header .live-dot{width:6px;height:6px;border-radius:50%;background:var(--bronze);animation:blink 3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+#trafficCanvas{width:100%;height:120px}
+.app-list{display:flex;flex-direction:column;gap:10px}
+.app-item{display:flex;align-items:center;gap:16px;padding:14px 16px;background:rgba(232,228,220,0.01);border:1px solid rgba(184,149,106,0.04);transition:all 0.3s;cursor:pointer}
+.app-item:hover{background:rgba(232,228,220,0.02);border-color:rgba(184,149,106,0.1);transform:translateX(4px)}
+.app-icon{width:36px;height:36px;border-radius:6px;background:rgba(184,149,106,0.05);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;color:var(--bronze);font-family:'Cinzel',serif}
+.app-details{flex:1}
+.app-name{font-size:0.8rem;color:rgba(232,228,220,0.7);letter-spacing:0.02em;margin-bottom:2px;font-family:'Noto Serif SC',serif}
+.app-meta{font-size:0.65rem;color:rgba(232,228,220,0.2);font-family:'Courier Prime',monospace}
+.app-risk{font-family:'Courier Prime',monospace;font-size:0.85rem;padding:4px 10px;border-radius:2px;letter-spacing:0.05em}
+.app-risk.high{background:rgba(139,69,69,0.08);color:rgba(139,69,69,0.6);border:1px solid rgba(139,69,69,0.12)}
+.app-risk.mid{background:rgba(184,149,106,0.08);color:rgba(184,149,106,0.6);border:1px solid rgba(184,149,106,0.12)}
+.app-risk.low{background:rgba(90,122,106,0.08);color:rgba(90,122,106,0.6);border:1px solid rgba(90,122,106,0.12)}
+.app-add-btn{width:100%;padding:12px;text-align:center;background:rgba(232,228,220,0.01);border:1px dashed rgba(184,149,106,0.1);color:rgba(232,228,220,0.25);font-size:0.75rem;cursor:pointer;transition:all 0.3s;letter-spacing:0.1em;font-family:'Cinzel',serif}
+.app-add-btn:hover{background:rgba(232,228,220,0.02);border-color:rgba(184,149,106,0.2);color:rgba(232,228,220,0.4)}
+.app-add-btn:active{transform:scale(0.98)}
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:1px;background:rgba(184,149,106,0.06)}
+.timeline-item{position:relative;margin-bottom:24px;transition:all 0.3s}
+.timeline-item:hover{transform:translateX(4px)}
+.timeline-item::before{content:'';position:absolute;left:-24px;top:5px;width:7px;height:7px;border-radius:50%;border:1px solid rgba(184,149,106,0.2);background:var(--bg)}
+.timeline-item.success::before{border-color:rgba(90,122,106,0.4);background:rgba(90,122,106,0.1)}
+.timeline-item.alert::before{border-color:rgba(139,69,69,0.4);background:rgba(139,69,69,0.1)}
+.timeline-item.warn::before{border-color:rgba(184,149,106,0.4);background:rgba(184,149,106,0.1)}
+.timeline-time{font-size:0.65rem;color:rgba(232,228,220,0.15);font-family:'Courier Prime',monospace;margin-bottom:4px}
+.timeline-action{font-size:0.8rem;color:rgba(232,228,220,0.55);margin-bottom:2px;font-family:'Noto Serif SC',serif}
+.timeline-target{font-size:0.7rem;color:rgba(232,228,220,0.2);font-family:'Courier Prime',monospace}
+.arsenal-categories{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.arsenal-cat{padding:8px 18px;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;background:rgba(232,228,220,0.01);border:1px solid rgba(184,149,106,0.06);color:rgba(232,228,220,0.25);cursor:pointer;transition:all 0.3s;font-family:'Cinzel',serif}
+.arsenal-cat:hover{background:rgba(232,228,220,0.02);color:rgba(232,228,220,0.4)}
+.arsenal-cat.active{background:rgba(184,149,106,0.04);border-color:rgba(184,149,106,0.15);color:var(--bronze)}
+.arsenal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.tool-card{background:rgba(232,228,220,0.01);border:1px solid rgba(184,149,106,0.04);padding:20px;cursor:pointer;transition:all 0.4s;position:relative}
+.tool-card:hover{background:rgba(232,228,220,0.02);border-color:rgba(184,149,106,0.12);transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,0.2)}
+.tool-card:active{transform:translateY(-1px) scale(0.98)}
+.tool-card .tool-tag{font-size:0.6rem;padding:3px 10px;border:1px solid rgba(184,149,106,0.08);color:rgba(232,228,220,0.2);letter-spacing:0.1em;text-transform:uppercase;display:inline-block;margin-bottom:12px;font-family:'Cinzel',serif}
+.tool-card .tool-name{font-size:0.85rem;color:rgba(232,228,220,0.7);margin-bottom:6px;letter-spacing:0.02em;font-family:'Noto Serif SC',serif}
+.tool-card .tool-desc{font-size:0.7rem;color:rgba(232,228,220,0.2);line-height:1.5;font-family:'Cormorant Garamond',serif}
+.tool-card .tool-link{position:absolute;top:14px;right:14px;font-size:0.9rem;color:rgba(232,228,220,0.1);transition:color 0.3s}
+.tool-card:hover .tool-link{color:var(--bronze)}
+.settings-list{max-width:600px}
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid rgba(184,149,106,0.04);transition:all 0.3s}
+.setting-item:hover{padding-left:8px}
+.setting-info .setting-name{font-size:0.85rem;color:rgba(232,228,220,0.65);margin-bottom:4px;font-family:'Noto Serif SC',serif}
+.setting-info .setting-desc{font-size:0.75rem;color:rgba(232,228,220,0.2);font-family:'Cormorant Garamond',serif}
+.setting-action{padding:10px 24px;background:transparent;border:1px solid rgba(184,149,106,0.08);color:rgba(232,228,220,0.35);font-size:0.75rem;cursor:pointer;transition:all 0.3s;letter-spacing:0.05em;font-family:'Cinzel',serif}
+.setting-action:hover{background:rgba(232,228,220,0.02);border-color:rgba(184,149,106,0.15);color:rgba(232,228,220,0.5)}
+.setting-action:active{transform:scale(0.96)}
+.setting-action.danger{border-color:rgba(139,69,69,0.12);color:rgba(139,69,69,0.45)}
+.setting-action.danger:hover{background:rgba(139,69,69,0.03);border-color:rgba(139,69,69,0.2);color:rgba(139,69,69,0.6)}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,10,10,0.92);backdrop-filter:blur(24px);z-index:10000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.5s ease}
+.modal-overlay.show{display:flex;opacity:1}
+.modal-box{background:rgba(12,12,12,0.96);border:1px solid rgba(184,149,106,0.1);padding:40px;max-width:440px;width:90%;position:relative;transform:translateY(20px) scale(0.98);transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
+.modal-overlay.show .modal-box{transform:translateY(0) scale(1)}
+.modal-box h3{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:400;letter-spacing:0.15em;margin-bottom:8px;color:rgba(232,228,220,0.9)}
+.modal-box .modal-greek{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--bronze);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:24px;opacity:0.6}
+.modal-box p{font-size:0.85rem;color:rgba(232,228,220,0.3);margin-bottom:28px;line-height:1.8;font-family:'Noto Serif SC',serif}
+.modal-input{width:100%;padding:12px 14px;background:rgba(232,228,220,0.02);border:1px solid rgba(184,149,106,0.08);color:rgba(232,228,220,0.7);font-size:0.85rem;margin-bottom:18px;outline:none;transition:all 0.3s;font-family:'Courier Prime',monospace;letter-spacing:0.05em}
+.modal-input:focus{border-color:rgba(184,149,106,0.25);background:rgba(184,149,106,0.02)}
+.modal-input::placeholder{color:rgba(232,228,220,0.12)}
+.modal-btns{display:flex;gap:12px;justify-content:flex-end}
+.modal-btn{padding:10px 24px;background:transparent;border:1px solid rgba(184,149,106,0.1);color:rgba(232,228,220,0.4);font-size:0.8rem;cursor:pointer;transition:all 0.3s;letter-spacing:0.05em;font-family:'Cinzel',serif}
+.modal-btn:hover{background:rgba(232,228,220,0.02);border-color:rgba(184,149,106,0.2);color:rgba(232,228,220,0.6)}
+.modal-btn:active{transform:scale(0.96)}
+.modal-btn.primary{background:rgba(184,149,106,0.04);border-color:rgba(184,149,106,0.2);color:var(--bronze)}
+.modal-btn.primary:hover{background:rgba(184,149,106,0.06);border-color:rgba(184,149,106,0.3);color:var(--parchment)}
+#toast{position:fixed;bottom:48px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(10,10,10,0.9);border:1px solid rgba(184,149,106,0.12);color:rgba(232,228,220,0.6);padding:12px 28px;font-size:0.8rem;letter-spacing:0.1em;opacity:0;pointer-events:none;transition:all 0.5s cubic-bezier(0.4,0,0.2,1);z-index:20000;backdrop-filter:blur(10px);font-family:'Noto Serif SC',serif}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.ripple{position:relative;overflow:hidden}
+.ripple-effect{position:absolute;border-radius:50%;background:rgba(184,149,106,0.12);transform:scale(0);animation:ripple-anim 0.6s ease-out;pointer-events:none}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+@media(max-width:768px){.sidebar{width:64px;padding:24px 0}.sidebar-logo,.sidebar-greek,.sidebar-footer span{display:none}.nav-item{padding:16px 0;justify-content:center;border-left:none;border-bottom:2px solid transparent}.nav-item.active{border-left:none;border-bottom-color:rgba(184,149,106,0.4)}.nav-item span:last-child{display:none}.identity-card{flex-direction:column;text-align:center;gap:20px}.id-stats-row{justify-content:center;gap:28px}.overview-grid{grid-template-columns:1fr}.arsenal-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page-transition" id="pageTransition"></div>
+<div class="strings-bg" id="stringsBg"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo" data-i18n="sidebarLogo">OBELISK</div>
+    <div class="sidebar-greek" data-i18n="sidebarSub">Prism Archive</div>
+    <div class="nav-item active ripple" onclick="switchTab('overview')">
+      <span class="nav-icon">&#9632;</span><span data-i18n="navOverview">Overview</span>
+    </div>
+    <div class="nav-item ripple" onclick="switchTab('logs')">
+      <span class="nav-icon">&#9650;</span><span data-i18n="navLogs">Logs</span>
+    </div>
+    <div class="nav-item ripple" onclick="switchTab('arsenal')">
+      <span class="nav-icon">&#9670;</span><span data-i18n="navArsenal">Arsenal</span>
+    </div>
+    <div class="nav-item ripple" onclick="switchTab('settings')">
+      <span class="nav-icon">&#9679;</span><span data-i18n="navSettings">Settings</span>
+    </div>
+    <div class="sidebar-footer">
+      <a href="index.html" class="ripple" onclick="return goToMain()" data-i18n="returnLink">&#8592; Return</a>
+      <span>OBELISK &#183; 2026</span>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="identity-card">
+      <img class="id-avatar" id="idAvatar" src="" alt="avatar">
+      <div class="id-info">
+        <div class="id-name-row">
+          <div class="id-codename" id="idCodename">Initializing...</div>
+          <div class="id-badge" id="idBadge">INITIATE</div>
+        </div>
+        <div class="id-email" id="idEmail">--</div>
+        <div class="id-stats-row">
+          <div class="id-stat"><div class="id-stat-val bronze" id="statUptime">00:00:00</div><div class="id-stat-label" data-i18n="uptime">Uptime</div></div>
+          <div class="id-stat"><div class="id-stat-val" id="statScans">0</div><div class="id-stat-label" data-i18n="scans">Scans</div></div>
+          <div class="id-stat"><div class="id-stat-val sage" id="statIntercepts">0</div><div class="id-stat-label" data-i18n="intercepts">Intercepts</div></div>
+          <div class="id-stat"><div class="id-stat-val" id="statUnpacks">0</div><div class="id-stat-label" data-i18n="unpacks">Unpacks</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content active" id="tab-overview">
+      <div class="overview-grid">
+        <div class="glass-panel">
+          <div class="panel-header"><span data-i18n="panelTraffic">Live Traffic</span><span class="live-dot"></span></div>
+          <canvas id="trafficCanvas" width="400" height="120"></canvas>
+        </div>
+        <div class="glass-panel">
+          <div class="panel-header" data-i18n="panelApps">Recent Analysis</div>
+          <div class="app-list" id="appList"></div>
+          <div class="app-add-btn ripple" onclick="openAppModal()" data-i18n="addTarget">+ Add Target</div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-logs">
+      <div class="section-title" data-i18n="logsTitle">Activity Timeline</div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+    <div class="tab-content" id="tab-arsenal">
+      <div class="section-title" data-i18n="arsenalTitle">Reverse Arsenal</div>
+      <div class="arsenal-categories" id="arsenalCats">
+        <div class="arsenal-cat active ripple" data-cat="all" onclick="filterArsenal('all')" data-i18n="catAll">All</div>
+        <div class="arsenal-cat ripple" data-cat="hook" onclick="filterArsenal('hook')" data-i18n="catHook">Hook</div>
+        <div class="arsenal-cat ripple" data-cat="decompile" onclick="filterArsenal('decompile')" data-i18n="catDecompile">Decompile</div>
+        <div class="arsenal-cat ripple" data-cat="network" onclick="filterArsenal('network')" data-i18n="catNetwork">Network</div>
+        <div class="arsenal-cat ripple" data-cat="privacy" onclick="filterArsenal('privacy')" data-i18n="catPrivacy">Privacy</div>
+      </div>
+      <div class="arsenal-grid" id="arsenalGrid"></div>
+    </div>
+    <div class="tab-content" id="tab-settings">
+      <div class="section-title" data-i18n="settingsTitle">System Settings</div>
+      <div class="settings-list">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name" data-i18n="setCodename">Change Codename</div>
+            <div class="setting-desc" data-i18n="setCodenameDesc">Update your identity in the system</div>
+          </div>
+          <button class="setting-action ripple" onclick="openCodenameModal()" data-i18n="confirm">Change</button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name" data-i18n="langLabel">Language</div>
+            <div class="setting-desc" data-i18n="langDesc">Switch interface language</div>
+          </div>
+          <button class="setting-action ripple" id="langBtn" onclick="toggleLang()">中 / EN</button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name" data-i18n="setClear">Clear Local Data</div>
+            <div class="setting-desc" data-i18n="setClearDesc">Delete all analysis records (irreversible)</div>
+          </div>
+          <button class="setting-action danger ripple" onclick="clearAllData()" data-i18n="confirm">Clear</button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name" data-i18n="setLogout">Sign Out</div>
+            <div class="setting-desc" data-i18n="setLogoutDesc">Terminate session and return</div>
+          </div>
+          <button class="setting-action danger ripple" onclick="signOut()" data-i18n="confirm">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="modal-overlay" id="codenameModal">
+  <div class="modal-box">
+    <h3 data-i18n="codenameTitle">Set Codename</h3>
+    <div class="modal-greek" data-i18n="codenameGreek">Agent Identity</div>
+    <p data-i18n="codenameDesc">Your codename is your unique identifier. Cannot be changed freely.</p>
+    <input class="modal-input" id="codenameInput" data-i18n-placeholder="codenamePlaceholder" placeholder="e.g. Orpheus_07" maxlength="20">
+    <div class="modal-btns">
+      <button class="modal-btn ripple" onclick="closeCodenameModal()" data-i18n="cancel">Cancel</button>
+      <button class="modal-btn primary ripple" onclick="saveCodename()" data-i18n="confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="appModal">
+  <div class="modal-box">
+    <h3 data-i18n="appTitle">Add Target</h3>
+    <div class="modal-greek" data-i18n="appGreek">New Analysis</div>
+    <p data-i18n="appDesc">Record a new reverse engineering target.</p>
+    <input class="modal-input" id="appPkgInput" data-i18n-placeholder="pkgPlaceholder" placeholder="Package Name (com.example.app)">
+    <input class="modal-input" id="appPermInput" data-i18n-placeholder="permPlaceholder" placeholder="Permission Count (e.g. 12)" type="number">
+    <input class="modal-input" id="appRiskInput" data-i18n-placeholder="riskPlaceholder" placeholder="Risk Score (0-100)" type="number">
+    <div class="modal-btns">
+      <button class="modal-btn ripple" onclick="closeAppModal()" data-i18n="cancel">Cancel</button>
+      <button class="modal-btn primary ripple" onclick="saveApp()" data-i18n="confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+// ─── I18N ───
+window.OBELISK=window.OBELISK||{};
+OBELISK.i18n={
+  data:{"en":{"sidebarLogo":"OBELISK","sidebarSub":"Prism Archive","navOverview":"Overview","navLogs":"Logs","navArsenal":"Arsenal","navSettings":"Settings","returnLink":"← Return","identity":"Agent Identity","badgeInit":"INITIATE","badgeArchon":"ARCHON","badgeOracle":"ORACLE","uptime":"Uptime","scans":"Scans","intercepts":"Intercepts","unpacks":"Unpacks","panelTraffic":"Live Traffic","panelApps":"Recent Analysis","addTarget":"+ Add Target","logsTitle":"Activity Timeline","arsenalTitle":"Reverse Arsenal","catAll":"All","catHook":"Hook","catDecompile":"Decompile","catNetwork":"Network","catPrivacy":"Privacy","settingsTitle":"System Settings","setCodename":"Change Codename","setCodenameDesc":"Update your identity in the system","setClear":"Clear Local Data","setClearDesc":"Delete all analysis records (irreversible)","setLogout":"Sign Out","setLogoutDesc":"Terminate session and return","codenameTitle":"Set Codename","codenameGreek":"Agent Identity","codenameDesc":"Your codename is your unique identifier. Cannot be changed freely.","codenamePlaceholder":"e.g. Orpheus_07","cancel":"Cancel","confirm":"Confirm","appTitle":"Add Target","appGreek":"New Analysis","appDesc":"Record a new reverse engineering target.","pkgPlaceholder":"Package Name (com.example.app)","permPlaceholder":"Permission Count (e.g. 12)","riskPlaceholder":"Risk Score (0-100)","langLabel":"Language / 语言","langDesc":"Switch interface language","toastSet":"Codename set: ","toastNeedPkg":"Package name required","toastAdded":"Target added","toastCleared":"Data cleared","months":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]},"zh":{"sidebarLogo":"OBELISK","sidebarSub":"棱镜档案","navOverview":"概览","navLogs":"日志","navArsenal":"军火库","navSettings":"设置","returnLink":"← 返回主站","identity":"特工档案","badgeInit":"见习","badgeArchon":"执政官","badgeOracle":"先知","uptime":"运行时长","scans":"扫描","intercepts":"拦截","unpacks":"脱壳","panelTraffic":"实时流量监控","panelApps":"最近分析","addTarget":"+ 添加分析目标","logsTitle":"操作时间线","arsenalTitle":"逆向军火库","catAll":"全部","catHook":"注入","catDecompile":"反编译","catNetwork":"网络","catPrivacy":"隐私","settingsTitle":"系统设置","setCodename":"修改代号","setCodenameDesc":"更新你在系统中的身份标识","setClear":"清除本地数据","setClearDesc":"删除所有分析记录与日志（不可逆）","setLogout":"退出登录","setLogoutDesc":"终止当前会话并返回主站","codenameTitle":"设置代号","codenameGreek":"Agent Identity","codenameDesc":"代号是你在棱镜网络中的唯一身份标识，设置后不可随意更改。","codenamePlaceholder":"例如: Orpheus_07","cancel":"取消","confirm":"确认","appTitle":"添加分析目标","appGreek":"New Analysis","appDesc":"记录一个新的逆向分析对象。","pkgPlaceholder":"包名 (com.example.app)","permPlaceholder":"权限数量 (例如 12)","riskPlaceholder":"风险评分 (0-100)","langLabel":"语言 / Language","langDesc":"切换界面语言","toastSet":"代号已设置: ","toastNeedPkg":"包名不能为空","toastAdded":"分析目标已添加","toastCleared":"数据已清除","months":["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]}},
+  lang:localStorage.getItem('obelisk-lang')||'en',
+  t:function(k){return this.data[this.lang][k]||k;},
+  set:function(l){this.lang=l;localStorage.setItem('obelisk-lang',l);this.render();},
+  render:function(){
+    var self=this;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=self.t(el.getAttribute('data-i18n'));el.style.opacity=0.9;setTimeout(function(){el.style.opacity=1;},50);});
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){el.placeholder=self.t(el.getAttribute('data-i18n-placeholder'));el.style.opacity=0.9;setTimeout(function(){el.style.opacity=1;},50);});
+    var lb=document.getElementById('langBtn');if(lb)lb.textContent=self.lang==='en'?'中 / EN':'EN / 中';
+  }
+};
+function toggleLang(){var l=OBELISK.i18n.lang==='en'?'zh':'en';OBELISK.i18n.set(l);}
+
+// ─── Ripple ───
+document.querySelectorAll('.ripple').forEach(function(el){
+  el.addEventListener('click',function(e){
+    var rect=el.getBoundingClientRect();
+    var span=document.createElement('span');
+    span.className='ripple-effect';
+    var size=Math.max(rect.width,rect.height);
+    span.style.width=span.style.height=size+'px';
+    span.style.left=(e.clientX-rect.left-size/2)+'px';
+    span.style.top=(e.clientY-rect.top-size/2)+'px';
+    el.appendChild(span);
+    setTimeout(function(){span.remove();},600);
+  });
+});
+
+// ─── Page Transition ───
+window.addEventListener('load',function(){
+  setTimeout(function(){document.getElementById('pageTransition').classList.add('done');},100);
+  initStrings();
+});
+function goToMain(){
+  var trans=document.getElementById('pageTransition');
+  trans.classList.remove('done');
+  setTimeout(function(){location.href='index.html';},800);
+  return false;
+}
+function initStrings(){
+  var container=document.getElementById('stringsBg');
+  for(var i=0;i<5;i++){
+    var div=document.createElement('div');
+    div.className='string-line';
+    div.style.top=(20+i*15)+'%';
+    div.style.animationDelay=(i*1.5)+'s';
+    container.appendChild(div);
+  }
+}
+
+// ─── Firebase ───
+var firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(), db=firebase.firestore();
+var currentUser=null, userDocRef=null, logsCol=null, appsCol=null, arsenalCol=null;
+var uptimeInterval=null, loginTime=null;
+
+auth.onAuthStateChanged(function(user){
+  if(!user){location.href='index.html';return;}
+  currentUser=user;
+  document.getElementById('idAvatar').src=user.photoURL||'';
+  document.getElementById('idEmail').textContent=user.email||user.displayName||'unknown';
+  userDocRef=db.collection('users').doc(user.uid);
+  logsCol=userDocRef.collection('logs');
+  appsCol=userDocRef.collection('apps');
+  arsenalCol=userDocRef.collection('arsenal');
+  initProfile();
+});
+
+async function initProfile(){
+  var doc=await userDocRef.get();
+  if(!doc.exists){
+    loginTime=Date.now();
+    await userDocRef.set({codename:'',level:1,stats:{scans:0,intercepts:0,unpacks:0},loginTime:loginTime,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await logsCol.add({action:'system.login',target:'OBELISK Core',type:'success',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+    var defaultTools=[
+      {name:'Frida',url:'https://frida.re/',category:'hook',desc:'Dynamic instrumentation toolkit',icon:'F',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'Burp Suite',url:'https://portswigger.net/burp',category:'network',desc:'Web vulnerability scanner & proxy',icon:'B',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'JADX',url:'https://github.com/skylot/jadx',category:'decompile',desc:'Dex to Java decompiler',icon:'J',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'APKTool',url:'https://ibotpeaches.github.io/Apktool/',category:'decompile',desc:'Reverse engineering Android APK',icon:'A',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'Objection',url:'https://github.com/sensepost/objection',category:'hook',desc:'Runtime mobile exploration',icon:'O',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'Wireshark',url:'https://www.wireshark.org/',category:'network',desc:'Network protocol analyzer',icon:'W',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'Ghidra',url:'https://ghidra-sre.org/',category:'decompile',desc:'Software reverse engineering suite',icon:'G',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'Tor Browser',url:'https://www.torproject.org/',category:'privacy',desc:'Anonymous browsing & onion routing',icon:'T',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'MobSF',url:'https://mobsf.github.io/',category:'privacy',desc:'Mobile Security Framework',icon:'M',addedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {name:'IDA Pro',url:'https://hex-rays.com/ida-pro/',category:'decompile',desc:'The state-of-the-art disassembler',icon:'I',addedAt:firebase.firestore.FieldValue.serverTimestamp()}
+    ];
+    for(var tool of defaultTools){await arsenalCol.add(tool);}
+    await appsCol.add({packageName:'com.example.target',permissions:12,riskScore:87,lastScan:'2026-06-11',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+    setTimeout(function(){openCodenameModal();},800);
+  }else{
+    var data=doc.data();
+    loginTime=data.loginTime||Date.now();
+    document.getElementById('idCodename').textContent=data.codename||'Unknown';
+    var badgeMap={1:OBELISK.i18n.t('badgeInit'),2:OBELISK.i18n.t('badgeArchon'),3:OBELISK.i18n.t('badgeOracle')};
+    document.getElementById('idBadge').textContent=badgeMap[data.level]||badgeMap[1];
+    document.getElementById('statScans').textContent=data.stats?.scans||0;
+    document.getElementById('statIntercepts').textContent=data.stats?.intercepts||0;
+    document.getElementById('statUnpacks').textContent=data.stats?.unpacks||0;
+    if(!data.codename){setTimeout(function(){openCodenameModal();},800);}
+  }
+  startUptime();
+  loadApps();
+  loadLogs();
+  loadArsenal();
+  startTrafficChart();
+  OBELISK.i18n.render();
+}
+
+function startUptime(){
+  if(uptimeInterval)clearInterval(uptimeInterval);
+  uptimeInterval=setInterval(function(){
+    var diff=Math.floor((Date.now()-loginTime)/1000);
+    var h=String(Math.floor(diff/3600)).padStart(2,'0');
+    var m=String(Math.floor((diff%3600)/60)).padStart(2,'0');
+    var s=String(diff%60).padStart(2,'0');
+    document.getElementById('statUptime').textContent=h+':'+m+':'+s;
+  },1000);
+}
+
+function openCodenameModal(){document.getElementById('codenameModal').classList.add('show');document.getElementById('codenameInput').focus();}
+function closeCodenameModal(){document.getElementById('codenameModal').classList.remove('show');}
+async function saveCodename(){
+  var val=document.getElementById('codenameInput').value.trim();
+  if(!val){showToast(OBELISK.i18n.t('toastNeedPkg'));return;}
+  await userDocRef.update({codename:val});
+  document.getElementById('idCodename').textContent=val;
+  closeCodenameModal();
+  showToast(OBELISK.i18n.t('toastSet')+val);
+  await logsCol.add({action:'profile.codename.set',target:val,type:'success',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+  loadLogs();
+}
+
+function switchTab(name){
+  document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active');});
+  event.currentTarget.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+async function loadApps(){
+  var snap=await appsCol.orderBy('timestamp','desc').limit(5).get();
+  var list=document.getElementById('appList');
+  list.innerHTML='';
+  snap.forEach(function(doc){
+    var d=doc.data();
+    var riskClass=d.riskScore>=70?'high':(d.riskScore>=40?'mid':'low');
+    var riskLabel=d.riskScore>=70?'HIGH':(d.riskScore>=40?'MID':'LOW');
+    var div=document.createElement('div');
+    div.className='app-item';
+    div.innerHTML='<div class="app-icon">&#937;</div><div class="app-details"><div class="app-name">'+d.packageName+'</div><div class="app-meta">'+d.permissions+' permissions &middot; '+d.lastScan+'</div></div><div class="app-risk '+riskClass+'">'+riskLabel+' '+d.riskScore+'</div>';
+    list.appendChild(div);
+  });
+}
+function openAppModal(){document.getElementById('appModal').classList.add('show');}
+function closeAppModal(){document.getElementById('appModal').classList.remove('show');}
+async function saveApp(){
+  var pkg=document.getElementById('appPkgInput').value.trim();
+  var perm=parseInt(document.getElementById('appPermInput').value)||0;
+  var risk=parseInt(document.getElementById('appRiskInput').value)||0;
+  if(!pkg){showToast(OBELISK.i18n.t('toastNeedPkg'));return;}
+  await appsCol.add({packageName:pkg,permissions:perm,riskScore:risk,lastScan:new Date().toISOString().slice(0,10),timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+  await userDocRef.update({'stats.scans':firebase.firestore.FieldValue.increment(1)});
+  document.getElementById('statScans').textContent=parseInt(document.getElementById('statScans').textContent)+1;
+  closeAppModal();
+  loadApps();
+  showToast(OBELISK.i18n.t('toastAdded'));
+  await logsCol.add({action:'app.scan',target:pkg,type:'success',timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+  loadLogs();
+}
+
+async function loadLogs(){
+  var snap=await logsCol.orderBy('timestamp','desc').limit(50).get();
+  var container=document.getElementById('timeline');
+  container.innerHTML='';
+  snap.forEach(function(doc){
+    var d=doc.data();
+    var t=d.timestamp?d.timestamp.toDate().toLocaleString('zh-CN'):'--';
+    var type=d.type||'success';
+    var div=document.createElement('div');
+    div.className='timeline-item '+type;
+    div.innerHTML='<div class="timeline-time">['+t+']</div><div class="timeline-action">'+d.action+'</div><div class="timeline-target">&#8594; '+d.target+'</div>';
+    container.appendChild(div);
+  });
+}
+
+var arsenalData=[];
+async function loadArsenal(){
+  var snap=await arsenalCol.orderBy('addedAt','desc').get();
+  arsenalData=[];
+  snap.forEach(function(doc){arsenalData.push(doc.data());});
+  renderArsenal('all');
+}
+function filterArsenal(cat){
+  document.querySelectorAll('.arsenal-cat').forEach(function(el){el.classList.remove('active');});
+  event.target.classList.add('active');
+  renderArsenal(cat);
+}
+function renderArsenal(cat){
+  var grid=document.getElementById('arsenalGrid');
+  grid.innerHTML='';
+  arsenalData.forEach(function(tool){
+    if(cat!=='all'&&tool.category!==cat)return;
+    var div=document.createElement('div');
+    div.className='tool-card ripple';
+    div.onclick=function(){window.open(tool.url,'_blank');};
+    div.innerHTML='<span class="tool-tag">'+tool.category+'</span><div class="tool-link">&#8599;</div><div class="tool-name">'+tool.name+'</div><div class="tool-desc">'+tool.desc+'</div>';
+    grid.appendChild(div);
+  });
+}
+
+async function clearAllData(){
+  if(!confirm('Confirm clear all data?'))return;
+  var batch=db.batch();
+  var logsSnap=await logsCol.get();
+  logsSnap.forEach(function(d){batch.delete(d.ref);});
+  var appsSnap=await appsCol.get();
+  appsSnap.forEach(function(d){batch.delete(d.ref);});
+  await batch.commit();
+  await userDocRef.update({stats:{scans:0,intercepts:0,unpacks:0}});
+  document.getElementById('statScans').textContent='0';
+  document.getElementById('statIntercepts').textContent='0';
+  document.getElementById('statUnpacks').textContent='0';
+  loadApps();loadLogs();
+  showToast(OBELISK.i18n.t('toastCleared'));
+}
+function signOut(){auth.signOut().then(function(){location.href='index.html';});}
+
+function startTrafficChart(){
+  var canvas=document.getElementById('trafficCanvas'), ctx=canvas.getContext('2d');
+  var points=[];
+  for(var i=0;i<60;i++)points.push(50+Math.random()*40);
+  function draw(){
+    var w=canvas.width,h=canvas.height;
+    points.shift();
+    points.push(50+Math.random()*40+Math.sin(Date.now()/200)*10);
+    ctx.clearRect(0,0,w,h);
+    ctx.beginPath();ctx.moveTo(0,h-points[0]);
+    for(var i=1;i<points.length;i++){ctx.lineTo((i/(points.length-1))*w,h-points[i]);}
+    ctx.strokeStyle='rgba(184,149,106,0.35)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();
+    ctx.fillStyle='rgba(184,149,106,0.03)';ctx.fill();
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+</script>
+</body>
+</html>
