@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBELISK | Prism Profile</title>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #000;
+            --fg: #e0e0e5;
+            --muted: rgba(255,255,255,0.3);
+            --dim: rgba(255,255,255,0.1);
+            --accent: rgba(100,255,150,0.6);
+            --accent2: rgba(80,180,255,0.6);
+            --danger: rgba(255,80,80,0.6);
+            --glass: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.08);
+        }
+        html, body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        /* ─── Background Canvas ─── */
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─── Top Bar ─── */
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .logo:hover { opacity: 1; color: #fff; }
+        .top-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .icon-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+        }
+
+        /* ─── Container ─── */
+        .container {
+            position: relative;
+            z-index: 5;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ─── Identity Card ─── */
+        .id-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: transform 0.4s, border-color 0.4s;
+        }
+        .id-card:hover {
+            border-color: rgba(255,255,255,0.15);
+        }
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(100,255,150,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .id-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            object-fit: cover;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
+        .id-info { flex: 1; position: relative; z-index: 2; }
+        .id-name {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .id-codename {
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 12px;
+        }
+        .id-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+        .id-meta span { display: flex; align-items: center; gap: 6px; }
+        .id-meta .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100%{opacity:0.4} 50%{opacity:1}
+        }
+
+        /* ─── Level System ─── */
+        .level-section {
+            margin-top: 24px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 32px 40px;
+            backdrop-filter: blur(20px);
+            transition: border-color 0.4s;
+        }
+        .level-section:hover { border-color: rgba(255,255,255,0.15); }
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+        }
+        .level-title {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+        }
+        .level-badge {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+        }
+        .xp-bar-wrap {
+            position: relative;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+            position: relative;
+        }
+        .xp-bar::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        }
+        .xp-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ─── Tab Nav ─── */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            margin-top: 32px;
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+        }
+        .tab-btn {
+            padding: 14px 28px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            font-family: inherit;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.6); }
+        .tab-btn.active {
+            color: #fff;
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+        .tab-indicator {
+            position: absolute;
+            bottom: -1px;
+            height: 1px;
+            background: var(--accent);
+            transition: left 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* ─── Tab Panels ─── */
+        .tab-panels { position: relative; min-height: 400px; }
+        .tab-panel {
+            display: none;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.5s, transform 0.5s;
+            padding-top: 24px;
+        }
+        .tab-panel.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ─── Dashboard Grid ─── */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .dash-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: transform 0.4s, border-color 0.4s;
+        }
+        .dash-card:hover {
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+        .dash-label {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .dash-value {
+            font-size: 1.6rem;
+            font-weight: 300;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            letter-spacing: -0.02em;
+        }
+        .dash-sub {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .dash-canvas {
+            width: 100%;
+            height: 80px;
+            margin-top: 8px;
+        }
+        .gauge-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+        }
+        .gauge-svg {
+            width: 70px; height: 70px;
+            transform: rotate(-90deg);
+        }
+        .gauge-track { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 4; }
+        .gauge-fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round;
+            stroke-dasharray: 176; stroke-dashoffset: 176;
+            transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        .gauge-text {
+            position: absolute;
+            font-size: 0.75rem;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+        .dash-card.wide { grid-column: span 2; }
+        .dash-card.full { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .dash-grid { grid-template-columns: 1fr; }
+            .dash-card.wide, .dash-card.full { grid-column: span 1; }
+            .id-card { flex-direction: column; text-align: center; padding: 24px; }
+            .top-bar { padding: 16px 20px; }
+            .tab-btn { padding: 12px 16px; font-size: 0.65rem; }
+        }
+
+        /* ─── Arsenal ─── */
+        .arsenal-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .arsenal-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .arsenal-item:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.05);
+        }
+        .arsenal-item::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 2px; height: 0;
+            background: var(--accent);
+            transition: height 0.4s;
+        }
+        .arsenal-item:hover::after { height: 100%; }
+        .arsenal-name {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .arsenal-cat {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .arsenal-desc {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.5;
+        }
+        .add-tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            grid-column: 1 / -1;
+            margin-top: 8px;
+        }
+        .add-tool-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.03);
+        }
+        @media (max-width: 768px) {
+            .arsenal-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .arsenal-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ─── Recent Apps ─── */
+        .app-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .app-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .app-item:hover {
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.04);
+            transform: translateX(4px);
+        }
+        .app-icon {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .app-info { flex: 1; }
+        .app-name {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.02em;
+            margin-bottom: 2px;
+        }
+        .app-pkg {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            font-family: 'Courier New', monospace;
+        }
+        .app-meta {
+            text-align: right;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Courier New', monospace;
+        }
+        .app-risk {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            margin-left: 6px;
+        }
+        .risk-high { background: var(--danger); }
+        .risk-mid { background: rgba(255,200,80,0.7); }
+        .risk-low { background: var(--accent); }
+
+        /* ─── Activity Log ─── */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+        }
+        .log-entry {
+            position: relative;
+            padding: 16px 0;
+            padding-left: 20px;
+            transition: all 0.3s;
+        }
+        .log-entry:hover { background: rgba(255,255,255,0.02); }
+        .log-entry::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 22px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 1px solid var(--accent);
+            transition: all 0.3s;
+        }
+        .log-entry:hover::before {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+        .log-time {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 4px;
+        }
+        .log-action {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.02em;
+            line-height: 1.5;
+        }
+        .log-type {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ─── Settings ─── */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 600px;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+        .setting-row:hover {
+            border-color: rgba(255,255,255,0.15);
+        }
+        .setting-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.05em;
+        }
+        .setting-desc {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            margin-top: 4px;
+        }
+        .lang-toggle {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--glass-border);
+        }
+        .lang-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .lang-btn.active {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .lang-btn:hover:not(.active) {
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* ─── Modal ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(30px);
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-box {
+            background: rgba(8,8,8,0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+        .modal-box h3 {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .modal-input:focus { border-color: var(--accent); }
+        .modal-input::placeholder { color: rgba(255,255,255,0.2); }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .modal-btn.primary {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .modal-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: #fff;
+        }
+        .modal-btn.primary:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        /* ─── Animations ─── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeInUp 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="top-bar">
+        <div class="logo" onclick="location.href='index.html'" data-i18n="nav_back">← OBELISK</div>
+        <div class="top-actions">
+            <button class="icon-btn" onclick="toggleLang()" title="Language">&#127760;</button>
+            <button class="icon-btn" onclick="logout()" title="Logout">&#9099;</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Identity Card -->
+        <div class="id-card animate-in delay-1">
+            <img class="id-avatar" id="idAvatar" src="" alt="avatar">
+            <div class="id-info">
+                <div class="id-name" id="idName">Unknown</div>
+                <div class="id-codename" id="idCodename">CODENAME: UNSET</div>
+                <div class="id-meta">
+                    <span><span class="dot"></span> <span data-i18n="status_active">Active</span></span>
+                    <span id="idRole" data-i18n="role_analyst">Analyst</span>
+                    <span id="idJoin">2026.06.11</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level System -->
+        <div class="level-section animate-in delay-2">
+            <div class="level-header">
+                <div class="level-title" data-i18n="level_title">System Clearance</div>
+                <div class="level-badge" id="levelBadge">LV.01</div>
+            </div>
+            <div class="xp-bar-wrap">
+                <div class="xp-bar" id="xpBar"></div>
+            </div>
+            <div class="xp-text">
+                <span id="xpCurrent">0 XP</span>
+                <span id="xpMax">1000 XP</span>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav animate-in delay-3">
+            <button class="tab-btn active" onclick="switchTab(0)" data-i18n="tab_dashboard">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab(1)" data-i18n="tab_arsenal">Arsenal</button>
+            <button class="tab-btn" onclick="switchTab(2)" data-i18n="tab_recent">Recent</button>
+            <button class="tab-btn" onclick="switchTab(3)" data-i18n="tab_logs">Logs</button>
+            <button class="tab-btn" onclick="switchTab(4)" data-i18n="tab_settings">Settings</button>
+            <div class="tab-indicator" id="tabIndicator"></div>
+        </div>
+
+        <div class="tab-panels animate-in delay-4">
+            <!-- Dashboard -->
+            <div class="tab-panel active" id="panel-dashboard">
+                <div class="dash-grid">
+                    <div class="dash-card wide">
+                        <div class="dash-label" data-i18n="dash_traffic">Network Traffic</div>
+                        <canvas class="dash-canvas" id="trafficCanvas"></canvas>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-label" data-i18n="dash_hooks">Hooks Intercepted</div>
+                        <div class="dash-value" id="hookCount">0</div>
+                        <div class="dash-sub" data-i18n="dash_hooks_sub">real-time</div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-label" data-i18n="dash_risk">Risk Score</div>
+                        <div class="gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 60 60">
+                                <circle class="gauge-track" cx="30" cy="30" r="28"/>
+                                <circle class="gauge-fill" id="riskGauge" cx="30" cy="30" r="28"/>
+                            </svg>
+                            <span class="gauge-text" id="riskText">0%</span>
+                        </div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-label" data-i18n="dash_packets">Packets Captured</div>
+                        <div class="dash-value" id="packetCount">0</div>
+                        <div class="dash-sub" data-i18n="dash_packets_sub">today</div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-label" data-i18n="dash_scans">Scans Completed</div>
+                        <div class="dash-value" id="scanCount">0</div>
+                        <div class="dash-sub" data-i18n="dash_scans_sub">this week</div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-label" data-i18n="dash_nodes">Active Nodes</div>
+                        <div class="dash-value" id="nodeCount">0</div>
+                        <div class="dash-sub" data-i18n="dash_nodes_sub">live</div>
+                    </div>
+                    <div class="dash-card full">
+                        <div class="dash-label" data-i18n="dash_load">System Load</div>
+                        <canvas class="dash-canvas" id="loadCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arsenal -->
+            <div class="tab-panel" id="panel-arsenal">
+                <div class="arsenal-grid" id="arsenalGrid"></div>
+                <button class="add-tool-btn" onclick="openAddTool()" data-i18n="arsenal_add">+ Add Tool</button>
+            </div>
+
+            <!-- Recent Apps -->
+            <div class="tab-panel" id="panel-recent">
+                <div class="app-list" id="appList"></div>
+            </div>
+
+            <!-- Activity Logs -->
+            <div class="tab-panel" id="panel-logs">
+                <div class="timeline" id="timeline"></div>
+            </div>
+
+            <!-- Settings -->
+            <div class="tab-panel" id="panel-settings">
+                <div class="settings-list">
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label" data-i18n="set_codename">Codename</div>
+                            <div class="setting-desc" data-i18n="set_codename_desc">Your operative alias</div>
+                        </div>
+                        <button class="modal-btn" onclick="openCodenameModal()" data-i18n="btn_edit">Edit</button>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label" data-i18n="set_lang">Language</div>
+                            <div class="setting-desc" data-i18n="set_lang_desc">Interface language</div>
+                        </div>
+                        <div class="lang-toggle">
+                            <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+                            <button class="lang-btn" id="langCn" onclick="setLang('zh')">CN</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label" data-i18n="set_data">Data Persistence</div>
+                            <div class="setting-desc" data-i18n="set_data_desc">Synced to Firestore</div>
+                        </div>
+                        <span style="font-size:0.7rem;color:var(--accent);font-family:monospace;" data-i18n="status_on">ON</span>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label" data-i18n="set_clear">Clear Local Data</div>
+                            <div class="setting-desc" data-i18n="set_clear_desc">Reset profile cache</div>
+                        </div>
+                        <button class="modal-btn" onclick="clearLocalData()" data-i18n="btn_clear">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Codename Modal -->
+    <div class="modal-overlay" id="codenameModal">
+        <div class="modal-box">
+            <h3 data-i18n="modal_codename">Set Codename</h3>
+            <input class="modal-input" id="codenameInput" placeholder="e.g. PHANTOM-7" maxlength="20">
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeCodenameModal()" data-i18n="btn_cancel">Cancel</button>
+                <button class="modal-btn primary" onclick="saveCodename()" data-i18n="btn_save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Tool Modal -->
+    <div class="modal-overlay" id="toolModal">
+        <div class="modal-box">
+            <h3 data-i18n="modal_tool">Add Tool</h3>
+            <input class="modal-input" id="toolName" placeholder="Tool Name" maxlength="30">
+            <input class="modal-input" id="toolCat" placeholder="Category" maxlength="20">
+            <input class="modal-input" id="toolDesc" placeholder="Description" maxlength="60">
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeToolModal()" data-i18n="btn_cancel">Cancel</button>
+                <button class="modal-btn primary" onclick="saveTool()" data-i18n="btn_save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── i18n ───
+        const i18n = {
+            en: {
+                nav_back: "← OBELISK",
+                status_active: "Active",
+                role_analyst: "Analyst",
+                level_title: "System Clearance",
+                tab_dashboard: "Dashboard",
+                tab_arsenal: "Arsenal",
+                tab_recent: "Recent",
+                tab_logs: "Logs",
+                tab_settings: "Settings",
+                dash_traffic: "Network Traffic",
+                dash_hooks: "Hooks Intercepted",
+                dash_hooks_sub: "real-time",
+                dash_risk: "Risk Score",
+                dash_packets: "Packets Captured",
+                dash_packets_sub: "today",
+                dash_scans: "Scans Completed",
+                dash_scans_sub: "this week",
+                dash_nodes: "Active Nodes",
+                dash_nodes_sub: "live",
+                dash_load: "System Load",
+                arsenal_add: "+ Add Tool",
+                set_codename: "Codename",
+                set_codename_desc: "Your operative alias",
+                set_lang: "Language",
+                set_lang_desc: "Interface language",
+                set_data: "Data Persistence",
+                set_data_desc: "Synced to Firestore",
+                set_clear: "Clear Local Data",
+                set_clear_desc: "Reset profile cache",
+                btn_edit: "Edit",
+                btn_clear: "Clear",
+                btn_cancel: "Cancel",
+                btn_save: "Save",
+                modal_codename: "Set Codename",
+                modal_tool: "Add Tool",
+                status_on: "ON",
+                log_auth: "Authenticated via Google",
+                log_init: "Profile initialized",
+                log_levelup: "Level up",
+                log_tool: "Added tool to arsenal",
+                log_scan: "Scan completed",
+                empty_apps: "No recent analysis targets",
+                empty_logs: "No activity recorded"
+            },
+            zh: {
+                nav_back: "← 返回主站",
+                status_active: "在线",
+                role_analyst: "分析员",
+                level_title: "系统权限等级",
+                tab_dashboard: "仪表盘",
+                tab_arsenal: "军火库",
+                tab_recent: "最近分析",
+                tab_logs: "活动日志",
+                tab_settings: "系统设置",
+                dash_traffic: "网络流量",
+                dash_hooks: "Hook 拦截数",
+                dash_hooks_sub: "实时",
+                dash_risk: "风险评分",
+                dash_packets: "数据包捕获",
+                dash_packets_sub: "今日",
+                dash_scans: "扫描完成数",
+                dash_scans_sub: "本周",
+                dash_nodes: "活跃节点",
+                dash_nodes_sub: "在线",
+                dash_load: "系统负载",
+                arsenal_add: "+ 添加工具",
+                set_codename: "代号",
+                set_codename_desc: "你的行动代号",
+                set_lang: "语言",
+                set_lang_desc: "界面语言",
+                set_data: "数据持久化",
+                set_data_desc: "已同步至 Firestore",
+                set_clear: "清除本地数据",
+                set_clear_desc: "重置个人档案缓存",
+                btn_edit: "编辑",
+                btn_clear: "清除",
+                btn_cancel: "取消",
+                btn_save: "保存",
+                modal_codename: "设置代号",
+                modal_tool: "添加工具",
+                status_on: "开启",
+                log_auth: "通过 Google 认证",
+                log_init: "档案初始化完成",
+                log_levelup: "等级提升",
+                log_tool: "添加工具到军火库",
+                log_scan: "扫描完成",
+                empty_apps: "暂无近期分析目标",
+                empty_logs: "暂无活动记录"
+            }
+        };
+        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('obelisk_lang', lang);
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langCn').classList.toggle('active', lang === 'zh');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key]) el.textContent = i18n[lang][key];
+            });
+        }
+        function toggleLang() {
+            setLang(currentLang === 'en' ? 'zh' : 'en');
+        }
+
+        // ─── Firebase ───
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
+            authDomain: "obelisk-ca117.firebaseapp.com",
+            projectId: "obelisk-ca117",
+            storageBucket: "obelisk-ca117.firebasestorage.app",
+            messagingSenderId: "574365252836",
+            appId: "1:574365252836:web:f8c21cc4cb1bdcd46480f1",
+            measurementId: "G-D0P8QL36G8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+        let userData = null;
+
+        const defaultArsenal = [
+            { name: "Frida", cat: "Instrumentation", desc: "Dynamic code injection & runtime manipulation" },
+            { name: "Burp Suite", cat: "Proxy", desc: "Web proxy & HTTPS traffic interception" },
+            { name: "JADX", cat: "Decompiler", desc: "Dex to Java decompiler with GUI" },
+            { name: "Apktool", cat: "Reverse", desc: "APK reverse engineering & rebuild" },
+            { name: "Objection", cat: "Runtime", desc: "Mobile runtime exploration toolkit" },
+            { name: "Magisk", cat: "Root", desc: "Root & module framework for Android" },
+            { name: "Termux", cat: "Terminal", desc: "Linux terminal emulator for Android" },
+            { name: "Ghidra", cat: "RE", desc: "Software reverse engineering suite by NSA" },
+            { name: "Wireshark", cat: "Network", desc: "Network protocol analyzer & sniffer" },
+            { name: "Nuclei", cat: "Scanner", desc: "Fast vulnerability scanner with templates" }
+        ];
+        const defaultApps = [
+            { name: "TikTok", pkg: "com.zhiliaoapp.musically", date: "2026-06-10", risk: "high" },
+            { name: "WeChat", pkg: "com.tencent.mm", date: "2026-06-09", risk: "mid" },
+            { name: "Chrome", pkg: "com.android.chrome", date: "2026-06-08", risk: "low" }
+        ];
+        const defaultLogs = [
+            { action: "log_auth", type: "AUTH", time: Date.now() - 86400000 },
+            { action: "log_init", type: "SYSTEM", time: Date.now() - 80000000 }
+        ];
+
+        // ─── Auth ───
+        auth.onAuthStateChanged(function(user) {
+            if (!user) {
+                location.href = 'index.html';
+                return;
+            }
+            currentUser = user;
+            document.getElementById('idAvatar').src = user.photoURL || '';
+            document.getElementById('idName').textContent = user.displayName || 'Unknown';
+            document.getElementById('idJoin').textContent = new Date(user.metadata.creationTime).toISOString().slice(0,10).replace(/-/g,'.');
+            loadUserData();
+        });
+
+        function logout() {
+            auth.signOut().then(function() {
+                location.href = 'index.html';
+            });
+        }
+
+        // ─── Firestore Data ───
+        function loadUserData() {
+            const uid = currentUser.uid;
+            db.collection('users').doc(uid).get().then(function(doc) {
+                if (doc.exists) {
+                    userData = doc.data();
+                } else {
+                    userData = {
+                        codename: "",
+                        level: 1,
+                        xp: 0,
+                        maxXp: 1000,
+                        language: currentLang,
+                        arsenal: defaultArsenal,
+                        recentApps: defaultApps,
+                        logs: defaultLogs,
+                        stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
+                    };
+                    db.collection('users').doc(uid).set(userData);
+                }
+                if (!userData.codename) {
+                    openCodenameModal();
+                }
+                renderAll();
+            }).catch(function(err) {
+                console.error('[OBELISK] Firestore load error:', err);
+                // fallback to local
+                userData = JSON.parse(localStorage.getItem('obelisk_profile') || '{}');
+                if (!userData.codename) userData = {
+                    codename: "", level: 1, xp: 0, maxXp: 1000, language: currentLang,
+                    arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs,
+                    stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
+                };
+                renderAll();
+            });
+        }
+
+        function saveUserData() {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            db.collection('users').doc(uid).set(userData, { merge: true }).catch(function(err) {
+                console.error('[OBELISK] Firestore save error:', err);
+            });
+            localStorage.setItem('obelisk_profile', JSON.stringify(userData));
+        }
+
+        // ─── Render ───
+        function renderAll() {
+            if (!userData) return;
+            document.getElementById('idCodename').textContent = 'CODENAME: ' + (userData.codename || 'UNSET');
+            setLang(userData.language || currentLang);
+            renderLevel();
+            renderArsenal();
+            renderApps();
+            renderLogs();
+            renderDashboard();
+        }
+
+        function renderLevel() {
+            const lvl = userData.level || 1;
+            const xp = userData.xp || 0;
+            const max = userData.maxXp || 1000;
+            document.getElementById('levelBadge').textContent = 'LV.' + String(lvl).padStart(2, '0');
+            document.getElementById('xpCurrent').textContent = xp + ' XP';
+            document.getElementById('xpMax').textContent = max + ' XP';
+            setTimeout(function() {
+                document.getElementById('xpBar').style.width = (xp / max * 100) + '%';
+            }, 300);
+        }
+
+        function renderArsenal() {
+            const grid = document.getElementById('arsenalGrid');
+            grid.innerHTML = '';
+            (userData.arsenal || []).forEach(function(tool, idx) {
+                const div = document.createElement('div');
+                div.className = 'arsenal-item';
+                div.innerHTML = '<div class="arsenal-name">' + tool.name + '</div><div class="arsenal-cat">' + tool.cat + '</div><div class="arsenal-desc">' + tool.desc + '</div>';
+                div.onclick = function() { showToast(tool.name + ' selected'); };
+                grid.appendChild(div);
+            });
+        }
+
+        function renderApps() {
+            const list = document.getElementById('appList');
+            list.innerHTML = '';
+            const apps = userData.recentApps || [];
+            if (apps.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_apps">' + i18n[currentLang].empty_apps + '</div>';
+                return;
+            }
+            apps.forEach(function(app) {
+                const div = document.createElement('div');
+                div.className = 'app-item';
+                const riskClass = 'risk-' + (app.risk || 'low');
+                div.innerHTML = '<div class="app-icon">&#9670;</div><div class="app-info"><div class="app-name">' + app.name + '</div><div class="app-pkg">' + app.pkg + '</div></div><div class="app-meta">' + app.date + '<span class="app-risk ' + riskClass + '"></span></div>';
+                list.appendChild(div);
+            });
+        }
+
+        function renderLogs() {
+            const tl = document.getElementById('timeline');
+            tl.innerHTML = '';
+            const logs = userData.logs || [];
+            if (logs.length === 0) {
+                tl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_logs">' + i18n[currentLang].empty_logs + '</div>';
+                return;
+            }
+            logs.slice().reverse().forEach(function(log) {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                const date = new Date(log.time).toLocaleString();
+                const actionText = i18n[currentLang][log.action] || log.action;
+                div.innerHTML = '<div class="log-time">' + date + '</div><div class="log-action">' + actionText + '</div><div class="log-type">' + log.type + '</div>';
+                tl.appendChild(div);
+            });
+        }
+
+        function renderDashboard() {
+            const stats = userData.stats || { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 };
+            document.getElementById('hookCount').textContent = stats.hooks || 0;
+            document.getElementById('packetCount').textContent = stats.packets || 0;
+            document.getElementById('scanCount').textContent = stats.scans || 0;
+            document.getElementById('nodeCount').textContent = stats.nodes || 0;
+            const risk = Math.min(stats.risk || 0, 100);
+            document.getElementById('riskText').textContent = risk + '%';
+            const circumference = 2 * Math.PI * 28;
+            document.getElementById('riskGauge').style.strokeDashoffset = circumference * (1 - risk / 100);
+        }
+
+        // ─── Tabs ───
+        let currentTab = 0;
+        function switchTab(idx) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const panels = document.querySelectorAll('.tab-panel');
+            const indicator = document.getElementById('tabIndicator');
+            tabs[currentTab].classList.remove('active');
+            panels[currentTab].classList.remove('active');
+            currentTab = idx;
+            tabs[currentTab].classList.add('active');
+            panels[currentTab].classList.add('active');
+            const rect = tabs[currentTab].getBoundingClientRect();
+            const parent = tabs[currentTab].parentElement.getBoundingClientRect();
+            indicator.style.left = (rect.left - parent.left) + 'px';
+            indicator.style.width = rect.width + 'px';
+            if (idx === 0) startDashboardAnim();
+        }
+        window.addEventListener('load', function() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const indicator = document.getElementById('tabIndicator');
+            const rect = tabs[0].getBoundingClientRect();
+            const parent = tabs[0].parentElement.getBoundingClientRect();
+            indicator.style.left = (rect.left - parent.left) + 'px';
+            indicator.style.width = rect.width + 'px';
+            startDashboardAnim();
+        });
+
+        // ─── Modals ───
+        function openCodenameModal() {
+            document.getElementById('codenameModal').classList.add('show');
+            document.getElementById('codenameInput').value = userData.codename || '';
+        }
+        function closeCodenameModal() {
+            document.getElementById('codenameModal').classList.remove('show');
+        }
+        function saveCodename() {
+            const val = document.getElementById('codenameInput').value.trim();
+            if (!val) return;
+            userData.codename = val;
+            userData.xp = (userData.xp || 0) + 50;
+            if (userData.xp >= (userData.maxXp || 1000)) {
+                userData.level = (userData.level || 1) + 1;
+                userData.xp = userData.xp - (userData.maxXp || 1000);
+                userData.maxXp = Math.floor((userData.maxXp || 1000) * 1.2);
+                userData.logs.push({ action: 'log_levelup', type: 'SYSTEM', time: Date.now() });
+            }
+            userData.logs.push({ action: 'log_init', type: 'SYSTEM', time: Date.now() });
+            saveUserData();
+            renderAll();
+            closeCodenameModal();
+        }
+        function openAddTool() {
+            document.getElementById('toolModal').classList.add('show');
+        }
+        function closeToolModal() {
+            document.getElementById('toolModal').classList.remove('show');
+            document.getElementById('toolName').value = '';
+            document.getElementById('toolCat').value = '';
+            document.getElementById('toolDesc').value = '';
+        }
+        function saveTool() {
+            const name = document.getElementById('toolName').value.trim();
+            const cat = document.getElementById('toolCat').value.trim() || 'Custom';
+            const desc = document.getElementById('toolDesc').value.trim() || 'Custom tool';
+            if (!name) return;
+            userData.arsenal.push({ name, cat, desc });
+            userData.xp = (userData.xp || 0) + 30;
+            userData.logs.push({ action: 'log_tool', type: 'ARSENAL', time: Date.now() });
+            saveUserData();
+            renderAll();
+            closeToolModal();
+        }
+        function clearLocalData() {
+            localStorage.removeItem('obelisk_profile');
+            showToast('Local cache cleared');
+        }
+
+        // ─── Toast ───
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap;';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.style.opacity = '0'; }, 2000);
+            setTimeout(function() { toast.remove(); }, 2500);
+        }
+
+        // ─── Background Canvas (Abstract Art) ───
+        (function() {
+            const canvas = document.getElementById('bgCanvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, nodes = [];
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+            for (let i = 0; i < 60; i++) {
+                nodes.push({
+                    x: Math.random() * w, y: Math.random() * h,
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: (Math.random() - 0.5) * 0.2,
+                    r: Math.random() * 1.5 + 0.5
+                });
+            }
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                nodes.forEach(function(n, i) {
+                    n.x += n.vx; n.y += n.vy;
+                    if (n.x < 0) n.x = w; if (n.x > w) n.x = 0;
+                    if (n.y < 0) n.y = h; if (n.y > h) n.y = 0;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                    ctx.fill();
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const n2 = nodes[j];
+                        const dx = n.x - n2.x, dy = n.y - n2.y;
+                        const d = Math.sqrt(dx*dx + dy*dy);
+                        if (d < 180) {
+                            ctx.beginPath();
+                            ctx.moveTo(n.x, n.y);
+                            ctx.lineTo(n2.x, n2.y);
+                            ctx.strokeStyle = 'rgba(255,255,255,' + (0.06 * (1 - d/180)) + ')';
+                            ctx.stroke();
+                        }
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        // ─── Dashboard Canvas Animations ───
+        let trafficCtx, loadCtx, trafficAnim, loadAnim;
+        function startDashboardAnim() {
+            if (currentTab !== 0) return;
+            const tCanvas = document.getElementById('trafficCanvas');
+            const lCanvas = document.getElementById('loadCanvas');
+            if (!tCanvas || !lCanvas) return;
+            trafficCtx = tCanvas.getContext('2d');
+            loadCtx = lCanvas.getContext('2d');
+            tCanvas.width = tCanvas.offsetWidth; tCanvas.height = 80;
+            lCanvas.width = lCanvas.offsetWidth; lCanvas.height = 80;
+            let tData = new Array(60).fill(20), lData = new Array(60).fill(30);
+            function drawLine(ctx, data, color) {
+                const w = ctx.canvas.width, h = ctx.canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                ctx.beginPath();
+                ctx.moveTo(0, h - data[0]);
+                for (let i = 1; i < data.length; i++) {
+                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
+                }
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.beginPath();
+                for (let i = 0; i < data.length; i++) {
+                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
+                }
+                ctx.lineTo(w, h); ctx.lineTo(0, h);
+                ctx.fillStyle = color.replace('0.6', '0.05');
+                ctx.fill();
+            }
+            function update() {
+                if (currentTab !== 0) return;
+                tData.shift(); tData.push(15 + Math.random() * 50);
+                lData.shift(); lData.push(20 + Math.random() * 40);
+                drawLine(trafficCtx, tData, 'rgba(100,255,150,0.6)');
+                drawLine(loadCtx, lData, 'rgba(80,180,255,0.6)');
+                trafficAnim = requestAnimationFrame(update);
+            }
+            if (trafficAnim) cancelAnimationFrame(trafficAnim);
+            update();
+        }
+
+        // ─── Modal click outside ───
+        document.getElementById('codenameModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCodenameModal();
+        });
+        document.getElementById('toolModal').addEventListener('click', function(e) {
+            if (e.target === this) closeToolModal();
+        });
+
+        // ─── Keyboard shortcuts ───
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCodenameModal();
+                closeToolModal();
+            }
+        });
+    </script>
+</body>
+</html>
