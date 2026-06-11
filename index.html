@@ -521,7 +521,7 @@
         <div class="top-bar">
             <div class="logo">OBELISK</div>
             <button class="login-btn" id="loginBtn" onclick="openModal()">登录 / Sign In</button>
-            <img class="user-avatar" id="userAvatar" onclick="logout()" alt="avatar">
+            <img class="user-avatar" id="userAvatar" alt="avatar">
         </div>
         <div class="center-content">
             <div class="hero-text">
@@ -535,25 +535,25 @@
                 </p>
             </div>
             <div class="cards-grid">
-                <div class="card" onclick="window.open('#reverse','_blank')">
+                <div class="card" onclick="showToast('即将上线 / Coming Soon')">
                     <div class="card-icon">&#9672;</div>
                     <div class="card-title">逆向手记</div>
                     <div class="card-title-en">Reverse Notes</div>
                     <div class="card-desc">Hook 框架与脱壳笔记<br>API 调用追踪实录</div>
                 </div>
-                <div class="card" onclick="window.open('#darknav','_blank')">
+                <div class="card" onclick="showToast('即将上线 / Coming Soon')">
                     <div class="card-icon">&#9673;</div>
                     <div class="card-title">暗网导航</div>
                     <div class="card-title-en">Dark Nav</div>
                     <div class="card-desc">Tor 节点与协议分析<br>匿名网络资源索引</div>
                 </div>
-                <div class="card" onclick="window.open('#inspo','_blank')">
+                <div class="card" onclick="showToast('即将上线 / Coming Soon')">
                     <div class="card-icon">&#9674;</div>
                     <div class="card-title">灵感废墟</div>
                     <div class="card-title-en">Inspo Ruins</div>
                     <div class="card-desc">碎片化工具与脚本<br>实验性代码片段</div>
                 </div>
-                <div class="card" onclick="window.open('#motion','_blank')">
+                <div class="card" onclick="showToast('即将上线 / Coming Soon')">
                     <div class="card-icon">&#9670;</div>
                     <div class="card-title">动效实验室</div>
                     <div class="card-title-en">Motion Lab</div>
@@ -585,12 +585,12 @@
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal()">&#215;</button>
-            <h3>&#25509;&#20837;&#31995;&#32479;</h3>
+            <h3>接入系统</h3>
             <div class="modal-en">System Access</div>
-            <p>&#20351;&#29992; Google &#36134;&#21495;&#39564;&#35777;&#36523;&#20221;&#20197;&#35299;&#38145;&#23436;&#25972;&#26435;&#38480;<br><span style="font-size:0.7rem; color:rgba(255,255,255,0.15);">Authenticate with Google to unlock full access.</span></p>
+            <p>使用 Google 账号验证身份以解锁完整权限<br><span style="font-size:0.7rem; color:rgba(255,255,255,0.15);">Authenticate with Google to unlock full access.</span></p>
             <button class="google-btn" onclick="googleSignIn()">
                 <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                &#20351;&#29992; Google &#30331;&#24405; / Sign in with Google
+                使用 Google 登录 / Sign in with Google
             </button>
         </div>
     </div>
@@ -722,6 +722,16 @@
             }, 2500);
         }
 
+        // ─── Toast ───
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap;';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.style.opacity = '0'; }, 2000);
+            setTimeout(function() { toast.remove(); }, 2500);
+        }
+
         // ─── Firebase Auth ───
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
@@ -736,6 +746,16 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
+        // 处理从 Google 重定向回来的结果
+        auth.getRedirectResult().then(function(result) {
+            if (result.user) {
+                addLog('auth.redirect', '&#8594; user authenticated: ' + result.user.displayName, 'out');
+            }
+        }).catch(function(error) {
+            addLog('auth.error', '&#8594; ' + error.message, 'err');
+            console.error('[OBELISK Auth Redirect]', error.code, error.message);
+        });
+
         auth.onAuthStateChanged(function(user) {
             const btn = document.getElementById('loginBtn');
             const avatar = document.getElementById('userAvatar');
@@ -743,28 +763,36 @@
                 btn.style.display = 'none';
                 avatar.style.display = 'block';
                 avatar.src = user.photoURL || '';
+                avatar.onclick = function() { window.location.href = 'profile.html'; };
                 addLog('auth.state', '&#8594; user authenticated: ' + user.displayName, 'out');
             } else {
                 btn.style.display = 'block';
                 avatar.style.display = 'none';
             }
         });
+
         function openModal() {
             document.getElementById('loginModal').classList.add('show');
         }
         function closeModal() {
             document.getElementById('loginModal').classList.remove('show');
         }
+
+        // 改用 signInWithRedirect，避免弹窗被拦截导致闪退
         function googleSignIn() {
-            auth.signInWithPopup(provider).catch(function(err) {
+            auth.signInWithRedirect(provider).catch(function(err) {
                 addLog('auth.error', '&#8594; ' + err.message, 'err');
                 console.error('[OBELISK Auth]', err.code, err.message);
             });
         }
+
         function logout() {
-            auth.signOut();
-            addLog('auth.state', '&#8594; session terminated', 'out');
+            auth.signOut().then(function() {
+                addLog('auth.state', '&#8594; session terminated', 'out');
+                window.location.reload();
+            });
         }
+
         function addLog(cmd, out, type) {
             const body = document.getElementById('terminalBody');
             const time = new Date().toLocaleTimeString('en-US', {hour12: false});
@@ -772,7 +800,9 @@
             div.innerHTML = '<span class="log-time">[' + time + ']</span> <span class="log-cmd">' + cmd + '</span> <span class="log-' + type + '">' + out + '</span>';
             body.appendChild(div);
             body.scrollTop = body.scrollHeight;
+            if (body.children.length > 20) body.removeChild(body.firstChild);
         }
+
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
