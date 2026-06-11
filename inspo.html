@@ -44,6 +44,23 @@
             text-decoration: none;
         }
         .logo:hover { color: #fff; }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .icon-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -365,41 +382,42 @@
 <body>
     <div class="top-bar">
         <a class="logo" href="./index.html">&#8592; OBELISK</a>
+        <button class="icon-btn" onclick="toggleLang()">&#127760;</button>
     </div>
     <div class="container">
-        <h1>Inspo Ruins</h1>
-        <div class="subtitle">Code Snippets &amp; Community Share</div>
+        <h1 data-i18n="title">Inspo Ruins</h1>
+        <div class="subtitle" data-i18n="subtitle">Code Snippets & Community Share</div>
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab(0)">Snippets</button>
-            <button class="tab-btn" onclick="switchTab(1)">Community</button>
+            <button class="tab-btn active" onclick="switchTab(0)" data-i18n="tab_snippets">Snippets</button>
+            <button class="tab-btn" onclick="switchTab(1)" data-i18n="tab_community">Community</button>
         </div>
         <div class="tab-panel active" id="panel-snippets">
             <div class="snippet-grid" id="snippetGrid"></div>
-            <button class="add-btn" onclick="openSnippetModal()">+ Add Snippet</button>
+            <button class="add-btn" onclick="openSnippetModal()" data-i18n="add_snippet">+ Add Snippet</button>
         </div>
         <div class="tab-panel" id="panel-community">
             <div class="post-list" id="postList"></div>
-            <button class="add-btn" onclick="openPostModal()">+ New Post</button>
+            <button class="add-btn" onclick="openPostModal()" data-i18n="new_post">+ New Post</button>
         </div>
     </div>
     <div class="modal-overlay" id="snippetModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeSnippetModal()">&#215;</button>
-            <h3>Add Snippet</h3>
-            <input class="modal-input" id="snipTitle" placeholder="Title">
-            <input class="modal-input" id="snipLang" placeholder="Language (js/python/bash/...)">
-            <textarea class="modal-textarea" id="snipCode" placeholder="Code..."></textarea>
+            <h3 data-i18n="modal_snippet">Add Snippet</h3>
+            <input class="modal-input" id="snipTitle" placeholder="Title" data-i18n-placeholder="ph_title">
+            <input class="modal-input" id="snipLang" placeholder="Language (js/python/bash/...)" data-i18n-placeholder="ph_lang">
+            <textarea class="modal-textarea" id="snipCode" placeholder="Code..." data-i18n-placeholder="ph_code"></textarea>
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeSnippetModal()">Cancel</button>
-                <button class="modal-btn primary" onclick="saveSnippet()">Save</button>
+                <button class="modal-btn" onclick="closeSnippetModal()" data-i18n="btn_cancel">Cancel</button>
+                <button class="modal-btn primary" onclick="saveSnippet()" data-i18n="btn_save">Save</button>
             </div>
         </div>
     </div>
     <div class="modal-overlay" id="postModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closePostModal()">&#215;</button>
-            <h3>New Post</h3>
-            <input class="modal-input" id="postTitle" placeholder="Title">
+            <h3 data-i18n="modal_post">New Post</h3>
+            <input class="modal-input" id="postTitle" placeholder="Title" data-i18n-placeholder="ph_title">
             <select class="modal-select" id="postType">
                 <option value="insight">Insight</option>
                 <option value="tool">Tool</option>
@@ -407,13 +425,13 @@
                 <option value="question">Question</option>
             </select>
             <select class="modal-select" id="postVisibility">
-                <option value="public">Public - Everyone can see</option>
-                <option value="private">Private - Only logged-in users</option>
+                <option value="public" data-i18n="opt_public">Public - Everyone can see</option>
+                <option value="private" data-i18n="opt_private">Private - Only logged-in users</option>
             </select>
-            <textarea class="modal-textarea" id="postContent" placeholder="Share your thoughts, tools, or writeups..."></textarea>
+            <textarea class="modal-textarea" id="postContent" placeholder="Share your thoughts, tools, or writeups..." data-i18n-placeholder="ph_content"></textarea>
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closePostModal()">Cancel</button>
-                <button class="modal-btn primary" onclick="savePost()">Publish</button>
+                <button class="modal-btn" onclick="closePostModal()" data-i18n="btn_cancel">Cancel</button>
+                <button class="modal-btn primary" onclick="savePost()" data-i18n="btn_publish">Publish</button>
             </div>
         </div>
     </div>
@@ -423,13 +441,79 @@
             <h3 id="detailPostTitle">Post</h3>
             <div id="detailPostContent"></div>
             <div class="comment-list" id="commentList"></div>
-            <input class="modal-input" id="commentInput" placeholder="Add a comment..." style="margin-top:16px;">
+            <input class="modal-input" id="commentInput" placeholder="Add a comment..." style="margin-top:16px;" data-i18n-placeholder="ph_comment">
             <div class="modal-actions">
-                <button class="modal-btn primary" onclick="addComment()">Comment</button>
+                <button class="modal-btn primary" onclick="addComment()" data-i18n="btn_comment">Comment</button>
             </div>
         </div>
     </div>
     <script>
+        const i18n = {
+            en: {
+                title: "Inspo Ruins",
+                subtitle: "Code Snippets & Community Share",
+                tab_snippets: "Snippets",
+                tab_community: "Community",
+                add_snippet: "+ Add Snippet",
+                new_post: "+ New Post",
+                modal_snippet: "Add Snippet",
+                modal_post: "New Post",
+                ph_title: "Title",
+                ph_lang: "Language (js/python/bash/...)",
+                ph_code: "Code...",
+                ph_content: "Share your thoughts, tools, or writeups...",
+                ph_comment: "Add a comment...",
+                opt_public: "Public - Everyone can see",
+                opt_private: "Private - Only logged-in users",
+                btn_cancel: "Cancel",
+                btn_save: "Save",
+                btn_publish: "Publish",
+                btn_comment: "Comment",
+                need_login: "Please sign in to post",
+                empty_posts: "No posts yet. Be the first!"
+            },
+            zh: {
+                title: "灵感废墟",
+                subtitle: "代码片段与社区分享",
+                tab_snippets: "代码片段",
+                tab_community: "社区",
+                add_snippet: "+ 添加片段",
+                new_post: "+ 发布帖子",
+                modal_snippet: "添加代码片段",
+                modal_post: "发布新帖",
+                ph_title: "标题",
+                ph_lang: "语言 (js/python/bash/...)",
+                ph_code: "代码...",
+                ph_content: "分享你的心得、工具或 writeup...",
+                ph_comment: "添加评论...",
+                opt_public: "公开 - 所有人可见",
+                opt_private: "私密 - 仅登录用户可见",
+                btn_cancel: "取消",
+                btn_save: "保存",
+                btn_publish: "发布",
+                btn_comment: "评论",
+                need_login: "请先登录再发布",
+                empty_posts: "暂无帖子。来做第一个吧！"
+            }
+        };
+        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
+        function applyLang() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) el.placeholder = t[key];
+            });
+        }
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('obelisk_lang', currentLang);
+            applyLang();
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
             authDomain: "obelisk-ca117.firebaseapp.com",
@@ -448,20 +532,12 @@
         auth.onAuthStateChanged(function(user) { currentUser = user; });
 
         const defaultSnippets = [
-            { title: "SSL Pinning Bypass", lang: "javascript", code: "Java.perform(function() {
-  var TrustManager = Java.use('javax.net.ssl.TrustManager');
-  // Hook implementation
-});" },
-            { title: "Frida Hook Template", lang: "javascript", code: "Interceptor.attach(Module.findExportByName(null, 'strcmp'), {
-  onEnter: function(args) {
-    console.log('strcmp called');
-  }
-});" },
-            { title: "ADB Pull APK", lang: "bash", code: "adb shell pm path com.target.app
-adb pull /data/app/com.target.app/base.apk" },
-            { title: "Python Proxy", lang: "python", code: "import requests
-proxies = {'http': 'http://127.0.0.1:8080'}
-requests.get('http://target.com', proxies=proxies)" }
+            { title: "SSL Pinning Bypass", lang: "javascript", code: "Java.perform(function() {\n  var X509TrustManager = Java.use('javax.net.ssl.X509TrustManager');\n  var TrustManager = Java.registerClass({\n    implements: [X509TrustManager],\n    methods: {\n      checkClientTrusted: function() {},\n      checkServerTrusted: function() {},\n      getAcceptedIssuers: function() { return null; }\n    }\n  });\n});" },
+            { title: "Frida Hook Template", lang: "javascript", code: "Interceptor.attach(Module.findExportByName(null, 'strcmp'), {\n  onEnter: function(args) {\n    console.log('strcmp called: ' + Memory.readUtf8String(args[0]));\n  },\n  onLeave: function(retval) {\n    console.log('retval: ' + retval);\n  }\n});" },
+            { title: "ADB Pull APK", lang: "bash", code: "# Get APK path\nadb shell pm path com.target.app\n\n# Pull APK\nadb pull /data/app/com.target.app/base.apk ./target.apk\n\n# Verify\nls -la target.apk" },
+            { title: "Python Proxy Scanner", lang: "python", code: "import requests\nfrom urllib.parse import urljoin\n\nproxies = {\n    'http': 'http://127.0.0.1:8080',\n    'https': 'http://127.0.0.1:8080'\n}\n\n# Test with Burp\nresp = requests.get('https://target.com/api', proxies=proxies, verify=False)\nprint(resp.status_code)" },
+            { title: "Objection Explore", lang: "bash", code: "# Start objection session\nobjection -g com.target.app explore\n\n# Common commands\nandroid hooking list activities\nandroid hooking search methods\nandroid heap search instances\nandroid root disable" },
+            { title: "APK Sign Check", lang: "bash", code: "# Check certificate\nkeytool -printcert -jarfile target.apk\n\n# Verify signature\napksigner verify -v target.apk\n\n# Extract cert\nunzip -p target.apk META-INF/*.RSA | keytool -printcert -v" }
         ];
 
         function loadSnippets() {
@@ -497,8 +573,8 @@ requests.get('http://target.com', proxies=proxies)" }
         }
 
         function saveToArsenal(name, lang) {
-            if (!currentUser) { alert('Please sign in'); return; }
-            const tool = { name: name, cat: 'Snippet', desc: lang + ' code snippet', version: '1.0', status: 'ready', usage: 'Copy from Inspo Ruins' };
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
+            const tool = { name: name, cat: 'Snippet', desc: lang + ' code snippet', url: '', version: '1.0', status: 'ready' };
             db.collection('users').doc(currentUser.uid).update({ arsenal: firebase.firestore.FieldValue.arrayUnion(tool) }).then(function() { alert('Added to arsenal'); });
         }
 
@@ -507,15 +583,16 @@ requests.get('http://target.com', proxies=proxies)" }
                 const list = [];
                 snap.forEach(function(doc) { list.push({ id: doc.id, ...doc.data() }); });
                 renderPosts(list);
-            }, function() {
-                renderPosts([]);
-            });
+            }, function() { renderPosts([]); });
         }
 
         function renderPosts(list) {
             const grid = document.getElementById('postList');
             grid.innerHTML = '';
-            if (list.length === 0) { grid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);">No posts yet. Be the first!</div>'; return; }
+            if (list.length === 0) {
+                grid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);">' + i18n[currentLang].empty_posts + '</div>';
+                return;
+            }
             list.forEach(function(p) {
                 if (p.visibility === 'private' && !currentUser) return;
                 const div = document.createElement('div');
@@ -526,8 +603,8 @@ requests.get('http://target.com', proxies=proxies)" }
         }
 
         function switchTab(idx) {
-            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+            document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+            document.querySelectorAll('.tab-panel').forEach(function(p, i) { p.classList.toggle('active', i === idx); });
         }
 
         function openSnippetModal() { document.getElementById('snippetModal').classList.add('show'); }
@@ -537,20 +614,20 @@ requests.get('http://target.com', proxies=proxies)" }
             const lang = document.getElementById('snipLang').value.trim();
             const code = document.getElementById('snipCode').value;
             if (!title || !code) return;
-            db.collection('snippets').add({ title, lang, code }).then(function() { closeSnippetModal(); loadSnippets(); });
+            db.collection('snippets').add({ title: title, lang: lang, code: code }).then(function() { closeSnippetModal(); loadSnippets(); });
         }
 
         function openPostModal() { document.getElementById('postModal').classList.add('show'); }
         function closePostModal() { document.getElementById('postModal').classList.remove('show'); }
         function savePost() {
-            if (!currentUser) { alert('Please sign in to post'); return; }
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
             const title = document.getElementById('postTitle').value.trim();
             const type = document.getElementById('postType').value;
             const visibility = document.getElementById('postVisibility').value;
             const content = document.getElementById('postContent').value.trim();
             if (!title || !content) return;
             const post = {
-                title, type, visibility, content,
+                title: title, type: type, visibility: visibility, content: content,
                 authorId: currentUser.uid,
                 authorName: currentUser.displayName || 'Anonymous',
                 likes: 0,
@@ -559,21 +636,19 @@ requests.get('http://target.com', proxies=proxies)" }
             };
             db.collection('community').add(post).then(function(docRef) {
                 db.collection('users').doc(currentUser.uid).update({
-                    posts: firebase.firestore.FieldValue.arrayUnion({ id: docRef.id, title, type, visibility, createdAt: Date.now() })
+                    posts: firebase.firestore.FieldValue.arrayUnion({ id: docRef.id, title: title, type: type, visibility: visibility, createdAt: Date.now() })
                 });
                 closePostModal();
             });
         }
 
         function likePost(id, btn) {
-            if (!currentUser) { alert('Please sign in'); return; }
-            db.collection('community').doc(id).update({
-                likes: firebase.firestore.FieldValue.increment(1)
-            }).then(function() { btn.classList.add('liked'); btn.textContent = 'Liked'; });
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
+            db.collection('community').doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) }).then(function() { btn.classList.add('liked'); btn.textContent = 'Liked'; });
         }
 
         function collectPost(id) {
-            if (!currentUser) { alert('Please sign in'); return; }
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
             db.collection('users').doc(currentUser.uid).update({
                 collections: firebase.firestore.FieldValue.arrayUnion({ type: 'post', id: id, time: Date.now() })
             }).then(function() { alert('Collected'); });
@@ -584,8 +659,7 @@ requests.get('http://target.com', proxies=proxies)" }
             db.collection('community').doc(id).get().then(function(doc) {
                 const p = doc.data();
                 document.getElementById('detailPostTitle').textContent = p.title;
-                document.getElementById('detailPostContent').innerHTML = '<p style="font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.6;">' + escapeHtml(p.content).replace(/
-/g,'<br>') + '</p><div style="margin-top:12px;font-size:0.65rem;color:rgba(255,255,255,0.3);">By ' + (p.authorName || 'Anonymous') + ' · ' + (p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString() : '') + '</div>';
+                document.getElementById('detailPostContent').innerHTML = '<p style="font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.6;">' + escapeHtml(p.content).replace(/\n/g,'<br>') + '</p><div style="margin-top:12px;font-size:0.65rem;color:rgba(255,255,255,0.3);">By ' + (p.authorName || 'Anonymous') + ' · ' + (p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString() : '') + '</div>';
                 const cl = document.getElementById('commentList');
                 cl.innerHTML = '';
                 (p.comments || []).forEach(function(c) {
@@ -600,7 +674,7 @@ requests.get('http://target.com', proxies=proxies)" }
             const text = document.getElementById('commentInput').value.trim();
             if (!text) return;
             db.collection('community').doc(currentPostId).update({
-                comments: firebase.firestore.FieldValue.arrayUnion({ author: currentUser.displayName || 'Anonymous', text, time: Date.now() })
+                comments: firebase.firestore.FieldValue.arrayUnion({ author: currentUser.displayName || 'Anonymous', text: text, time: Date.now() })
             }).then(function() {
                 document.getElementById('commentInput').value = '';
                 openPostDetail(currentPostId);
@@ -611,6 +685,7 @@ requests.get('http://target.com', proxies=proxies)" }
             document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
         });
 
+        applyLang();
         loadSnippets();
         loadPosts();
     </script>

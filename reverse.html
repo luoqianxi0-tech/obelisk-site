@@ -46,6 +46,23 @@
             text-decoration: none;
         }
         .logo:hover { color: #fff; }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .icon-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -155,6 +172,7 @@
             display: flex;
             gap: 12px;
             margin-top: 24px;
+            flex-wrap: wrap;
         }
         .action-btn {
             padding: 10px 24px;
@@ -185,56 +203,119 @@
         @media (max-width: 768px) {
             .top-bar { padding: 16px 20px; }
             .drop-zone { padding: 40px 20px; }
+            .action-bar { flex-direction: column; }
+            .action-btn { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="top-bar">
         <a class="logo" href="./index.html">&#8592; OBELISK</a>
+        <button class="icon-btn" onclick="toggleLang()">&#127760;</button>
     </div>
     <div class="container">
-        <h1>Reverse Notes</h1>
-        <div class="subtitle">APK Analyzer &amp; Static Scanner</div>
+        <h1 data-i18n="title">Reverse Notes</h1>
+        <div class="subtitle" data-i18n="subtitle">APK Analyzer & Static Scanner</div>
         <div class="drop-zone" id="dropZone">
             <div class="icon">&#9650;</div>
-            <p>Drop APK here or click to upload</p>
-            <div class="hint">Max 50MB · Pure client-side analysis</div>
+            <p data-i18n="drop_text">Drop APK here or click to upload</p>
+            <div class="hint" data-i18n="drop_hint">Max 50MB · Pure client-side analysis</div>
             <input type="file" id="fileInput" accept=".apk" style="display:none">
         </div>
         <div class="report" id="report">
             <div class="report-card">
-                <div class="report-title">Package Name</div>
+                <div class="report-title" data-i18n="pkg_name">Package Name</div>
                 <div class="report-value" id="pkgName">-</div>
             </div>
             <div class="report-card">
-                <div class="report-title">Version</div>
+                <div class="report-title" data-i18n="version">Version</div>
                 <div class="report-value" id="version">-</div>
             </div>
             <div class="report-card">
-                <div class="report-title">Risk Assessment</div>
+                <div class="report-title" data-i18n="risk">Risk Assessment</div>
                 <div class="report-value" id="riskScore">-</div>
                 <div class="risk-badge" id="riskBadge">-</div>
             </div>
             <div class="report-card">
-                <div class="report-title">Permissions</div>
+                <div class="report-title" data-i18n="permissions">Permissions</div>
                 <div class="tag-list" id="permList"></div>
             </div>
             <div class="report-card">
-                <div class="report-title">Native Libraries</div>
+                <div class="report-title" data-i18n="libraries">Native Libraries</div>
                 <div class="tag-list" id="libList"></div>
             </div>
             <div class="report-card">
-                <div class="report-title">Suspicious Strings</div>
+                <div class="report-title" data-i18n="strings">Suspicious Strings</div>
                 <div class="tag-list" id="strList"></div>
             </div>
             <div class="action-bar">
-                <button class="action-btn primary" onclick="saveToProfile()">Save to Profile</button>
-                <button class="action-btn" onclick="addToArsenal()">Add to Arsenal</button>
-                <button class="action-btn" onclick="visualize()">Visualize Structure</button>
+                <button class="action-btn primary" onclick="saveToProfile()" data-i18n="save_profile">Save to Profile</button>
+                <button class="action-btn" onclick="addToArsenal()" data-i18n="add_arsenal">Add to Arsenal</button>
+                <button class="action-btn" onclick="visualize()" data-i18n="visualize">Visualize Structure</button>
             </div>
         </div>
     </div>
     <script>
+        const i18n = {
+            en: {
+                title: "Reverse Notes",
+                subtitle: "APK Analyzer & Static Scanner",
+                drop_text: "Drop APK here or click to upload",
+                drop_hint: "Max 50MB · Pure client-side analysis",
+                pkg_name: "Package Name",
+                version: "Version",
+                risk: "Risk Assessment",
+                permissions: "Permissions",
+                libraries: "Native Libraries",
+                strings: "Suspicious Strings",
+                save_profile: "Save to Profile",
+                add_arsenal: "Add to Arsenal",
+                visualize: "Visualize Structure",
+                analyzing: "Analyzing...",
+                complete: "Analysis Complete",
+                failed: "Analysis failed",
+                risk_high: "HIGH RISK",
+                risk_mid: "MEDIUM RISK",
+                risk_low: "LOW RISK",
+                need_login: "Please sign in first"
+            },
+            zh: {
+                title: "逆向手记",
+                subtitle: "APK 分析与静态扫描",
+                drop_text: "拖拽 APK 到此处或点击上传",
+                drop_hint: "最大 50MB · 纯客户端分析",
+                pkg_name: "包名",
+                version: "版本",
+                risk: "风险评估",
+                permissions: "权限列表",
+                libraries: "原生库",
+                strings: "可疑字符串",
+                save_profile: "保存到档案",
+                add_arsenal: "加入军火库",
+                visualize: "可视化结构",
+                analyzing: "分析中...",
+                complete: "分析完成",
+                failed: "分析失败",
+                risk_high: "高风险",
+                risk_mid: "中风险",
+                risk_low: "低风险",
+                need_login: "请先登录"
+            }
+        };
+        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
+        function applyLang() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+        }
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('obelisk_lang', currentLang);
+            applyLang();
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
             authDomain: "obelisk-ca117.firebaseapp.com",
@@ -250,9 +331,7 @@
         let currentUser = null;
         let lastAnalysis = null;
 
-        auth.onAuthStateChanged(function(user) {
-            currentUser = user;
-        });
+        auth.onAuthStateChanged(function(user) { currentUser = user; });
 
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -265,7 +344,8 @@
         async function handleFile(file) {
             if (!file || !file.name.endsWith('.apk')) { alert('Please upload an APK file'); return; }
             if (file.size > 50 * 1024 * 1024) { alert('File too large (max 50MB)'); return; }
-            dropZone.innerHTML = '<div class="icon">&#8987;</div><p>Analyzing...</p><div class="hint">' + file.name + '</div>';
+            const t = i18n[currentLang];
+            dropZone.innerHTML = '<div class="icon">&#8987;</div><p>' + t.analyzing + '</p><div class="hint">' + file.name + '</div>';
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 const result = await parseAPK(arrayBuffer, file.name);
@@ -273,7 +353,7 @@
                 showReport(result);
             } catch (err) {
                 console.error(err);
-                dropZone.innerHTML = '<div class="icon">&#10008;</div><p>Analysis failed</p><div class="hint">' + err.message + '</div>';
+                dropZone.innerHTML = '<div class="icon">&#10008;</div><p>' + t.failed + '</p><div class="hint">' + err.message + '</div>';
             }
         }
 
@@ -373,12 +453,14 @@
         }
 
         function showReport(r) {
+            const t = i18n[currentLang];
             document.getElementById('pkgName').textContent = r.manifest.package || 'Unknown';
             document.getElementById('version').textContent = r.manifest.versionName || 'Unknown';
             document.getElementById('riskScore').textContent = r.risk + '/100';
             const badge = document.getElementById('riskBadge');
             badge.className = 'risk-badge ' + (r.risk >= 60 ? 'risk-high' : r.risk >= 30 ? 'risk-mid' : 'risk-low');
-            badge.textContent = r.risk >= 60 ? 'HIGH RISK' : r.risk >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
+            badge.textContent = r.risk >= 60 ? t.risk_high : r.risk >= 30 ? t.risk_mid : t.risk_low;
+
             const permList = document.getElementById('permList');
             permList.innerHTML = '';
             (r.manifest.permissions || []).forEach(p => {
@@ -387,18 +469,21 @@
                 div.textContent = p.replace('android.permission.', '');
                 permList.appendChild(div);
             });
+
             const libList = document.getElementById('libList');
             libList.innerHTML = '';
             r.nativeLibs.forEach(l => { const div = document.createElement('span'); div.className = 'tag'; div.textContent = l; libList.appendChild(div); });
+
             const strList = document.getElementById('strList');
             strList.innerHTML = '';
             r.suspicious.forEach(s => { const div = document.createElement('span'); div.className = 'tag warn'; div.textContent = s.length > 40 ? s.slice(0,40) + '...' : s; strList.appendChild(div); });
+
             document.getElementById('report').classList.add('show');
-            dropZone.innerHTML = '<div class="icon">&#10003;</div><p>Analysis Complete</p><div class="hint">' + r.filename + '</div>';
+            dropZone.innerHTML = '<div class="icon">&#10003;</div><p>' + t.complete + '</p><div class="hint">' + r.filename + '</div>';
         }
 
         function saveToProfile() {
-            if (!currentUser) { alert('Please sign in first'); return; }
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
             if (!lastAnalysis) return;
             const uid = currentUser.uid;
             const appData = {
@@ -411,7 +496,8 @@
             };
             db.collection('users').doc(uid).update({
                 recentApps: firebase.firestore.FieldValue.arrayUnion(appData),
-                logs: firebase.firestore.FieldValue.arrayUnion({ action: 'log_scan', type: 'SCAN', time: Date.now(), meta: { target: appData.pkg } })
+                logs: firebase.firestore.FieldValue.arrayUnion({ action: 'APK scan: ' + appData.pkg, type: 'SCAN', time: Date.now() }),
+                'stats.scans': firebase.firestore.FieldValue.increment(1)
             }).then(function() {
                 alert('Saved to profile');
             }).catch(function(err) {
@@ -421,8 +507,8 @@
         }
 
         function addToArsenal() {
-            if (!currentUser) { alert('Please sign in first'); return; }
-            const tool = { name: 'APK Scanner', cat: 'Scanner', desc: 'Static analysis of ' + (lastAnalysis ? lastAnalysis.filename : 'APK'), version: '1.0', status: 'active', usage: 'Upload APK to analyze' };
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
+            const tool = { name: 'APK Scanner', cat: 'Scanner', desc: 'Static analysis of ' + (lastAnalysis ? lastAnalysis.filename : 'APK'), url: '', version: '1.0', status: 'active' };
             db.collection('users').doc(currentUser.uid).update({
                 arsenal: firebase.firestore.FieldValue.arrayUnion(tool)
             }).then(function() { alert('Added to arsenal'); });
@@ -433,6 +519,8 @@
             sessionStorage.setItem('obelisk_last_apk', JSON.stringify(lastAnalysis));
             window.location.href = './motion.html';
         }
+
+        applyLang();
     </script>
 </body>
 </html>

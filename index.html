@@ -6,7 +6,6 @@
     <title>OBELISK</title>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -24,6 +23,7 @@
         }
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
 
+        /* Splash */
         #splash {
             position: fixed;
             inset: 0;
@@ -301,6 +301,7 @@
             backdrop-filter: blur(10px);
             text-decoration: none;
             color: inherit;
+            display: block;
         }
         .card::before {
             content: '';
@@ -528,7 +529,7 @@
         <div class="play-hint" id="playHint">
             <div class="play-hint-inner">
                 <div class="tap-icon">&#9654;</div>
-                <p>Tap to Initialize</p>
+                <p id="tapText">Tap to Initialize</p>
             </div>
         </div>
         <div class="splash-hint" id="splashHint">Initializing Sequence...</div>
@@ -547,34 +548,34 @@
         </div>
         <div class="center-content">
             <div class="hero-text">
-                <h2>Prism for App Insight</h2>
+                <h2 id="heroTitle">Prism for App Insight</h2>
                 <div class="sub-en">App Insight Prism</div>
-                <p>Between binaries and permissions, retrieving the hidden flow of data.<br><span style="color:rgba(255,255,255,0.2);font-size:0.8rem;">Real-time monitoring, hook interception, and behavioral analysis.</span></p>
+                <p id="heroDesc">Between binaries and permissions, retrieving the hidden flow of data.<br><span style="color:rgba(255,255,255,0.2); font-size:0.8rem;">Real-time monitoring, hook interception, and behavioral analysis.</span></p>
             </div>
             <div class="cards-grid">
                 <a class="card" href="./reverse.html">
                     <div class="card-icon">&#9672;</div>
-                    <div class="card-title">Reverse Notes</div>
+                    <div class="card-title" data-i18n="card1_title">Reverse Notes</div>
                     <div class="card-title-en">逆向手记</div>
-                    <div class="card-desc">APK Analyzer &amp; Decompiler<br>Permission &amp; Risk Scanner</div>
+                    <div class="card-desc" data-i18n="card1_desc">APK Analyzer &amp; Decompiler<br>Permission &amp; Risk Scanner</div>
                 </a>
                 <a class="card" href="./darknav.html">
                     <div class="card-icon">&#9673;</div>
-                    <div class="card-title">Dark Nav</div>
+                    <div class="card-title" data-i18n="card2_title">Dark Nav</div>
                     <div class="card-title-en">暗网导航</div>
-                    <div class="card-desc">Security Resource Index<br>Tor &amp; Protocol Tools</div>
+                    <div class="card-desc" data-i18n="card2_desc">Security Resource Index<br>Tor &amp; Protocol Tools</div>
                 </a>
                 <a class="card" href="./inspo.html">
                     <div class="card-icon">&#9674;</div>
-                    <div class="card-title">Inspo Ruins</div>
+                    <div class="card-title" data-i18n="card3_title">Inspo Ruins</div>
                     <div class="card-title-en">灵感废墟</div>
-                    <div class="card-desc">Code Snippets &amp; Scripts<br>Community Share</div>
+                    <div class="card-desc" data-i18n="card3_desc">Code Snippets &amp; Scripts<br>Community Share</div>
                 </a>
                 <a class="card" href="./motion.html">
                     <div class="card-icon">&#9670;</div>
-                    <div class="card-title">Motion Lab</div>
+                    <div class="card-title" data-i18n="card4_title">Motion Lab</div>
                     <div class="card-title-en">动效实验室</div>
-                    <div class="card-desc">APK Structure Visualizer<br>Network Topology &amp; Graphs</div>
+                    <div class="card-desc" data-i18n="card4_desc">APK Structure Visualizer<br>Network Topology &amp; Graphs</div>
                 </a>
             </div>
             <div class="terminal">
@@ -595,40 +596,71 @@
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal()">&#215;</button>
-            <h3>System Access</h3>
-            <div class="modal-en">Authentication Required</div>
-            <p>Authenticate with Google to unlock full access.<br><span style="font-size:0.7rem; color:rgba(255,255,255,0.15);">Sign in to access your Prism Profile and arsenal.</span></p>
+            <h3 id="modalTitle">System Access</h3>
+            <div class="modal-en" id="modalSub">Authentication Required</div>
+            <p id="modalDesc">Authenticate with Google to unlock full access.<br><span style="font-size:0.7rem; color:rgba(255,255,255,0.15);">Sign in to access your Prism Profile and arsenal.</span></p>
             <button class="google-btn" onclick="googleSignIn()">
                 <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Sign in with Google
+                <span id="googleBtnText">Sign in with Google</span>
             </button>
         </div>
     </div>
     <script>
         const i18n = {
-            en: { enter: "Enter Site", initializing: "Initializing Sequence...", video_missing: "Video resource missing<br>splash.mp4 not found", signin: "Sign In", hero_title: "Prism for App Insight", hero_sub: "App Insight Prism", hero_desc: "Between binaries and permissions, retrieving the hidden flow of data.", hero_desc2: "Real-time monitoring, hook interception, and behavioral analysis.", modal_title: "System Access", modal_sub: "Authentication Required", modal_desc: "Authenticate with Google to unlock full access.", modal_desc2: "Sign in to access your Prism Profile and arsenal.", btn_google: "Sign in with Google" },
-            zh: { enter: "进入站点", initializing: "初始化序列中...", video_missing: "视频资源缺失<br>splash.mp4 未找到", signin: "登录", hero_title: "透视应用的棱镜", hero_sub: "App Insight Prism", hero_desc: "在二进制与权限的缝隙之间，打捞被隐匿的数据流向。", hero_desc2: "实时监控、Hook 拦截与行为分析。", modal_title: "接入系统", modal_sub: "System Access", modal_desc: "使用 Google 账号验证身份以解锁完整权限", modal_desc2: "登录后即可访问棱镜档案与军火库", btn_google: "使用 Google 登录" }
+            en: {
+                enter: "Enter Site", initializing: "Initializing Sequence...", video_missing: "Video resource missing\nsplash.mp4 not found",
+                signin: "Sign In", tap: "Tap to Initialize",
+                hero_title: "Prism for App Insight", hero_sub: "App Insight Prism",
+                hero_desc: "Between binaries and permissions, retrieving the hidden flow of data.", hero_desc2: "Real-time monitoring, hook interception, and behavioral analysis.",
+                card1_title: "Reverse Notes", card1_desc: "APK Analyzer & Decompiler\nPermission & Risk Scanner",
+                card2_title: "Dark Nav", card2_desc: "Security Resource Index\nTor & Protocol Tools",
+                card3_title: "Inspo Ruins", card3_desc: "Code Snippets & Scripts\nCommunity Share",
+                card4_title: "Motion Lab", card4_desc: "APK Structure Visualizer\nNetwork Topology & Graphs",
+                modal_title: "System Access", modal_sub: "Authentication Required",
+                modal_desc: "Authenticate with Google to unlock full access.", modal_desc2: "Sign in to access your Prism Profile and arsenal.",
+                btn_google: "Sign in with Google"
+            },
+            zh: {
+                enter: "进入站点", initializing: "初始化序列中...", video_missing: "视频资源缺失\nsplash.mp4 未找到",
+                signin: "登录", tap: "点击启动",
+                hero_title: "透视应用的棱镜", hero_sub: "App Insight Prism",
+                hero_desc: "在二进制与权限的缝隙之间，打捞被隐匿的数据流向。", hero_desc2: "实时监控、Hook 拦截与行为分析。",
+                card1_title: "逆向手记", card1_desc: "APK 分析与反编译\n权限与风险扫描",
+                card2_title: "暗网导航", card2_desc: "安全资源索引\nTor 与协议工具",
+                card3_title: "灵感废墟", card3_desc: "代码片段与脚本\n社区分享",
+                card4_title: "动效实验室", card4_desc: "APK 结构可视化\n网络拓扑与图表",
+                modal_title: "接入系统", modal_sub: "System Access",
+                modal_desc: "使用 Google 账号验证身份以解锁完整权限", modal_desc2: "登录后即可访问棱镜档案与军火库",
+                btn_google: "使用 Google 登录"
+            }
         };
         let currentLang = localStorage.getItem('obelisk_lang') || 'en';
         function applyLang() {
             const t = i18n[currentLang];
             document.getElementById('enterBtn').textContent = t.enter;
             document.getElementById('splashHint').textContent = t.initializing;
-            document.getElementById('errorHint').innerHTML = t.video_missing;
+            document.getElementById('errorHint').innerHTML = t.video_missing.replace(/\n/g, '<br>');
             document.getElementById('loginBtn').textContent = t.signin;
-            document.querySelector('.hero-text h2').textContent = t.hero_title;
-            document.querySelector('.hero-text .sub-en').textContent = t.hero_sub;
-            const p = document.querySelector('.hero-text p');
-            p.innerHTML = t.hero_desc + '<br><span style="color:rgba(255,255,255,0.2);font-size:0.8rem;">' + t.hero_desc2 + '</span>';
-            document.querySelector('.modal-box h3').textContent = t.modal_title;
-            document.querySelector('.modal-box .modal-en').textContent = t.modal_sub;
-            document.querySelector('.modal-box p').innerHTML = t.modal_desc + '<br><span style="font-size:0.7rem;color:rgba(255,255,255,0.15);">' + t.modal_desc2 + '</span>';
-            document.querySelector('.google-btn').innerHTML = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> ' + t.btn_google;
+            document.getElementById('tapText').textContent = t.tap;
+            document.getElementById('heroTitle').textContent = t.hero_title;
+            document.getElementById('heroDesc').innerHTML = t.hero_desc + '<br><span style="color:rgba(255,255,255,0.2);font-size:0.8rem;">' + t.hero_desc2 + '</span>';
+            document.getElementById('modalTitle').textContent = t.modal_title;
+            document.getElementById('modalSub').textContent = t.modal_sub;
+            document.getElementById('modalDesc').innerHTML = t.modal_desc + '<br><span style="font-size:0.7rem;color:rgba(255,255,255,0.15);">' + t.modal_desc2 + '</span>';
+            document.getElementById('googleBtnText').textContent = t.btn_google;
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (key.includes('desc')) el.innerHTML = t[key].replace(/\n/g, '<br>');
+                    else el.textContent = t[key];
+                }
+            });
         }
         function toggleLang() {
             currentLang = currentLang === 'en' ? 'zh' : 'en';
             localStorage.setItem('obelisk_lang', currentLang);
             applyLang();
+            showToast(currentLang === 'en' ? 'Language: English' : '语言: 中文');
         }
 
         var video = document.getElementById('video');
@@ -672,31 +704,43 @@
             }, 500);
         }
 
+        // Optimized particles - 30 nodes instead of 80, no nested loops
+        var particleCtx, particleNodes = [];
         function initParticles() {
             const canvas = document.getElementById('particles');
-            const ctx = canvas.getContext('2d');
-            let width, height, particles = [];
-            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            particleCtx = canvas.getContext('2d');
+            let width, height;
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
             resize();
             window.addEventListener('resize', resize);
-            for (let i = 0; i < 80; i++) {
-                particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, size: Math.random() * 2 + 0.5, alpha: Math.random() * 0.5 + 0.1 });
+            for (let i = 0; i < 30; i++) {
+                particleNodes.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2 + 0.5, alpha: Math.random() * 0.5 + 0.1
+                });
             }
-            function draw() {
-                ctx.clearRect(0, 0, width, height);
-                particles.forEach(function(p, i) {
+            var lastTime = 0;
+            function draw(timestamp) {
+                if (timestamp - lastTime < 33) { requestAnimationFrame(draw); return; }
+                lastTime = timestamp;
+                particleCtx.clearRect(0, 0, width, height);
+                for (var i = 0; i < particleNodes.length; i++) {
+                    var p = particleNodes[i];
                     p.x += p.vx; p.y += p.vy;
                     if (p.x < 0) p.x = width; if (p.x > width) p.x = 0;
                     if (p.y < 0) p.y = height; if (p.y > height) p.y = 0;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')'; ctx.fill();
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const p2 = particles[j]; const dx = p.x - p2.x; const dy = p.y - p2.y; const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 150) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.strokeStyle = 'rgba(255,255,255,' + (0.08 * (1 - dist/150)) + ')'; ctx.stroke(); }
-                    }
-                });
+                    particleCtx.beginPath();
+                    particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    particleCtx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')';
+                    particleCtx.fill();
+                }
                 requestAnimationFrame(draw);
             }
-            draw();
+            requestAnimationFrame(draw);
         }
 
         const logs = [
@@ -767,7 +811,7 @@
             }).catch(function(err) {
                 console.error('[OBELISK Auth Popup]', err.code, err.message);
                 if (err.code === 'auth/popup-blocked') { addLog('auth.warn', '&#8594; popup blocked, falling back to redirect...', 'err'); auth.signInWithRedirect(provider); }
-                else if (err.code === 'auth/unauthorized-domain') { addLog('auth.error', '&#8594; Domain not authorized. Add current domain to Firebase Console.', 'err'); showToast('Domain not authorized'); }
+                else if (err.code === 'auth/unauthorized-domain') { addLog('auth.error', '&#8594; Domain not authorized. Add current domain to Firebase Console.', 'err'); showToast(currentLang === 'en' ? 'Domain not authorized' : '域名未授权'); }
                 else { addLog('auth.error', '&#8594; ' + err.message, 'err'); showToast('Login failed: ' + err.message); }
             });
         }

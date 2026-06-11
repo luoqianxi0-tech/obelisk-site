@@ -42,6 +42,23 @@
             text-decoration: none;
         }
         .logo:hover { color: #fff; }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .icon-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -107,6 +124,22 @@
             border-left: 1px solid rgba(255,255,255,0.05);
             margin-left: 4px;
         }
+        .viz-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Courier New', monospace;
+        }
+        .viz-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .viz-stat-val {
+            color: var(--accent);
+        }
         @media (max-width: 768px) {
             .top-bar { padding: 16px 20px; }
             .viz-canvas { height: 200px; }
@@ -116,58 +149,117 @@
 <body>
     <div class="top-bar">
         <a class="logo" href="./index.html">&#8592; OBELISK</a>
+        <button class="icon-btn" onclick="toggleLang()">&#127760;</button>
     </div>
     <div class="container">
-        <h1>Motion Lab</h1>
-        <div class="subtitle">APK Structure Visualizer &amp; Network Topology</div>
+        <h1 data-i18n="title">Motion Lab</h1>
+        <div class="subtitle" data-i18n="subtitle">APK Structure Visualizer & Network Topology</div>
         <div class="viz-card">
-            <div class="viz-title">APK File Structure</div>
+            <div class="viz-title" data-i18n="tree_title">APK File Structure</div>
             <div id="treeContainer"></div>
+            <div class="viz-stats" id="treeStats"></div>
         </div>
         <div class="viz-card">
-            <div class="viz-title">Permission Relationship Graph</div>
+            <div class="viz-title" data-i18n="perm_title">Permission Relationship Graph</div>
             <canvas class="viz-canvas" id="permCanvas"></canvas>
+            <div class="viz-stats" id="permStats"></div>
         </div>
         <div class="viz-card">
-            <div class="viz-title">Network Traffic Topology</div>
+            <div class="viz-title" data-i18n="net_title">Network Traffic Topology</div>
             <canvas class="viz-canvas" id="netCanvas"></canvas>
+            <div class="viz-stats" id="netStats"></div>
         </div>
     </div>
     <script>
+        const i18n = {
+            en: {
+                title: "Motion Lab",
+                subtitle: "APK Structure Visualizer & Network Topology",
+                tree_title: "APK File Structure",
+                perm_title: "Permission Relationship Graph",
+                net_title: "Network Traffic Topology",
+                no_data: "Upload an APK in Reverse Notes to visualize",
+                files: "files",
+                perms: "perms",
+                libs: "libs",
+                nodes: "nodes",
+                conns: "connections"
+            },
+            zh: {
+                title: "动效实验室",
+                subtitle: "APK 结构可视化与网络拓扑",
+                tree_title: "APK 文件结构",
+                perm_title: "权限关系图",
+                net_title: "网络流量拓扑",
+                no_data: "在逆向手记中上传 APK 以可视化",
+                files: "文件",
+                perms: "权限",
+                libs: "库",
+                nodes: "节点",
+                conns: "连接"
+            }
+        };
+        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
+        function applyLang() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+        }
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('obelisk_lang', currentLang);
+            applyLang();
+            location.reload();
+        }
+
         const lastAPK = JSON.parse(sessionStorage.getItem('obelisk_last_apk') || '{}');
+        const t = i18n[currentLang];
+
+        // Tree View
         const treeContainer = document.getElementById('treeContainer');
         if (lastAPK && lastAPK.filename) {
-            treeContainer.innerHTML = '<div class="tree-node">' + lastAPK.filename + '</div>' +
+            const permCount = (lastAPK.manifest && lastAPK.manifest.permissions) ? lastAPK.manifest.permissions.length : 0;
+            const libCount = (lastAPK.nativeLibs) ? lastAPK.nativeLibs.length : 0;
+            treeContainer.innerHTML = 
+                '<div class="tree-node">' + lastAPK.filename + '</div>' +
                 '<div class="tree-children">' +
                 '<div class="tree-node">AndroidManifest.xml</div>' +
-                '<div class="tree-node">classes.dex (' + (lastAPK.dexStrings ? lastAPK.dexStrings.length : 0) + ' strings)</div>' +
-                '<div class="tree-node">lib/ (' + (lastAPK.nativeLibs ? lastAPK.nativeLibs.length : 0) + ' .so)</div>' +
-                '<div class="tree-children">' + (lastAPK.nativeLibs || []).map(l => '<div class="tree-node">' + l + '</div>').join('') + '</div>' +
+                '<div class="tree-node">classes.dex</div>' +
+                '<div class="tree-node">lib/ (' + libCount + ' .so)</div>' +
+                '<div class="tree-children">' + (lastAPK.nativeLibs || []).map(function(l) { return '<div class="tree-node">' + l + '</div>'; }).join('') + '</div>' +
                 '<div class="tree-node">res/ (resources)</div>' +
                 '<div class="tree-node">META-INF/ (signatures)</div>' +
                 '</div>';
+            document.getElementById('treeStats').innerHTML = 
+                '<div class="viz-stat"><span class="viz-stat-val">' + (lastAPK.manifest && lastAPK.manifest.permissions ? lastAPK.manifest.permissions.length : 0) + '</span> ' + t.perms + '</div>' +
+                '<div class="viz-stat"><span class="viz-stat-val">' + libCount + '</span> ' + t.libs + '</div>' +
+                '<div class="viz-stat"><span class="viz-stat-val">' + (lastAPK.dexStrings ? lastAPK.dexStrings.length : 0) + '</span> strings</div>';
         } else {
-            treeContainer.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">Upload an APK in Reverse Notes to visualize its structure</div>';
+            treeContainer.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">' + t.no_data + '</div>';
         }
 
-        // Permission Graph
+        // Permission Graph - optimized
         (function() {
             const canvas = document.getElementById('permCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-            const perms = lastAPK && lastAPK.manifest ? lastAPK.manifest.permissions || [] : [];
-            const nodes = [];
+            const perms = (lastAPK && lastAPK.manifest) ? (lastAPK.manifest.permissions || []) : [];
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = Math.min(canvas.width, canvas.height) * 0.35;
+
             if (perms.length === 0) {
                 ctx.fillStyle = 'rgba(255,255,255,0.2)';
                 ctx.font = '0.8rem sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('No permission data. Analyze an APK first.', centerX, centerY);
+                ctx.fillText(t.no_data, centerX, centerY);
                 return;
             }
+
+            const nodes = [];
             perms.forEach(function(p, i) {
                 const angle = (i / perms.length) * Math.PI * 2 - Math.PI / 2;
                 nodes.push({
@@ -176,13 +268,21 @@
                     label: p.replace('android.permission.', '')
                 });
             });
-            function draw() {
+
+            document.getElementById('permStats').innerHTML = 
+                '<div class="viz-stat"><span class="viz-stat-val">' + perms.length + '</span> ' + t.perms + '</div>' +
+                '<div class="viz-stat"><span class="viz-stat-val">' + nodes.length + '</span> ' + t.nodes + '</div>';
+
+            var lastTime = 0;
+            function draw(timestamp) {
+                if (timestamp - lastTime < 33) { requestAnimationFrame(draw); return; }
+                lastTime = timestamp;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
                 ctx.fillStyle = 'var(--accent)';
                 ctx.fill();
-                nodes.forEach(function(n, i) {
+                nodes.forEach(function(n) {
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.lineTo(n.x, n.y);
@@ -199,10 +299,10 @@
                 });
                 requestAnimationFrame(draw);
             }
-            draw();
+            requestAnimationFrame(draw);
         })();
 
-        // Network Topology
+        // Network Topology - optimized with fewer nodes
         (function() {
             const canvas = document.getElementById('netCanvas');
             const ctx = canvas.getContext('2d');
@@ -215,8 +315,16 @@
                 { x: canvas.width * 0.3, y: canvas.height * 0.7, label: 'ADS', r: 5 },
                 { x: canvas.width * 0.7, y: canvas.height * 0.7, label: 'CDN', r: 5 }
             ];
+
+            document.getElementById('netStats').innerHTML = 
+                '<div class="viz-stat"><span class="viz-stat-val">' + nodes.length + '</span> ' + t.nodes + '</div>' +
+                '<div class="viz-stat"><span class="viz-stat-val">' + (nodes.length - 1) * 2 + '</span> ' + t.conns + '</div>';
+
             let frame = 0;
-            function draw() {
+            var lastTime = 0;
+            function draw(timestamp) {
+                if (timestamp - lastTime < 33) { requestAnimationFrame(draw); return; }
+                lastTime = timestamp;
                 frame++;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 nodes.forEach(function(n, i) {
@@ -242,8 +350,10 @@
                 });
                 requestAnimationFrame(draw);
             }
-            draw();
+            requestAnimationFrame(draw);
         })();
+
+        applyLang();
     </script>
 </body>
 </html>
