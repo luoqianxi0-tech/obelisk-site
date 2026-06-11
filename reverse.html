@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBELISK | Reverse Notes</title>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --glass: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.08);
+            --accent: rgba(100,255,150,0.6);
+            --accent2: rgba(80,180,255,0.6);
+            --danger: rgba(255,80,80,0.6);
+            --warn: rgba(255,200,80,0.7);
+        }
+        html, body {
+            background: #000;
+            color: #e0e0e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logo:hover { color: #fff; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+            position: relative;
+            z-index: 5;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.1em;
+            margin-bottom: 32px;
+        }
+        .drop-zone {
+            border: 2px dashed rgba(255,255,255,0.15);
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.4s;
+            cursor: pointer;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(100,255,150,0.02);
+        }
+        .drop-zone .icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .drop-zone p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.05em;
+        }
+        .drop-zone .hint {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            margin-top: 8px;
+        }
+        .report {
+            margin-top: 32px;
+            display: none;
+        }
+        .report.show { display: block; animation: fadeInUp 0.6s ease; }
+        .report-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s;
+        }
+        .report-card:hover { border-color: rgba(255,255,255,0.15); }
+        .report-title {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .report-value {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            border: 1px solid;
+            margin-top: 8px;
+        }
+        .risk-high { color: var(--danger); border-color: var(--danger); }
+        .risk-mid { color: var(--warn); border-color: var(--warn); }
+        .risk-low { color: var(--accent); border-color: var(--accent); }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .tag {
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Courier New', monospace;
+        }
+        .tag.danger { border-color: var(--danger); color: rgba(255,80,80,0.8); }
+        .tag.warn { border-color: var(--warn); color: rgba(255,200,80,0.8); }
+        .tag.safe { border-color: var(--accent); color: var(--accent); }
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .action-btn {
+            padding: 10px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .action-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .action-btn.primary {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .action-btn.primary:hover { background: rgba(255,255,255,0.12); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .top-bar { padding: 16px 20px; }
+            .drop-zone { padding: 40px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a class="logo" href="./index.html">&#8592; OBELISK</a>
+    </div>
+    <div class="container">
+        <h1>Reverse Notes</h1>
+        <div class="subtitle">APK Analyzer &amp; Static Scanner</div>
+        <div class="drop-zone" id="dropZone">
+            <div class="icon">&#9650;</div>
+            <p>Drop APK here or click to upload</p>
+            <div class="hint">Max 50MB · Pure client-side analysis</div>
+            <input type="file" id="fileInput" accept=".apk" style="display:none">
+        </div>
+        <div class="report" id="report">
+            <div class="report-card">
+                <div class="report-title">Package Name</div>
+                <div class="report-value" id="pkgName">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Version</div>
+                <div class="report-value" id="version">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Risk Assessment</div>
+                <div class="report-value" id="riskScore">-</div>
+                <div class="risk-badge" id="riskBadge">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Permissions</div>
+                <div class="tag-list" id="permList"></div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Native Libraries</div>
+                <div class="tag-list" id="libList"></div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Suspicious Strings</div>
+                <div class="tag-list" id="strList"></div>
+            </div>
+            <div class="action-bar">
+                <button class="action-btn primary" onclick="saveToProfile()">Save to Profile</button>
+                <button class="action-btn" onclick="addToArsenal()">Add to Arsenal</button>
+                <button class="action-btn" onclick="visualize()">Visualize Structure</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
+            authDomain: "obelisk-ca117.firebaseapp.com",
+            projectId: "obelisk-ca117",
+            storageBucket: "obelisk-ca117.firebasestorage.app",
+            messagingSenderId: "574365252836",
+            appId: "1:574365252836:web:f8c21cc4cb1bdcd46480f1",
+            measurementId: "G-D0P8QL36G8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+        let lastAnalysis = null;
+
+        auth.onAuthStateChanged(function(user) {
+            currentUser = user;
+        });
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        dropZone.addEventListener('click', function() { fileInput.click(); });
+        dropZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', function(e) { e.preventDefault(); this.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', function() { handleFile(this.files[0]); });
+
+        async function handleFile(file) {
+            if (!file || !file.name.endsWith('.apk')) { alert('Please upload an APK file'); return; }
+            if (file.size > 50 * 1024 * 1024) { alert('File too large (max 50MB)'); return; }
+            dropZone.innerHTML = '<div class="icon">&#8987;</div><p>Analyzing...</p><div class="hint">' + file.name + '</div>';
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await parseAPK(arrayBuffer, file.name);
+                lastAnalysis = result;
+                showReport(result);
+            } catch (err) {
+                console.error(err);
+                dropZone.innerHTML = '<div class="icon">&#10008;</div><p>Analysis failed</p><div class="hint">' + err.message + '</div>';
+            }
+        }
+
+        async function parseAPK(arrayBuffer, filename) {
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            const manifestFile = zip.file('AndroidManifest.xml');
+            let manifest = { package: '', versionCode: '', versionName: '', permissions: [] };
+            if (manifestFile) {
+                const data = await manifestFile.async('uint8array');
+                manifest = parseAXML(data);
+            }
+            const dexStrings = [];
+            const nativeLibs = [];
+            for (const [name, file] of Object.entries(zip.files)) {
+                if (name.endsWith('.dex')) {
+                    const dexData = await file.async('uint8array');
+                    dexStrings.push(...extractDexStrings(dexData));
+                }
+                if (name.endsWith('.so')) {
+                    nativeLibs.push(name.split('/').pop());
+                }
+            }
+            const suspicious = extractSuspicious(dexStrings);
+            const risk = calculateRisk(manifest, suspicious, nativeLibs);
+            return { filename, manifest, dexStrings, nativeLibs, suspicious, risk, timestamp: Date.now() };
+        }
+
+        function parseAXML(data) {
+            const result = { package: '', versionCode: '', versionName: '', permissions: [] };
+            const len = data.length;
+            for (let i = 0; i < len - 20; i++) {
+                if (data[i] === 0x61 && data[i+1] === 0x6E && data[i+2] === 0x64 && data[i+3] === 0x72 && data[i+4] === 0x6F) {
+                    const str = extractString(data, i, 120);
+                    if (str && str.startsWith('android.permission.') && !result.permissions.includes(str)) {
+                        result.permissions.push(str);
+                    }
+                }
+                if (data[i] === 0x70 && data[i+1] === 0x61 && data[i+2] === 0x63 && data[i+3] === 0x6B && data[i+4] === 0x61) {
+                    const str = extractString(data, i, 80);
+                    if (str && str.includes('.') && str.length > 5 && !result.package) {
+                        result.package = str;
+                    }
+                }
+                if (data[i] === 0x76 && data[i+1] === 0x65 && data[i+2] === 0x72 && data[i+3] === 0x73 && data[i+4] === 0x69 && data[i+5] === 0x6F && data[i+6] === 0x6E) {
+                    const str = extractString(data, i, 30);
+                    if (str && (str.match(/^\d/) || str.includes('.')) && !result.versionName) {
+                        result.versionName = str;
+                    }
+                }
+            }
+            return result;
+        }
+
+        function extractString(data, start, maxLen) {
+            let str = '';
+            for (let i = start; i < start + maxLen && i < data.length; i++) {
+                if (data[i] === 0) break;
+                if (data[i] >= 32 && data[i] < 127) str += String.fromCharCode(data[i]);
+                else break;
+            }
+            return str.length > 3 ? str : null;
+        }
+
+        function extractDexStrings(data) {
+            const strings = [];
+            const len = data.length;
+            for (let i = 0; i < len - 4; i++) {
+                if (data[i] === 0x68 && data[i+1] === 0x74 && data[i+2] === 0x74 && data[i+3] === 0x70) {
+                    const str = extractString(data, i, 200);
+                    if (str && str.length > 10) strings.push(str);
+                }
+                if (data[i] === 0x61 && data[i+1] === 0x70 && data[i+2] === 0x69 && data[i+3] === 0x2E) {
+                    const str = extractString(data, i, 100);
+                    if (str && str.includes('.')) strings.push(str);
+                }
+            }
+            return [...new Set(strings)];
+        }
+
+        function extractSuspicious(strings) {
+            const patterns = ['http://', 'https://', 'api.', 'token', 'secret', 'password', 'key', 'auth', 'c2', 'cmd', 'shell'];
+            return strings.filter(s => patterns.some(p => s.toLowerCase().includes(p)));
+        }
+
+        function calculateRisk(manifest, suspicious, nativeLibs) {
+            let score = 0;
+            const highRiskPerms = ['READ_CONTACTS','RECORD_AUDIO','CAMERA','ACCESS_FINE_LOCATION','READ_SMS','SEND_SMS','CALL_PHONE','READ_PHONE_STATE'];
+            const midRiskPerms = ['WRITE_EXTERNAL_STORAGE','ACCESS_COARSE_LOCATION','GET_ACCOUNTS'];
+            (manifest.permissions || []).forEach(p => {
+                if (highRiskPerms.some(h => p.includes(h))) score += 12;
+                else if (midRiskPerms.some(m => p.includes(m))) score += 6;
+                else score += 2;
+            });
+            score += suspicious.length * 5;
+            score += nativeLibs.length * 3;
+            return Math.min(score, 100);
+        }
+
+        function showReport(r) {
+            document.getElementById('pkgName').textContent = r.manifest.package || 'Unknown';
+            document.getElementById('version').textContent = r.manifest.versionName || 'Unknown';
+            document.getElementById('riskScore').textContent = r.risk + '/100';
+            const badge = document.getElementById('riskBadge');
+            badge.className = 'risk-badge ' + (r.risk >= 60 ? 'risk-high' : r.risk >= 30 ? 'risk-mid' : 'risk-low');
+            badge.textContent = r.risk >= 60 ? 'HIGH RISK' : r.risk >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
+            const permList = document.getElementById('permList');
+            permList.innerHTML = '';
+            (r.manifest.permissions || []).forEach(p => {
+                const div = document.createElement('span');
+                div.className = 'tag' + (p.includes('CONTACTS') || p.includes('LOCATION') || p.includes('SMS') || p.includes('PHONE') ? ' danger' : p.includes('STORAGE') || p.includes('CAMERA') ? ' warn' : ' safe');
+                div.textContent = p.replace('android.permission.', '');
+                permList.appendChild(div);
+            });
+            const libList = document.getElementById('libList');
+            libList.innerHTML = '';
+            r.nativeLibs.forEach(l => { const div = document.createElement('span'); div.className = 'tag'; div.textContent = l; libList.appendChild(div); });
+            const strList = document.getElementById('strList');
+            strList.innerHTML = '';
+            r.suspicious.forEach(s => { const div = document.createElement('span'); div.className = 'tag warn'; div.textContent = s.length > 40 ? s.slice(0,40) + '...' : s; strList.appendChild(div); });
+            document.getElementById('report').classList.add('show');
+            dropZone.innerHTML = '<div class="icon">&#10003;</div><p>Analysis Complete</p><div class="hint">' + r.filename + '</div>';
+        }
+
+        function saveToProfile() {
+            if (!currentUser) { alert('Please sign in first'); return; }
+            if (!lastAnalysis) return;
+            const uid = currentUser.uid;
+            const appData = {
+                name: lastAnalysis.filename.replace('.apk', ''),
+                pkg: lastAnalysis.manifest.package || 'unknown',
+                date: new Date().toISOString().slice(0,10),
+                risk: lastAnalysis.risk >= 60 ? 'high' : lastAnalysis.risk >= 30 ? 'mid' : 'low',
+                permissions: lastAnalysis.manifest.permissions.map(p => p.replace('android.permission.', '')),
+                findings: lastAnalysis.suspicious
+            };
+            db.collection('users').doc(uid).update({
+                recentApps: firebase.firestore.FieldValue.arrayUnion(appData),
+                logs: firebase.firestore.FieldValue.arrayUnion({ action: 'log_scan', type: 'SCAN', time: Date.now(), meta: { target: appData.pkg } })
+            }).then(function() {
+                alert('Saved to profile');
+            }).catch(function(err) {
+                console.error(err);
+                alert('Save failed: ' + err.message);
+            });
+        }
+
+        function addToArsenal() {
+            if (!currentUser) { alert('Please sign in first'); return; }
+            const tool = { name: 'APK Scanner', cat: 'Scanner', desc: 'Static analysis of ' + (lastAnalysis ? lastAnalysis.filename : 'APK'), version: '1.0', status: 'active', usage: 'Upload APK to analyze' };
+            db.collection('users').doc(currentUser.uid).update({
+                arsenal: firebase.firestore.FieldValue.arrayUnion(tool)
+            }).then(function() { alert('Added to arsenal'); });
+        }
+
+        function visualize() {
+            if (!lastAnalysis) return;
+            sessionStorage.setItem('obelisk_last_apk', JSON.stringify(lastAnalysis));
+            window.location.href = './motion.html';
+        }
+    </script>
+</body>
+</html>

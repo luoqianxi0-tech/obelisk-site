@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBELISK | Dark Nav</title>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --glass: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.08);
+            --accent: rgba(100,255,150,0.6);
+            --accent2: rgba(80,180,255,0.6);
+        }
+        html, body {
+            background: #000;
+            color: #e0e0e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logo:hover { color: #fff; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+            position: relative;
+            z-index: 5;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.1em;
+            margin-bottom: 32px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .search-input::placeholder { color: rgba(255,255,255,0.2); }
+        .search-btn {
+            padding: 12px 24px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .search-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .cat-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .cat-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .cat-btn:hover, .cat-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(100,255,150,0.03);
+        }
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .resource-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            transition: all 0.4s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .resource-item:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.05);
+        }
+        .resource-item::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 2px; height: 0;
+            background: var(--accent2);
+            transition: height 0.4s;
+        }
+        .resource-item:hover::after { height: 100%; }
+        .resource-name {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 0.02em;
+            margin-bottom: 4px;
+        }
+        .resource-url {
+            font-size: 0.65rem;
+            color: var(--accent2);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+        .resource-desc {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.5;
+        }
+        .resource-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .resource-tag {
+            padding: 2px 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .resource-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .r-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .r-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+        .add-resource-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            grid-column: 1 / -1;
+            margin-top: 8px;
+        }
+        .add-resource-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.03);
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(30px);
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-box {
+            background: rgba(8,8,8,0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+        .modal-box h3 {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .modal-input:focus { border-color: var(--accent); }
+        .modal-input::placeholder { color: rgba(255,255,255,0.2); }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .modal-btn.primary {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .modal-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+        .modal-btn.primary:hover { background: rgba(255,255,255,0.12); }
+        @media (max-width: 768px) {
+            .resource-grid { grid-template-columns: 1fr; }
+            .top-bar { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a class="logo" href="./index.html">&#8592; OBELISK</a>
+    </div>
+    <div class="container">
+        <h1>Dark Nav</h1>
+        <div class="subtitle">Security Resource Index &amp; Tool Directory</div>
+        <div class="search-bar">
+            <input class="search-input" id="searchInput" placeholder="Search resources...">
+            <button class="search-btn" onclick="filterResources()">Search</button>
+        </div>
+        <div class="cat-nav">
+            <button class="cat-btn active" onclick="filterCat('all')">All</button>
+            <button class="cat-btn" onclick="filterCat('blog')">Blogs</button>
+            <button class="cat-btn" onclick="filterCat('ctf')">CTF</button>
+            <button class="cat-btn" onclick="filterCat('tool')">Tools</button>
+            <button class="cat-btn" onclick="filterCat('docs')">Docs</button>
+            <button class="cat-btn" onclick="filterCat('tor')">Tor</button>
+        </div>
+        <div class="resource-grid" id="resourceGrid"></div>
+        <button class="add-resource-btn" onclick="openAddResource()">+ Add Resource</button>
+    </div>
+    <div class="modal-overlay" id="resourceModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeAddResource()" style="position:absolute;top:16px;right:16px;width:32px;height:32px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:pointer;">&#215;</button>
+            <h3>Add Resource</h3>
+            <input class="modal-input" id="resName" placeholder="Name">
+            <input class="modal-input" id="resUrl" placeholder="URL">
+            <input class="modal-input" id="resDesc" placeholder="Description">
+            <input class="modal-input" id="resCat" placeholder="Category (blog/ctf/tool/docs/tor)">
+            <input class="modal-input" id="resTags" placeholder="Tags (comma separated)">
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeAddResource()">Cancel</button>
+                <button class="modal-btn primary" onclick="saveResource()">Save</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
+            authDomain: "obelisk-ca117.firebaseapp.com",
+            projectId: "obelisk-ca117",
+            storageBucket: "obelisk-ca117.firebasestorage.app",
+            messagingSenderId: "574365252836",
+            appId: "1:574365252836:web:f8c21cc4cb1bdcd46480f1",
+            measurementId: "G-D0P8QL36G8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+        let allResources = [];
+
+        auth.onAuthStateChanged(function(user) { currentUser = user; });
+
+        const defaultResources = [
+            { name: "Frida Docs", url: "https://frida.re/docs/home/", desc: "Official Frida instrumentation documentation", category: "docs", tags: ["frida","hook","runtime"], addedBy: "system" },
+            { name: "Android Security", url: "https://developer.android.com/topic/security", desc: "Official Android security best practices", category: "docs", tags: ["android","security","google"], addedBy: "system" },
+            { name: "OWASP Mobile", url: "https://owasp.org/www-project-mobile-security/", desc: "OWASP Mobile Security Testing Guide", category: "docs", tags: ["owasp","mobile","testing"], addedBy: "system" },
+            { name: "Hack The Box", url: "https://www.hackthebox.com/", desc: "Penetration testing labs and CTF challenges", category: "ctf", tags: ["ctf","pentest","lab"], addedBy: "system" },
+            { name: "TryHackMe", url: "https://tryhackme.com/", desc: "Guided cybersecurity training platform", category: "ctf", tags: ["training","ctf","beginner"], addedBy: "system" },
+            { name: "PortSwigger", url: "https://portswigger.net/web-security", desc: "Web security academy and Burp Suite docs", category: "tool", tags: ["burp","web","proxy"], addedBy: "system" },
+            { name: "Ghidra", url: "https://ghidra-sre.org/", desc: "NSA reverse engineering framework", category: "tool", tags: ["re","decompiler","nsa"], addedBy: "system" },
+            { name: "APKTool", url: "https://ibotpeaches.github.io/Apktool/", desc: "APK reverse engineering tool", category: "tool", tags: ["apk","reverse","android"], addedBy: "system" },
+            { name: "Tor Project", url: "https://www.torproject.org/", desc: "Anonymous communication network", category: "tor", tags: ["tor","privacy","anonymity"], addedBy: "system" },
+            { name: "Rapid7 Vulndb", url: "https://www.rapid7.com/db/", desc: "Vulnerability and exploit database", category: "blog", tags: ["vuln","exploit","db"], addedBy: "system" }
+        ];
+
+        function loadResources() {
+            db.collection('resources').get().then(function(snap) {
+                allResources = [];
+                snap.forEach(function(doc) { allResources.push(doc.data()); });
+                if (allResources.length === 0) {
+                    defaultResources.forEach(function(r) { db.collection('resources').add(r); });
+                    allResources = defaultResources;
+                }
+                renderResources(allResources);
+            }).catch(function() {
+                allResources = defaultResources;
+                renderResources(allResources);
+            });
+        }
+
+        function renderResources(list) {
+            const grid = document.getElementById('resourceGrid');
+            grid.innerHTML = '';
+            list.forEach(function(r) {
+                const div = document.createElement('a');
+                div.className = 'resource-item';
+                div.href = r.url;
+                div.target = '_blank';
+                div.innerHTML = '<div class="resource-name">' + r.name + '</div><div class="resource-url">' + r.url + '</div><div class="resource-desc">' + r.desc + '</div><div class="resource-tags">' + (r.tags || []).map(t => '<span class="resource-tag">' + t + '</span>').join('') + '</div><div class="resource-actions"><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();collectResource('' + r.name + '')">Collect</button><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();addToArsenal('' + r.name + '')">Arsenal</button></div>';
+                grid.appendChild(div);
+            });
+        }
+
+        function filterCat(cat) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (cat === 'all') renderResources(allResources);
+            else renderResources(allResources.filter(r => r.category === cat));
+        }
+
+        function filterResources() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderResources(allResources.filter(r => (r.name + r.desc + r.tags.join(' ')).toLowerCase().includes(q)));
+        }
+
+        function collectResource(name) {
+            if (!currentUser) { alert('Please sign in'); return; }
+            db.collection('users').doc(currentUser.uid).update({
+                collections: firebase.firestore.FieldValue.arrayUnion({ type: 'resource', name: name, time: Date.now() })
+            }).then(function() { alert('Collected'); });
+        }
+
+        function addToArsenal(name) {
+            if (!currentUser) { alert('Please sign in'); return; }
+            const tool = { name: name, cat: 'Resource', desc: 'From Dark Nav', version: 'N/A', status: 'ready', usage: 'Visit resource page' };
+            db.collection('users').doc(currentUser.uid).update({
+                arsenal: firebase.firestore.FieldValue.arrayUnion(tool)
+            }).then(function() { alert('Added to arsenal'); });
+        }
+
+        function openAddResource() { document.getElementById('resourceModal').classList.add('show'); }
+        function closeAddResource() { document.getElementById('resourceModal').classList.remove('show'); }
+        function saveResource() {
+            const name = document.getElementById('resName').value.trim();
+            const url = document.getElementById('resUrl').value.trim();
+            const desc = document.getElementById('resDesc').value.trim();
+            const cat = document.getElementById('resCat').value.trim() || 'tool';
+            const tags = document.getElementById('resTags').value.split(',').map(t => t.trim()).filter(t => t);
+            if (!name || !url) return;
+            const resource = { name, url, desc, category: cat, tags, addedBy: currentUser ? currentUser.uid : 'anonymous' };
+            db.collection('resources').add(resource).then(function() {
+                allResources.push(resource);
+                renderResources(allResources);
+                closeAddResource();
+            });
+        }
+
+        document.getElementById('resourceModal').addEventListener('click', function(e) { if (e.target === this) closeAddResource(); });
+        loadResources();
+    </script>
+</body>
+</html>

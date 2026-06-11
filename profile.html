@@ -31,16 +31,12 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-
-        /* ─── Background Canvas ─── */
         #bgCanvas {
             position: fixed;
             inset: 0;
             z-index: 0;
             pointer-events: none;
         }
-
-        /* ─── Top Bar ─── */
         .top-bar {
             position: relative;
             z-index: 10;
@@ -56,7 +52,6 @@
             font-weight: 300;
             color: rgba(255,255,255,0.7);
             cursor: pointer;
-            transition: opacity 0.3s;
             text-decoration: none;
         }
         .logo:hover { opacity: 1; color: #fff; }
@@ -84,8 +79,6 @@
             color: #fff;
             background: rgba(255,255,255,0.06);
         }
-
-        /* ─── Container ─── */
         .container {
             position: relative;
             z-index: 5;
@@ -93,8 +86,6 @@
             margin: 0 auto;
             padding: 0 24px 60px;
         }
-
-        /* ─── Identity Card ─── */
         .id-card {
             background: var(--glass);
             border: 1px solid var(--glass-border);
@@ -163,8 +154,6 @@
         @keyframes pulse-dot {
             0%,100%{opacity:0.4} 50%{opacity:1}
         }
-
-        /* ─── Level System ─── */
         .level-section {
             margin-top: 24px;
             background: var(--glass);
@@ -220,8 +209,6 @@
             color: rgba(255,255,255,0.25);
             font-family: 'Courier New', monospace;
         }
-
-        /* ─── Tab Nav ─── */
         .tab-nav {
             display: flex;
             gap: 0;
@@ -233,7 +220,7 @@
         }
         .tab-nav::-webkit-scrollbar { display: none; }
         .tab-btn {
-            padding: 14px 28px;
+            padding: 14px 24px;
             background: transparent;
             border: none;
             color: rgba(255,255,255,0.3);
@@ -264,8 +251,6 @@
             background: var(--accent);
             transition: left 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1);
         }
-
-        /* ─── Tab Panels ─── */
         .tab-panels { position: relative; min-height: 400px; }
         .tab-panel {
             display: none;
@@ -279,8 +264,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* ─── Dashboard Grid ─── */
         .dash-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -356,16 +339,13 @@
         }
         .dash-card.wide { grid-column: span 2; }
         .dash-card.full { grid-column: span 3; }
-
         @media (max-width: 768px) {
             .dash-grid { grid-template-columns: 1fr; }
             .dash-card.wide, .dash-card.full { grid-column: span 1; }
             .id-card { flex-direction: column; text-align: center; padding: 24px; }
             .top-bar { padding: 16px 20px; }
-            .tab-btn { padding: 12px 16px; font-size: 0.65rem; }
+            .tab-btn { padding: 12px 14px; font-size: 0.65rem; }
         }
-
-        /* ─── Arsenal ─── */
         .arsenal-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -412,12 +392,6 @@
             color: rgba(255,255,255,0.3);
             line-height: 1.5;
         }
-        .arsenal-status {
-            font-size: 0.6rem;
-            color: var(--accent);
-            margin-top: 8px;
-            font-family: 'Courier New', monospace;
-        }
         .add-tool-btn {
             display: flex;
             align-items: center;
@@ -446,8 +420,6 @@
         @media (max-width: 480px) {
             .arsenal-grid { grid-template-columns: 1fr; }
         }
-
-        /* ─── Recent Apps ─── */
         .app-list {
             display: flex;
             flex-direction: column;
@@ -507,8 +479,6 @@
         .risk-high { background: var(--danger); }
         .risk-mid { background: var(--warn); }
         .risk-low { background: var(--accent); }
-
-        /* ─── Activity Log ─── */
         .timeline {
             position: relative;
             padding-left: 24px;
@@ -565,8 +535,6 @@
             text-transform: uppercase;
             margin-top: 4px;
         }
-
-        /* ─── Settings ─── */
         .settings-list {
             display: flex;
             flex-direction: column;
@@ -617,8 +585,48 @@
         .lang-btn:hover:not(.active) {
             color: rgba(255,255,255,0.7);
         }
-
-        /* ─── Modal ─── */
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .post-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .post-item:hover {
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.04);
+        }
+        .post-title {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+        }
+        .post-type {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .post-content {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Courier New', monospace;
+        }
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -647,7 +655,6 @@
             overflow-y: auto;
         }
         .modal-overlay.show .modal-box { transform: translateY(0); }
-        .modal-box.wide { max-width: 700px; }
         .modal-box h3 {
             font-size: 1rem;
             font-weight: 300;
@@ -710,50 +717,8 @@
             border-color: rgba(255,255,255,0.25);
             color: #fff;
         }
-        .modal-btn:hover {
-            border-color: rgba(255,255,255,0.4);
-            color: #fff;
-        }
-        .modal-btn.primary:hover {
-            background: rgba(255,255,255,0.12);
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.75rem;
-        }
-        .detail-label { color: rgba(255,255,255,0.4); }
-        .detail-value { color: rgba(255,255,255,0.8); font-family: 'Courier New', monospace; }
-        .detail-section {
-            margin-top: 20px;
-        }
-        .detail-section h4 {
-            font-size: 0.75rem;
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .tag {
-            padding: 4px 10px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.5);
-            font-family: 'Courier New', monospace;
-        }
-        .tag.danger { border-color: var(--danger); color: rgba(255,80,80,0.8); }
-        .tag.warn { border-color: var(--warn); color: rgba(255,200,80,0.8); }
-        .tag.safe { border-color: var(--accent); color: var(--accent); }
-
-        /* ─── Animations ─── */
+        .modal-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+        .modal-btn.primary:hover { background: rgba(255,255,255,0.12); }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -768,36 +733,30 @@
     </style>
 </head>
 <body>
-
     <canvas id="bgCanvas"></canvas>
-
     <div class="top-bar">
-        <a class="logo" href="./index.html" data-i18n="nav_back">&#8592; OBELISK</a>
+        <a class="logo" href="./index.html">&#8592; OBELISK</a>
         <div class="top-actions">
             <button class="icon-btn" onclick="toggleLang()" title="Language">&#127760;</button>
             <button class="icon-btn" onclick="logout()" title="Logout">&#9099;</button>
         </div>
     </div>
-
     <div class="container">
-        <!-- Identity Card -->
         <div class="id-card animate-in delay-1">
             <img class="id-avatar" id="idAvatar" src="" alt="avatar">
             <div class="id-info">
                 <div class="id-name" id="idName">Unknown</div>
                 <div class="id-codename" id="idCodename">CODENAME: UNSET</div>
                 <div class="id-meta">
-                    <span><span class="dot"></span> <span data-i18n="status_active">Active</span></span>
-                    <span id="idRole" data-i18n="role_analyst">Analyst</span>
+                    <span><span class="dot"></span> Active</span>
+                    <span id="idRole">Analyst</span>
                     <span id="idJoin">2026.06.11</span>
                 </div>
             </div>
         </div>
-
-        <!-- Level System -->
         <div class="level-section animate-in delay-2">
             <div class="level-header">
-                <div class="level-title" data-i18n="level_title">System Clearance</div>
+                <div class="level-title">System Clearance</div>
                 <div class="level-badge" id="levelBadge">LV.01</div>
             </div>
             <div class="xp-bar-wrap">
@@ -808,33 +767,30 @@
                 <span id="xpMax">1000 XP</span>
             </div>
         </div>
-
-        <!-- Tab Navigation -->
         <div class="tab-nav animate-in delay-3">
-            <button class="tab-btn active" onclick="switchTab(0)" data-i18n="tab_dashboard">Dashboard</button>
-            <button class="tab-btn" onclick="switchTab(1)" data-i18n="tab_arsenal">Arsenal</button>
-            <button class="tab-btn" onclick="switchTab(2)" data-i18n="tab_recent">Recent</button>
-            <button class="tab-btn" onclick="switchTab(3)" data-i18n="tab_logs">Logs</button>
-            <button class="tab-btn" onclick="switchTab(4)" data-i18n="tab_settings">Settings</button>
+            <button class="tab-btn active" onclick="switchTab(0)">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab(1)">Arsenal</button>
+            <button class="tab-btn" onclick="switchTab(2)">Recent</button>
+            <button class="tab-btn" onclick="switchTab(3)">Logs</button>
+            <button class="tab-btn" onclick="switchTab(4)">My Posts</button>
+            <button class="tab-btn" onclick="switchTab(5)">Settings</button>
             <div class="tab-indicator" id="tabIndicator"></div>
         </div>
-
         <div class="tab-panels animate-in delay-4">
-            <!-- Dashboard -->
             <div class="tab-panel active" id="panel-dashboard">
                 <div class="dash-grid">
                     <div class="dash-card wide" onclick="openDashDetail('traffic')">
-                        <div class="dash-label" data-i18n="dash_traffic">Network Traffic</div>
+                        <div class="dash-label">Network Traffic</div>
                         <canvas class="dash-canvas" id="trafficCanvas"></canvas>
-                        <div class="dash-sub" data-i18n="dash_live">Live · MB/s</div>
+                        <div class="dash-sub">Live · MB/s</div>
                     </div>
                     <div class="dash-card" onclick="openDashDetail('hooks')">
-                        <div class="dash-label" data-i18n="dash_hooks">Hooks Intercepted</div>
+                        <div class="dash-label">Hooks Intercepted</div>
                         <div class="dash-value" id="hookCount">0</div>
-                        <div class="dash-sub" data-i18n="dash_hooks_sub">real-time</div>
+                        <div class="dash-sub">real-time</div>
                     </div>
                     <div class="dash-card" onclick="openDashDetail('risk')">
-                        <div class="dash-label" data-i18n="dash_risk">Risk Score</div>
+                        <div class="dash-label">Risk Score</div>
                         <div class="gauge-wrap">
                             <svg class="gauge-svg" viewBox="0 0 60 60">
                                 <circle class="gauge-track" cx="30" cy="30" r="28"/>
@@ -844,58 +800,54 @@
                         </div>
                     </div>
                     <div class="dash-card" onclick="openDashDetail('packets')">
-                        <div class="dash-label" data-i18n="dash_packets">Packets Captured</div>
+                        <div class="dash-label">Packets Captured</div>
                         <div class="dash-value" id="packetCount">0</div>
-                        <div class="dash-sub" data-i18n="dash_packets_sub">today</div>
+                        <div class="dash-sub">today</div>
                     </div>
                     <div class="dash-card" onclick="openDashDetail('scans')">
-                        <div class="dash-label" data-i18n="dash_scans">Scans Completed</div>
+                        <div class="dash-label">Scans Completed</div>
                         <div class="dash-value" id="scanCount">0</div>
-                        <div class="dash-sub" data-i18n="dash_scans_sub">this week</div>
+                        <div class="dash-sub">this week</div>
                     </div>
                     <div class="dash-card" onclick="openDashDetail('nodes')">
-                        <div class="dash-label" data-i18n="dash_nodes">Active Nodes</div>
+                        <div class="dash-label">Active Nodes</div>
                         <div class="dash-value" id="nodeCount">0</div>
-                        <div class="dash-sub" data-i18n="dash_nodes_sub">live</div>
+                        <div class="dash-sub">live</div>
                     </div>
                     <div class="dash-card full" onclick="openDashDetail('load')">
-                        <div class="dash-label" data-i18n="dash_load">System Load</div>
+                        <div class="dash-label">System Load</div>
                         <canvas class="dash-canvas" id="loadCanvas"></canvas>
-                        <div class="dash-sub" data-i18n="dash_cpu_mem">CPU · Memory · IO</div>
+                        <div class="dash-sub">CPU · Memory · IO</div>
                     </div>
                 </div>
             </div>
-
-            <!-- Arsenal -->
             <div class="tab-panel" id="panel-arsenal">
                 <div class="arsenal-grid" id="arsenalGrid"></div>
-                <button class="add-tool-btn" onclick="openAddTool()" data-i18n="arsenal_add">+ Add Tool</button>
+                <button class="add-tool-btn" onclick="openAddTool()">+ Add Tool</button>
             </div>
-
-            <!-- Recent Apps -->
             <div class="tab-panel" id="panel-recent">
                 <div class="app-list" id="appList"></div>
             </div>
-
-            <!-- Activity Logs -->
             <div class="tab-panel" id="panel-logs">
                 <div class="timeline" id="timeline"></div>
             </div>
-
-            <!-- Settings -->
+            <div class="tab-panel" id="panel-posts">
+                <div class="post-list" id="myPostList"></div>
+                <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);font-size:0.75rem;">Posts from Inspo Ruins Community</div>
+            </div>
             <div class="tab-panel" id="panel-settings">
                 <div class="settings-list">
                     <div class="setting-row">
                         <div>
-                            <div class="setting-label" data-i18n="set_codename">Codename</div>
-                            <div class="setting-desc" data-i18n="set_codename_desc">Your operative alias</div>
+                            <div class="setting-label">Codename</div>
+                            <div class="setting-desc">Your operative alias</div>
                         </div>
-                        <button class="modal-btn" onclick="openCodenameModal()" data-i18n="btn_edit">Edit</button>
+                        <button class="modal-btn" onclick="openCodenameModal()">Edit</button>
                     </div>
                     <div class="setting-row">
                         <div>
-                            <div class="setting-label" data-i18n="set_lang">Language</div>
-                            <div class="setting-desc" data-i18n="set_lang_desc">Interface language</div>
+                            <div class="setting-label">Language</div>
+                            <div class="setting-desc">Interface language</div>
                         </div>
                         <div class="lang-toggle">
                             <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
@@ -904,239 +856,47 @@
                     </div>
                     <div class="setting-row">
                         <div>
-                            <div class="setting-label" data-i18n="set_data">Data Persistence</div>
-                            <div class="setting-desc" data-i18n="set_data_desc">Synced to Firestore</div>
+                            <div class="setting-label">Data Persistence</div>
+                            <div class="setting-desc">Synced to Firestore</div>
                         </div>
-                        <span style="font-size:0.7rem;color:var(--accent);font-family:monospace;" data-i18n="status_on">ON</span>
+                        <span style="font-size:0.7rem;color:var(--accent);font-family:monospace;">ON</span>
                     </div>
                     <div class="setting-row">
                         <div>
-                            <div class="setting-label" data-i18n="set_clear">Clear Local Data</div>
-                            <div class="setting-desc" data-i18n="set_clear_desc">Reset profile cache</div>
+                            <div class="setting-label">Clear Local Data</div>
+                            <div class="setting-desc">Reset profile cache</div>
                         </div>
-                        <button class="modal-btn" onclick="clearLocalData()" data-i18n="btn_clear">Clear</button>
+                        <button class="modal-btn" onclick="clearLocalData()">Clear</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Codename Modal -->
     <div class="modal-overlay" id="codenameModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeCodenameModal()">&#215;</button>
-            <h3 data-i18n="modal_codename">Set Codename</h3>
+            <h3>Set Codename</h3>
             <input class="modal-input" id="codenameInput" placeholder="e.g. PHANTOM-7" maxlength="20">
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeCodenameModal()" data-i18n="btn_cancel">Cancel</button>
-                <button class="modal-btn primary" onclick="saveCodename()" data-i18n="btn_save">Save</button>
+                <button class="modal-btn" onclick="closeCodenameModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="saveCodename()">Save</button>
             </div>
         </div>
     </div>
-
-    <!-- Add Tool Modal -->
     <div class="modal-overlay" id="toolModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeToolModal()">&#215;</button>
-            <h3 data-i18n="modal_tool">Add Tool</h3>
+            <h3>Add Tool</h3>
             <input class="modal-input" id="toolName" placeholder="Tool Name" maxlength="30">
             <input class="modal-input" id="toolCat" placeholder="Category" maxlength="20">
             <input class="modal-input" id="toolDesc" placeholder="Description" maxlength="60">
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeToolModal()" data-i18n="btn_cancel">Cancel</button>
-                <button class="modal-btn primary" onclick="saveTool()" data-i18n="btn_save">Save</button>
+                <button class="modal-btn" onclick="closeToolModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="saveTool()">Save</button>
             </div>
         </div>
     </div>
-
-    <!-- Tool Detail Modal -->
-    <div class="modal-overlay" id="toolDetailModal">
-        <div class="modal-box wide">
-            <button class="modal-close" onclick="closeToolDetailModal()">&#215;</button>
-            <h3 id="toolDetailName">Tool Name</h3>
-            <div id="toolDetailContent"></div>
-        </div>
-    </div>
-
-    <!-- App Detail Modal -->
-    <div class="modal-overlay" id="appDetailModal">
-        <div class="modal-box wide">
-            <button class="modal-close" onclick="closeAppDetailModal()">&#215;</button>
-            <h3 id="appDetailName">App Name</h3>
-            <div id="appDetailContent"></div>
-        </div>
-    </div>
-
-    <!-- Log Detail Modal -->
-    <div class="modal-overlay" id="logDetailModal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeLogDetailModal()">&#215;</button>
-            <h3 data-i18n="log_detail_title">Operation Detail</h3>
-            <div id="logDetailContent"></div>
-        </div>
-    </div>
-
-    <!-- Dashboard Detail Modal -->
-    <div class="modal-overlay" id="dashDetailModal">
-        <div class="modal-box wide">
-            <button class="modal-close" onclick="closeDashDetailModal()">&#215;</button>
-            <h3 id="dashDetailTitle">Detail</h3>
-            <div id="dashDetailContent"></div>
-        </div>
-    </div>
-
     <script>
-        // ─── i18n ───
-        const i18n = {
-            en: {
-                nav_back: "← OBELISK",
-                status_active: "Active",
-                role_analyst: "Analyst",
-                level_title: "System Clearance",
-                tab_dashboard: "Dashboard",
-                tab_arsenal: "Arsenal",
-                tab_recent: "Recent",
-                tab_logs: "Logs",
-                tab_settings: "Settings",
-                dash_traffic: "Network Traffic",
-                dash_live: "Live · MB/s",
-                dash_hooks: "Hooks Intercepted",
-                dash_hooks_sub: "real-time",
-                dash_risk: "Risk Score",
-                dash_packets: "Packets Captured",
-                dash_packets_sub: "today",
-                dash_scans: "Scans Completed",
-                dash_scans_sub: "this week",
-                dash_nodes: "Active Nodes",
-                dash_nodes_sub: "live",
-                dash_load: "System Load",
-                dash_cpu_mem: "CPU · Memory · IO",
-                arsenal_add: "+ Add Tool",
-                set_codename: "Codename",
-                set_codename_desc: "Your operative alias",
-                set_lang: "Language",
-                set_lang_desc: "Interface language",
-                set_data: "Data Persistence",
-                set_data_desc: "Synced to Firestore",
-                set_clear: "Clear Local Data",
-                set_clear_desc: "Reset profile cache",
-                btn_edit: "Edit",
-                btn_clear: "Clear",
-                btn_cancel: "Cancel",
-                btn_save: "Save",
-                modal_codename: "Set Codename",
-                modal_tool: "Add Tool",
-                status_on: "ON",
-                log_auth: "Authenticated via Google",
-                log_init: "Profile initialized",
-                log_levelup: "Level up",
-                log_tool: "Added tool to arsenal",
-                log_scan: "Scan completed",
-                empty_apps: "No recent analysis targets",
-                empty_logs: "No activity recorded",
-                log_detail_title: "Operation Detail",
-                detail_pkg: "Package",
-                detail_date: "Analyzed",
-                detail_risk: "Risk Level",
-                detail_perms: "Permissions",
-                detail_findings: "Findings",
-                detail_type: "Type",
-                detail_time: "Timestamp",
-                detail_action: "Action",
-                detail_meta: "Metadata",
-                risk_low: "LOW",
-                risk_mid: "MEDIUM",
-                risk_high: "HIGH",
-                tool_version: "Version",
-                tool_status: "Status",
-                tool_usage: "Usage",
-                tool_added: "Added",
-                status_ready: "READY",
-                status_active: "ACTIVE"
-            },
-            zh: {
-                nav_back: "← 返回主站",
-                status_active: "在线",
-                role_analyst: "分析员",
-                level_title: "系统权限等级",
-                tab_dashboard: "仪表盘",
-                tab_arsenal: "军火库",
-                tab_recent: "最近分析",
-                tab_logs: "活动日志",
-                tab_settings: "系统设置",
-                dash_traffic: "网络流量",
-                dash_live: "实时 · MB/s",
-                dash_hooks: "Hook 拦截数",
-                dash_hooks_sub: "实时",
-                dash_risk: "风险评分",
-                dash_packets: "数据包捕获",
-                dash_packets_sub: "今日",
-                dash_scans: "扫描完成数",
-                dash_scans_sub: "本周",
-                dash_nodes: "活跃节点",
-                dash_nodes_sub: "在线",
-                dash_load: "系统负载",
-                dash_cpu_mem: "CPU · 内存 · IO",
-                arsenal_add: "+ 添加工具",
-                set_codename: "代号",
-                set_codename_desc: "你的行动代号",
-                set_lang: "语言",
-                set_lang_desc: "界面语言",
-                set_data: "数据持久化",
-                set_data_desc: "已同步至 Firestore",
-                set_clear: "清除本地数据",
-                set_clear_desc: "重置个人档案缓存",
-                btn_edit: "编辑",
-                btn_clear: "清除",
-                btn_cancel: "取消",
-                btn_save: "保存",
-                modal_codename: "设置代号",
-                modal_tool: "添加工具",
-                status_on: "开启",
-                log_auth: "通过 Google 认证",
-                log_init: "档案初始化完成",
-                log_levelup: "等级提升",
-                log_tool: "添加工具到军火库",
-                log_scan: "扫描完成",
-                empty_apps: "暂无近期分析目标",
-                empty_logs: "暂无活动记录",
-                log_detail_title: "操作详情",
-                detail_pkg: "包名",
-                detail_date: "分析日期",
-                detail_risk: "风险等级",
-                detail_perms: "权限列表",
-                detail_findings: "发现",
-                detail_type: "类型",
-                detail_time: "时间戳",
-                detail_action: "操作",
-                detail_meta: "元数据",
-                risk_low: "低",
-                risk_mid: "中",
-                risk_high: "高",
-                tool_version: "版本",
-                tool_status: "状态",
-                tool_usage: "用法",
-                tool_added: "添加日期",
-                status_ready: "就绪",
-                status_active: "运行中"
-            }
-        };
-        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
-        function setLang(lang) {
-            currentLang = lang;
-            localStorage.setItem('obelisk_lang', lang);
-            document.getElementById('langEn').classList.toggle('active', lang === 'en');
-            document.getElementById('langCn').classList.toggle('active', lang === 'zh');
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) el.textContent = i18n[lang][key];
-            });
-        }
-        function toggleLang() {
-            setLang(currentLang === 'en' ? 'zh' : 'en');
-        }
-
-        // ─── Firebase ───
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
             authDomain: "obelisk-ca117.firebaseapp.com",
@@ -1152,36 +912,31 @@
         let currentUser = null;
         let userData = null;
         let userRef = null;
-        let unsubUser = null;
 
         const defaultArsenal = [
-            { name: "Frida", cat: "Instrumentation", desc: "Dynamic code injection & runtime manipulation", version: "16.1.11", status: "ready", usage: "frida -U -f com.target.app -l script.js" },
-            { name: "Burp Suite", cat: "Proxy", desc: "Web proxy & HTTPS traffic interception", version: "2026.2", status: "ready", usage: "Configure proxy 127.0.0.1:8080" },
-            { name: "JADX", cat: "Decompiler", desc: "Dex to Java decompiler with GUI", version: "1.4.7", status: "ready", usage: "jadx-gui target.apk" },
-            { name: "Apktool", cat: "Reverse", desc: "APK reverse engineering & rebuild", version: "2.9.3", status: "ready", usage: "apktool d target.apk" },
-            { name: "Objection", cat: "Runtime", desc: "Mobile runtime exploration toolkit", version: "1.11.0", status: "ready", usage: "objection -g com.target explore" },
-            { name: "Magisk", cat: "Root", desc: "Root & module framework for Android", version: "27.0", status: "active", usage: "magisk --install-module module.zip" },
-            { name: "Termux", cat: "Terminal", desc: "Linux terminal emulator for Android", version: "0.118", status: "active", usage: "pkg install <package>" },
-            { name: "Ghidra", cat: "RE", desc: "Software reverse engineering suite by NSA", version: "11.2", status: "ready", usage: "ghidraRun" },
-            { name: "Wireshark", cat: "Network", desc: "Network protocol analyzer & sniffer", version: "4.2.0", status: "active", usage: "tshark -i eth0 -w capture.pcap" },
-            { name: "Nuclei", cat: "Scanner", desc: "Fast vulnerability scanner with templates", version: "3.2.0", status: "ready", usage: "nuclei -u target.com -t cves/" }
+            { name: "Frida", cat: "Instrumentation", desc: "Dynamic code injection & runtime manipulation" },
+            { name: "Burp Suite", cat: "Proxy", desc: "Web proxy & HTTPS traffic interception" },
+            { name: "JADX", cat: "Decompiler", desc: "Dex to Java decompiler with GUI" },
+            { name: "Apktool", cat: "Reverse", desc: "APK reverse engineering & rebuild" },
+            { name: "Objection", cat: "Runtime", desc: "Mobile runtime exploration toolkit" },
+            { name: "Magisk", cat: "Root", desc: "Root & module framework for Android" },
+            { name: "Termux", cat: "Terminal", desc: "Linux terminal emulator for Android" },
+            { name: "Ghidra", cat: "RE", desc: "Software reverse engineering suite by NSA" },
+            { name: "Wireshark", cat: "Network", desc: "Network protocol analyzer & sniffer" },
+            { name: "Nuclei", cat: "Scanner", desc: "Fast vulnerability scanner with templates" }
         ];
         const defaultApps = [
-            { name: "TikTok", pkg: "com.zhiliaoapp.musically", date: "2026-06-10", risk: "high", permissions: ["READ_CONTACTS","RECORD_AUDIO","CAMERA","ACCESS_FINE_LOCATION"], findings: ["SSL pinning bypassed","Native library obfuscated","Suspicious C2 traffic"] },
-            { name: "WeChat", pkg: "com.tencent.mm", date: "2026-06-09", risk: "mid", permissions: ["READ_CONTACTS","WRITE_EXTERNAL_STORAGE","CAMERA"], findings: ["Encrypted database detected","Xposed hook points found"] },
-            { name: "Chrome", pkg: "com.android.chrome", date: "2026-06-08", risk: "low", permissions: ["INTERNET","ACCESS_NETWORK_STATE"], findings: ["Standard browser behavior","No suspicious APIs"] }
+            { name: "TikTok", pkg: "com.zhiliaoapp.musically", date: "2026-06-10", risk: "high" },
+            { name: "WeChat", pkg: "com.tencent.mm", date: "2026-06-09", risk: "mid" },
+            { name: "Chrome", pkg: "com.android.chrome", date: "2026-06-08", risk: "low" }
         ];
         const defaultLogs = [
-            { action: "log_auth", type: "AUTH", time: Date.now() - 86400000, meta: { ip: "192.168.1.105", device: "Chrome/Windows" } },
-            { action: "log_init", type: "SYSTEM", time: Date.now() - 80000000, meta: { version: "1.0.0", build: "release" } }
+            { action: "Authenticated via Google", type: "AUTH", time: Date.now() - 86400000 },
+            { action: "Profile initialized", type: "SYSTEM", time: Date.now() - 80000000 }
         ];
 
-        // ─── Auth ───
         auth.onAuthStateChanged(function(user) {
-            if (!user) {
-                location.href = './index.html';
-                return;
-            }
+            if (!user) { location.href = './index.html'; return; }
             currentUser = user;
             document.getElementById('idAvatar').src = user.photoURL || '';
             document.getElementById('idName').textContent = user.displayName || 'Unknown';
@@ -1190,27 +945,18 @@
         });
 
         function logout() {
-            auth.signOut().then(function() {
-                location.href = './index.html';
-            });
+            auth.signOut().then(function() { location.href = './index.html'; });
         }
 
-        // ─── Firestore Realtime ───
         function initFirestore(uid) {
             userRef = db.collection('users').doc(uid);
-            unsubUser = userRef.onSnapshot(function(doc) {
+            userRef.onSnapshot(function(doc) {
                 if (doc.exists) {
                     userData = doc.data();
                 } else {
                     userData = {
-                        codename: "",
-                        level: 1,
-                        xp: 0,
-                        maxXp: 1000,
-                        language: currentLang,
-                        arsenal: defaultArsenal,
-                        recentApps: defaultApps,
-                        logs: defaultLogs,
+                        codename: "", level: 1, xp: 0, maxXp: 1000, language: 'en',
+                        arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs,
                         stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
                     };
                     userRef.set(userData);
@@ -1221,14 +967,9 @@
                 renderAll();
             }, function(err) {
                 console.error('[OBELISK] Firestore error:', err);
-                // Fallback to localStorage
                 userData = JSON.parse(localStorage.getItem('obelisk_profile_' + uid) || '{}');
                 if (!userData.codename) {
-                    userData = {
-                        codename: "", level: 1, xp: 0, maxXp: 1000, language: currentLang,
-                        arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs,
-                        stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
-                    };
+                    userData = { codename: "", level: 1, xp: 0, maxXp: 1000, language: 'en', arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs, stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 } };
                 }
                 if (!userData.codename) setTimeout(openCodenameModal, 500);
                 renderAll();
@@ -1237,23 +978,21 @@
 
         function saveUserData() {
             if (!currentUser || !userData) return;
-            const uid = currentUser.uid;
             userRef.set(userData, { merge: true }).catch(function(err) {
                 console.error('[OBELISK] Firestore save error:', err);
             });
-            localStorage.setItem('obelisk_profile_' + uid, JSON.stringify(userData));
+            localStorage.setItem('obelisk_profile_' + currentUser.uid, JSON.stringify(userData));
         }
 
-        // ─── Render ───
         function renderAll() {
             if (!userData) return;
             document.getElementById('idCodename').textContent = 'CODENAME: ' + (userData.codename || 'UNSET');
-            setLang(userData.language || currentLang);
             renderLevel();
             renderArsenal();
             renderApps();
             renderLogs();
             renderDashboard();
+            loadMyPosts();
         }
 
         function renderLevel() {
@@ -1263,9 +1002,7 @@
             document.getElementById('levelBadge').textContent = 'LV.' + String(lvl).padStart(2, '0');
             document.getElementById('xpCurrent').textContent = xp + ' XP';
             document.getElementById('xpMax').textContent = max + ' XP';
-            setTimeout(function() {
-                document.getElementById('xpBar').style.width = (xp / max * 100) + '%';
-            }, 300);
+            setTimeout(function() { document.getElementById('xpBar').style.width = (xp / max * 100) + '%'; }, 300);
         }
 
         function renderArsenal() {
@@ -1274,9 +1011,8 @@
             (userData.arsenal || []).forEach(function(tool, idx) {
                 const div = document.createElement('div');
                 div.className = 'arsenal-item';
-                const statusKey = tool.status === 'active' ? 'status_active' : 'status_ready';
-                div.innerHTML = '<div class="arsenal-name">' + tool.name + '</div><div class="arsenal-cat">' + tool.cat + '</div><div class="arsenal-desc">' + tool.desc + '</div><div class="arsenal-status">' + (i18n[currentLang][statusKey] || tool.status.toUpperCase()) + '</div>';
-                div.onclick = function() { openToolDetail(idx); };
+                div.innerHTML = '<div class="arsenal-name">' + tool.name + '</div><div class="arsenal-cat">' + tool.cat + '</div><div class="arsenal-desc">' + tool.desc + '</div>';
+                div.onclick = function() { showToast(tool.name + ' selected'); };
                 grid.appendChild(div);
             });
         }
@@ -1286,15 +1022,14 @@
             list.innerHTML = '';
             const apps = userData.recentApps || [];
             if (apps.length === 0) {
-                list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_apps">' + i18n[currentLang].empty_apps + '</div>';
+                list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">No recent analysis targets</div>';
                 return;
             }
-            apps.forEach(function(app, idx) {
+            apps.forEach(function(app) {
                 const div = document.createElement('div');
                 div.className = 'app-item';
                 const riskClass = 'risk-' + (app.risk || 'low');
                 div.innerHTML = '<div class="app-icon">&#9670;</div><div class="app-info"><div class="app-name">' + app.name + '</div><div class="app-pkg">' + app.pkg + '</div></div><div class="app-meta">' + app.date + '<span class="app-risk ' + riskClass + '"></span></div>';
-                div.onclick = function() { openAppDetail(idx); };
                 list.appendChild(div);
             });
         }
@@ -1304,16 +1039,14 @@
             tl.innerHTML = '';
             const logs = userData.logs || [];
             if (logs.length === 0) {
-                tl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_logs">' + i18n[currentLang].empty_logs + '</div>';
+                tl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">No activity recorded</div>';
                 return;
             }
-            logs.slice().reverse().forEach(function(log, idx) {
+            logs.slice().reverse().forEach(function(log) {
                 const div = document.createElement('div');
                 div.className = 'log-entry';
                 const date = new Date(log.time).toLocaleString();
-                const actionText = i18n[currentLang][log.action] || log.action;
-                div.innerHTML = '<div class="log-time">' + date + '</div><div class="log-action">' + actionText + '</div><div class="log-type">' + log.type + '</div>';
-                div.onclick = function() { openLogDetail(logs.length - 1 - idx); };
+                div.innerHTML = '<div class="log-time">' + date + '</div><div class="log-action">' + log.action + '</div><div class="log-type">' + log.type + '</div>';
                 tl.appendChild(div);
             });
         }
@@ -1330,7 +1063,27 @@
             document.getElementById('riskGauge').style.strokeDashoffset = circumference * (1 - risk / 100);
         }
 
-        // ─── Tabs ───
+        function loadMyPosts() {
+            if (!currentUser) return;
+            db.collection('community').where('authorId', '==', currentUser.uid).orderBy('createdAt', 'desc').get().then(function(snap) {
+                const list = document.getElementById('myPostList');
+                list.innerHTML = '';
+                if (snap.empty) {
+                    list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">No posts yet. Go to Inspo Ruins to publish!</div>';
+                    return;
+                }
+                snap.forEach(function(doc) {
+                    const p = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'post-item';
+                    div.innerHTML = '<div class="post-title">' + p.title + '</div><div class="post-type">' + p.type + ' · ' + (p.visibility === 'public' ? 'Public' : 'Private') + '</div><div class="post-content">' + (p.content.length > 150 ? p.content.slice(0,150) + '...' : p.content) + '</div><div class="post-meta"><span>' + (p.createdAt ? new Date(p.createdAt.toDate()).toLocaleDateString() : '') + '</span><span>Likes: ' + (p.likes || 0) + '</span><span>Comments: ' + ((p.comments || []).length) + '</span></div>';
+                    list.appendChild(div);
+                });
+            }).catch(function() {
+                document.getElementById('myPostList').innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">Unable to load posts</div>';
+            });
+        }
+
         let currentTab = 0;
         function switchTab(idx) {
             const tabs = document.querySelectorAll('.tab-btn');
@@ -1359,161 +1112,11 @@
             startDashboardAnim();
         });
 
-        // ─── Detail Modals ───
-        function openToolDetail(idx) {
-            const tool = (userData.arsenal || [])[idx];
-            if (!tool) return;
-            document.getElementById('toolDetailName').textContent = tool.name;
-            const t = i18n[currentLang];
-            const statusText = tool.status === 'active' ? (t.status_active || 'ACTIVE') : (t.status_ready || 'READY');
-            document.getElementById('toolDetailContent').innerHTML = 
-                '<div class="detail-row"><span class="detail-label">' + (t.tool_cat || 'Category') + '</span><span class="detail-value">' + tool.cat + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.tool_version || 'Version') + '</span><span class="detail-value">' + (tool.version || 'N/A') + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.tool_status || 'Status') + '</span><span class="detail-value" style="color:' + (tool.status === 'active' ? 'var(--accent)' : 'var(--muted)') + '">' + statusText + '</span></div>' +
-                '<div class="detail-section"><h4>' + (t.tool_usage || 'Usage') + '</h4><div class="tag-list"><span class="tag" style="font-family:monospace;">' + (tool.usage || 'N/A') + '</span></div></div>' +
-                '<div class="detail-section"><h4>Description</h4><p style="font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.6;">' + tool.desc + '</p></div>';
-            document.getElementById('toolDetailModal').classList.add('show');
-        }
-        function closeToolDetailModal() {
-            document.getElementById('toolDetailModal').classList.remove('show');
-        }
-
-        function openAppDetail(idx) {
-            const app = (userData.recentApps || [])[idx];
-            if (!app) return;
-            document.getElementById('appDetailName').textContent = app.name;
-            const t = i18n[currentLang];
-            const riskLabel = app.risk === 'high' ? (t.risk_high || 'HIGH') : app.risk === 'mid' ? (t.risk_mid || 'MEDIUM') : (t.risk_low || 'LOW');
-            const riskColor = app.risk === 'high' ? 'var(--danger)' : app.risk === 'mid' ? 'var(--warn)' : 'var(--accent)';
-            let permsHtml = '';
-            (app.permissions || []).forEach(function(p) {
-                permsHtml += '<span class="tag' + (p.indexOf('READ_CONTACTS') > -1 || p.indexOf('LOCATION') > -1 ? ' danger' : ' safe') + '">' + p + '</span>';
-            });
-            let findingsHtml = '';
-            (app.findings || []).forEach(function(f) {
-                findingsHtml += '<span class="tag' + (f.indexOf('suspicious') > -1 || f.indexOf('bypassed') > -1 ? ' danger' : ' warn') + '">' + f + '</span>';
-            });
-            document.getElementById('appDetailContent').innerHTML = 
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_pkg || 'Package') + '</span><span class="detail-value">' + app.pkg + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_date || 'Analyzed') + '</span><span class="detail-value">' + app.date + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_risk || 'Risk Level') + '</span><span class="detail-value" style="color:' + riskColor + '">' + riskLabel + '</span></div>' +
-                '<div class="detail-section"><h4>' + (t.detail_perms || 'Permissions') + '</h4><div class="tag-list">' + permsHtml + '</div></div>' +
-                '<div class="detail-section"><h4>' + (t.detail_findings || 'Findings') + '</h4><div class="tag-list">' + findingsHtml + '</div></div>';
-            document.getElementById('appDetailModal').classList.add('show');
-        }
-        function closeAppDetailModal() {
-            document.getElementById('appDetailModal').classList.remove('show');
-        }
-
-        function openLogDetail(idx) {
-            const log = (userData.logs || [])[idx];
-            if (!log) return;
-            const t = i18n[currentLang];
-            const date = new Date(log.time).toLocaleString();
-            const actionText = t[log.action] || log.action;
-            let metaHtml = '';
-            if (log.meta) {
-                for (const [k, v] of Object.entries(log.meta)) {
-                    metaHtml += '<div class="detail-row"><span class="detail-label">' + k + '</span><span class="detail-value">' + v + '</span></div>';
-                }
-            }
-            document.getElementById('logDetailContent').innerHTML = 
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_type || 'Type') + '</span><span class="detail-value">' + log.type + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_time || 'Timestamp') + '</span><span class="detail-value">' + date + '</span></div>' +
-                '<div class="detail-row"><span class="detail-label">' + (t.detail_action || 'Action') + '</span><span class="detail-value">' + actionText + '</span></div>' +
-                (metaHtml ? '<div class="detail-section"><h4>' + (t.detail_meta || 'Metadata') + '</h4>' + metaHtml + '</div>' : '');
-            document.getElementById('logDetailModal').classList.add('show');
-        }
-        function closeLogDetailModal() {
-            document.getElementById('logDetailModal').classList.remove('show');
-        }
-
-        function openDashDetail(type) {
-            const t = i18n[currentLang];
-            const stats = userData.stats || {};
-            let title = '';
-            let content = '';
-            switch(type) {
-                case 'traffic':
-                    title = t.dash_traffic;
-                    content = '<div style="height:200px;"><canvas id="detailTrafficCanvas" style="width:100%;height:100%;"></canvas></div><div class="detail-section"><h4>Interface Statistics</h4><div class="detail-row"><span class="detail-label">RX</span><span class="detail-value">' + (stats.rx || '1.2') + ' MB/s</span></div><div class="detail-row"><span class="detail-label">TX</span><span class="detail-value">' + (stats.tx || '0.8') + ' MB/s</span></div><div class="detail-row"><span class="detail-label">Dropped</span><span class="detail-value">' + (stats.dropped || '0') + '</span></div></div>';
-                    break;
-                case 'hooks':
-                    title = t.dash_hooks;
-                    content = '<div class="detail-section"><h4>Hook Statistics</h4><div class="detail-row"><span class="detail-label">SSL Pinning</span><span class="detail-value">' + (stats.sslHooks || '12') + '</span></div><div class="detail-row"><span class="detail-label">Root Detection</span><span class="detail-value">' + (stats.rootHooks || '5') + '</span></div><div class="detail-row"><span class="detail-label">API Monitor</span><span class="detail-value">' + (stats.apiHooks || '34') + '</span></div></div>';
-                    break;
-                case 'risk':
-                    title = t.dash_risk;
-                    content = '<div class="detail-section"><h4>Risk Breakdown</h4><div class="detail-row"><span class="detail-label">Network</span><span class="detail-value">' + (stats.riskNet || '15') + '%</span></div><div class="detail-row"><span class="detail-label">Permissions</span><span class="detail-value">' + (stats.riskPerm || '42') + '%</span></div><div class="detail-row"><span class="detail-label">Code</span><span class="detail-value">' + (stats.riskCode || '28') + '%</span></div></div>';
-                    break;
-                case 'packets':
-                    title = t.dash_packets;
-                    content = '<div class="detail-section"><h4>Packet Summary</h4><div class="detail-row"><span class="detail-label">TCP</span><span class="detail-value">' + (stats.tcp || '8,432') + '</span></div><div class="detail-row"><span class="detail-label">UDP</span><span class="detail-value">' + (stats.udp || '1,203') + '</span></div><div class="detail-row"><span class="detail-label">HTTPS</span><span class="detail-value">' + (stats.https || '6,891') + '</span></div></div>';
-                    break;
-                case 'scans':
-                    title = t.dash_scans;
-                    content = '<div class="detail-section"><h4>Scan History</h4><div class="detail-row"><span class="detail-label">Static</span><span class="detail-value">' + (stats.staticScans || '3') + '</span></div><div class="detail-row"><span class="detail-label">Dynamic</span><span class="detail-value">' + (stats.dynamicScans || '2') + '</span></div><div class="detail-row"><span class="detail-label">Network</span><span class="detail-value">' + (stats.netScans || '1') + '</span></div></div>';
-                    break;
-                case 'nodes':
-                    title = t.dash_nodes;
-                    content = '<div class="detail-section"><h4>Node Status</h4><div class="detail-row"><span class="detail-label">Proxy</span><span class="detail-value">127.0.0.1:8080</span></div><div class="detail-row"><span class="detail-label">Frida Server</span><span class="detail-value">192.168.1.105:27042</span></div><div class="detail-row"><span class="detail-label">ADB</span><span class="detail-value">emulator-5554</span></div></div>';
-                    break;
-                case 'load':
-                    title = t.dash_load;
-                    content = '<div style="height:200px;"><canvas id="detailLoadCanvas" style="width:100%;height:100%;"></canvas></div><div class="detail-section"><h4>Resource Usage</h4><div class="detail-row"><span class="detail-label">CPU</span><span class="detail-value">' + (stats.cpu || '34') + '%</span></div><div class="detail-row"><span class="detail-label">Memory</span><span class="detail-value">' + (stats.mem || '2.1') + ' GB</span></div><div class="detail-row"><span class="detail-label">Disk IO</span><span class="detail-value">' + (stats.io || '45') + ' MB/s</span></div></div>';
-                    break;
-            }
-            document.getElementById('dashDetailTitle').textContent = title;
-            document.getElementById('dashDetailContent').innerHTML = content;
-            document.getElementById('dashDetailModal').classList.add('show');
-            if (type === 'traffic') setTimeout(function() { initDetailCanvas('detailTrafficCanvas', 'rgba(100,255,150,0.6)'); }, 100);
-            if (type === 'load') setTimeout(function() { initDetailCanvas('detailLoadCanvas', 'rgba(80,180,255,0.6)'); }, 100);
-        }
-        function closeDashDetailModal() {
-            document.getElementById('dashDetailModal').classList.remove('show');
-        }
-
-        function initDetailCanvas(id, color) {
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            let data = new Array(100).fill(30);
-            function draw() {
-                if (!document.getElementById(id)) return;
-                const w = canvas.width, h = canvas.height;
-                data.shift();
-                data.push(20 + Math.random() * 40 + Math.sin(Date.now() / 1000) * 10);
-                ctx.clearRect(0, 0, w, h);
-                ctx.beginPath();
-                ctx.moveTo(0, h - data[0]);
-                for (let i = 1; i < data.length; i++) {
-                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
-                }
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                ctx.beginPath();
-                for (let i = 0; i < data.length; i++) {
-                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
-                }
-                ctx.lineTo(w, h); ctx.lineTo(0, h);
-                ctx.fillStyle = color.replace('0.6', '0.05');
-                ctx.fill();
-                requestAnimationFrame(draw);
-            }
-            draw();
-        }
-
-        // ─── Modals ───
         function openCodenameModal() {
             document.getElementById('codenameModal').classList.add('show');
             document.getElementById('codenameInput').value = userData.codename || '';
         }
-        function closeCodenameModal() {
-            document.getElementById('codenameModal').classList.remove('show');
-        }
+        function closeCodenameModal() { document.getElementById('codenameModal').classList.remove('show'); }
         function saveCodename() {
             const val = document.getElementById('codenameInput').value.trim();
             if (!val) return;
@@ -1523,30 +1126,23 @@
                 userData.level = (userData.level || 1) + 1;
                 userData.xp = userData.xp - (userData.maxXp || 1000);
                 userData.maxXp = Math.floor((userData.maxXp || 1000) * 1.2);
-                userData.logs.push({ action: 'log_levelup', type: 'SYSTEM', time: Date.now(), meta: { newLevel: userData.level } });
+                userData.logs.push({ action: 'Level up to ' + userData.level, type: 'SYSTEM', time: Date.now() });
             }
-            userData.logs.push({ action: 'log_init', type: 'SYSTEM', time: Date.now(), meta: { codename: val } });
+            userData.logs.push({ action: 'Codename set: ' + val, type: 'SYSTEM', time: Date.now() });
             saveUserData();
             renderAll();
             closeCodenameModal();
         }
-        function openAddTool() {
-            document.getElementById('toolModal').classList.add('show');
-        }
-        function closeToolModal() {
-            document.getElementById('toolModal').classList.remove('show');
-            document.getElementById('toolName').value = '';
-            document.getElementById('toolCat').value = '';
-            document.getElementById('toolDesc').value = '';
-        }
+        function openAddTool() { document.getElementById('toolModal').classList.add('show'); }
+        function closeToolModal() { document.getElementById('toolModal').classList.remove('show'); }
         function saveTool() {
             const name = document.getElementById('toolName').value.trim();
             const cat = document.getElementById('toolCat').value.trim() || 'Custom';
             const desc = document.getElementById('toolDesc').value.trim() || 'Custom tool';
             if (!name) return;
-            userData.arsenal.push({ name, cat, desc, version: "1.0.0", status: "ready", usage: "manual" });
+            userData.arsenal.push({ name, cat, desc });
             userData.xp = (userData.xp || 0) + 30;
-            userData.logs.push({ action: 'log_tool', type: 'ARSENAL', time: Date.now(), meta: { tool: name } });
+            userData.logs.push({ action: 'Added tool: ' + name, type: 'ARSENAL', time: Date.now() });
             saveUserData();
             renderAll();
             closeToolModal();
@@ -1556,7 +1152,6 @@
             showToast('Local cache cleared');
         }
 
-        // ─── Toast ───
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap;';
@@ -1566,24 +1161,15 @@
             setTimeout(function() { toast.remove(); }, 2500);
         }
 
-        // ─── Background Canvas ───
         (function() {
             const canvas = document.getElementById('bgCanvas');
             const ctx = canvas.getContext('2d');
             let w, h, nodes = [];
-            function resize() {
-                w = canvas.width = window.innerWidth;
-                h = canvas.height = window.innerHeight;
-            }
+            function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
             resize();
             window.addEventListener('resize', resize);
             for (let i = 0; i < 60; i++) {
-                nodes.push({
-                    x: Math.random() * w, y: Math.random() * h,
-                    vx: (Math.random() - 0.5) * 0.2,
-                    vy: (Math.random() - 0.5) * 0.2,
-                    r: Math.random() * 1.5 + 0.5
-                });
+                nodes.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, r: Math.random() * 1.5 + 0.5 });
             }
             function draw() {
                 ctx.clearRect(0, 0, w, h);
@@ -1591,21 +1177,10 @@
                     n.x += n.vx; n.y += n.vy;
                     if (n.x < 0) n.x = w; if (n.x > w) n.x = 0;
                     if (n.y < 0) n.y = h; if (n.y > h) n.y = 0;
-                    ctx.beginPath();
-                    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fill();
                     for (let j = i + 1; j < nodes.length; j++) {
-                        const n2 = nodes[j];
-                        const dx = n.x - n2.x, dy = n.y - n2.y;
-                        const d = Math.sqrt(dx*dx + dy*dy);
-                        if (d < 180) {
-                            ctx.beginPath();
-                            ctx.moveTo(n.x, n.y);
-                            ctx.lineTo(n2.x, n2.y);
-                            ctx.strokeStyle = 'rgba(255,255,255,' + (0.06 * (1 - d/180)) + ')';
-                            ctx.stroke();
-                        }
+                        const n2 = nodes[j]; const dx = n.x - n2.x; const dy = n.y - n2.y; const d = Math.sqrt(dx*dx + dy*dy);
+                        if (d < 180) { ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(n2.x, n2.y); ctx.strokeStyle = 'rgba(255,255,255,' + (0.06 * (1 - d/180)) + ')'; ctx.stroke(); }
                     }
                 });
                 requestAnimationFrame(draw);
@@ -1613,7 +1188,6 @@
             draw();
         })();
 
-        // ─── Dashboard Canvas (Realistic) ───
         let trafficCtx, loadCtx, trafficAnim, loadAnim;
         function startDashboardAnim() {
             if (currentTab !== 0) return;
@@ -1633,33 +1207,19 @@
             function drawLine(ctx, data, color) {
                 const w = ctx.canvas.width, h = ctx.canvas.height;
                 ctx.clearRect(0, 0, w, h);
+                ctx.beginPath(); ctx.moveTo(0, h - data[0]);
+                for (let i = 1; i < data.length; i++) { ctx.lineTo((i / (data.length - 1)) * w, h - data[i]); }
+                ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(0, h - data[0]);
-                for (let i = 1; i < data.length; i++) {
-                    const x = (i / (data.length - 1)) * w;
-                    const y = h - data[i];
-                    ctx.lineTo(x, y);
-                }
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                ctx.beginPath();
-                for (let i = 0; i < data.length; i++) {
-                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
-                }
+                for (let i = 0; i < data.length; i++) { ctx.lineTo((i / (data.length - 1)) * w, h - data[i]); }
                 ctx.lineTo(w, h); ctx.lineTo(0, h);
-                ctx.fillStyle = color.replace('0.6', '0.05');
-                ctx.fill();
+                ctx.fillStyle = color.replace('0.6', '0.05'); ctx.fill();
             }
             function update() {
                 if (currentTab !== 0) return;
                 frame++;
-                tData.shift();
-                const tVal = 20 + Math.sin(frame * 0.05) * 15 + Math.sin(frame * 0.13) * 8 + Math.random() * 6;
-                tData.push(Math.max(10, Math.min(70, tVal)));
-                lData.shift();
-                const lVal = 25 + Math.cos(frame * 0.04) * 12 + Math.cos(frame * 0.11) * 6 + Math.random() * 5;
-                lData.push(Math.max(15, Math.min(65, lVal)));
+                tData.shift(); tData.push(Math.max(10, Math.min(70, 20 + Math.sin(frame * 0.05) * 15 + Math.sin(frame * 0.13) * 8 + Math.random() * 6)));
+                lData.shift(); lData.push(Math.max(15, Math.min(65, 25 + Math.cos(frame * 0.04) * 12 + Math.cos(frame * 0.11) * 6 + Math.random() * 5)));
                 drawLine(trafficCtx, tData, 'rgba(100,255,150,0.6)');
                 drawLine(loadCtx, lData, 'rgba(80,180,255,0.6)');
                 trafficAnim = requestAnimationFrame(update);
@@ -1668,23 +1228,20 @@
             update();
         }
 
-        // ─── Modal click outside ───
-        ['codenameModal','toolModal','toolDetailModal','appDetailModal','logDetailModal','dashDetailModal'].forEach(function(id) {
-            document.getElementById(id).addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('show');
-                }
-            });
+        ['codenameModal','toolModal'].forEach(function(id) {
+            document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
         });
-
-        // ─── Keyboard shortcuts ───
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                ['codenameModal','toolModal','toolDetailModal','appDetailModal','logDetailModal','dashDetailModal'].forEach(function(id) {
-                    document.getElementById(id).classList.remove('show');
-                });
-            }
+            if (e.key === 'Escape') { document.getElementById('codenameModal').classList.remove('show'); document.getElementById('toolModal').classList.remove('show'); }
         });
+        function setLang(lang) {
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langCn').classList.toggle('active', lang === 'zh');
+        }
+        function toggleLang() {
+            const en = document.getElementById('langEn').classList.contains('active');
+            setLang(en ? 'zh' : 'en');
+        }
     </script>
 </body>
 </html>

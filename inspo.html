@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBELISK | Inspo Ruins</title>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --glass: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.08);
+            --accent: rgba(100,255,150,0.6);
+            --accent2: rgba(80,180,255,0.6);
+            --danger: rgba(255,80,80,0.6);
+        }
+        html, body {
+            background: #000;
+            color: #e0e0e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logo:hover { color: #fff; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+            position: relative;
+            z-index: 5;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.1em;
+            margin-bottom: 32px;
+        }
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.6); }
+        .tab-btn.active { color: #fff; }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--accent);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: fadeInUp 0.5s ease; }
+        .snippet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .snippet-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s;
+            backdrop-filter: blur(10px);
+        }
+        .snippet-item:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.05);
+        }
+        .snippet-title {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+        }
+        .snippet-lang {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .snippet-code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.4);
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .snippet-code::-webkit-scrollbar { height: 2px; }
+        .snippet-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .s-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .s-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .post-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .post-item:hover {
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.04);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+        .post-title {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+        }
+        .post-type {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .post-content {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Courier New', monospace;
+        }
+        .post-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .p-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .p-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+        .p-btn.liked { color: var(--danger); border-color: var(--danger); }
+        .add-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+        .add-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.03); }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(30px);
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-box {
+            background: rgba(8,8,8,0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 40px;
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+        .modal-box h3 {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+        .modal-input, .modal-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .modal-input:focus, .modal-textarea:focus { border-color: var(--accent); }
+        .modal-textarea { min-height: 120px; resize: vertical; }
+        .modal-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .modal-btn.primary {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .modal-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+        .modal-btn.primary:hover { background: rgba(255,255,255,0.12); }
+        .comment-list {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .comment-item {
+            padding: 10px 0;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .comment-author {
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            margin-right: 8px;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .snippet-grid { grid-template-columns: 1fr; }
+            .top-bar { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a class="logo" href="./index.html">&#8592; OBELISK</a>
+    </div>
+    <div class="container">
+        <h1>Inspo Ruins</h1>
+        <div class="subtitle">Code Snippets &amp; Community Share</div>
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab(0)">Snippets</button>
+            <button class="tab-btn" onclick="switchTab(1)">Community</button>
+        </div>
+        <div class="tab-panel active" id="panel-snippets">
+            <div class="snippet-grid" id="snippetGrid"></div>
+            <button class="add-btn" onclick="openSnippetModal()">+ Add Snippet</button>
+        </div>
+        <div class="tab-panel" id="panel-community">
+            <div class="post-list" id="postList"></div>
+            <button class="add-btn" onclick="openPostModal()">+ New Post</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="snippetModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSnippetModal()">&#215;</button>
+            <h3>Add Snippet</h3>
+            <input class="modal-input" id="snipTitle" placeholder="Title">
+            <input class="modal-input" id="snipLang" placeholder="Language (js/python/bash/...)">
+            <textarea class="modal-textarea" id="snipCode" placeholder="Code..."></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeSnippetModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="saveSnippet()">Save</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="postModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closePostModal()">&#215;</button>
+            <h3>New Post</h3>
+            <input class="modal-input" id="postTitle" placeholder="Title">
+            <select class="modal-select" id="postType">
+                <option value="insight">Insight</option>
+                <option value="tool">Tool</option>
+                <option value="writeup">Writeup</option>
+                <option value="question">Question</option>
+            </select>
+            <select class="modal-select" id="postVisibility">
+                <option value="public">Public - Everyone can see</option>
+                <option value="private">Private - Only logged-in users</option>
+            </select>
+            <textarea class="modal-textarea" id="postContent" placeholder="Share your thoughts, tools, or writeups..."></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closePostModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="savePost()">Publish</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="postDetailModal">
+        <div class="modal-box" style="max-width:600px;">
+            <button class="modal-close" onclick="closePostDetailModal()">&#215;</button>
+            <h3 id="detailPostTitle">Post</h3>
+            <div id="detailPostContent"></div>
+            <div class="comment-list" id="commentList"></div>
+            <input class="modal-input" id="commentInput" placeholder="Add a comment..." style="margin-top:16px;">
+            <div class="modal-actions">
+                <button class="modal-btn primary" onclick="addComment()">Comment</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
+            authDomain: "obelisk-ca117.firebaseapp.com",
+            projectId: "obelisk-ca117",
+            storageBucket: "obelisk-ca117.firebasestorage.app",
+            messagingSenderId: "574365252836",
+            appId: "1:574365252836:web:f8c21cc4cb1bdcd46480f1",
+            measurementId: "G-D0P8QL36G8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+        let currentPostId = null;
+
+        auth.onAuthStateChanged(function(user) { currentUser = user; });
+
+        const defaultSnippets = [
+            { title: "SSL Pinning Bypass", lang: "javascript", code: "Java.perform(function() {
+  var TrustManager = Java.use('javax.net.ssl.TrustManager');
+  // Hook implementation
+});" },
+            { title: "Frida Hook Template", lang: "javascript", code: "Interceptor.attach(Module.findExportByName(null, 'strcmp'), {
+  onEnter: function(args) {
+    console.log('strcmp called');
+  }
+});" },
+            { title: "ADB Pull APK", lang: "bash", code: "adb shell pm path com.target.app
+adb pull /data/app/com.target.app/base.apk" },
+            { title: "Python Proxy", lang: "python", code: "import requests
+proxies = {'http': 'http://127.0.0.1:8080'}
+requests.get('http://target.com', proxies=proxies)" }
+        ];
+
+        function loadSnippets() {
+            db.collection('snippets').get().then(function(snap) {
+                const list = [];
+                snap.forEach(function(doc) { list.push(doc.data()); });
+                if (list.length === 0) {
+                    defaultSnippets.forEach(function(s) { db.collection('snippets').add(s); });
+                    list.push(...defaultSnippets);
+                }
+                renderSnippets(list);
+            }).catch(function() { renderSnippets(defaultSnippets); });
+        }
+
+        function renderSnippets(list) {
+            const grid = document.getElementById('snippetGrid');
+            grid.innerHTML = '';
+            list.forEach(function(s) {
+                const div = document.createElement('div');
+                div.className = 'snippet-item';
+                div.innerHTML = '<div class="snippet-title">' + s.title + '</div><div class="snippet-lang">' + s.lang + '</div><div class="snippet-code">' + escapeHtml(s.code) + '</div><div class="snippet-actions"><button class="s-btn" onclick="copyCode(this)">Copy</button><button class="s-btn" onclick="saveToArsenal('' + s.title + '','' + s.lang + '')">Arsenal</button></div>';
+                grid.appendChild(div);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function copyCode(btn) {
+            const code = btn.closest('.snippet-item').querySelector('.snippet-code').textContent;
+            navigator.clipboard.writeText(code).then(function() { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy'; }, 2000); });
+        }
+
+        function saveToArsenal(name, lang) {
+            if (!currentUser) { alert('Please sign in'); return; }
+            const tool = { name: name, cat: 'Snippet', desc: lang + ' code snippet', version: '1.0', status: 'ready', usage: 'Copy from Inspo Ruins' };
+            db.collection('users').doc(currentUser.uid).update({ arsenal: firebase.firestore.FieldValue.arrayUnion(tool) }).then(function() { alert('Added to arsenal'); });
+        }
+
+        function loadPosts() {
+            db.collection('community').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+                const list = [];
+                snap.forEach(function(doc) { list.push({ id: doc.id, ...doc.data() }); });
+                renderPosts(list);
+            }, function() {
+                renderPosts([]);
+            });
+        }
+
+        function renderPosts(list) {
+            const grid = document.getElementById('postList');
+            grid.innerHTML = '';
+            if (list.length === 0) { grid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);">No posts yet. Be the first!</div>'; return; }
+            list.forEach(function(p) {
+                if (p.visibility === 'private' && !currentUser) return;
+                const div = document.createElement('div');
+                div.className = 'post-item';
+                div.innerHTML = '<div class="post-header"><span class="post-title">' + p.title + '</span><span class="post-type">' + p.type + '</span></div><div class="post-content">' + (p.content.length > 200 ? p.content.slice(0,200) + '...' : p.content) + '</div><div class="post-meta"><span>' + (p.authorName || 'Anonymous') + '</span><span>' + (p.createdAt ? new Date(p.createdAt.toDate()).toLocaleDateString() : '') + '</span><span>' + (p.visibility === 'public' ? 'Public' : 'Private') + '</span></div><div class="post-actions"><button class="p-btn" onclick="likePost('' + p.id + '', this)">&#9829; ' + (p.likes || 0) + '</button><button class="p-btn" onclick="openPostDetail('' + p.id + '')">Comments (' + ((p.comments || []).length) + ')</button><button class="p-btn" onclick="collectPost('' + p.id + '')">Collect</button></div>';
+                grid.appendChild(div);
+            });
+        }
+
+        function switchTab(idx) {
+            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+            document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+        }
+
+        function openSnippetModal() { document.getElementById('snippetModal').classList.add('show'); }
+        function closeSnippetModal() { document.getElementById('snippetModal').classList.remove('show'); }
+        function saveSnippet() {
+            const title = document.getElementById('snipTitle').value.trim();
+            const lang = document.getElementById('snipLang').value.trim();
+            const code = document.getElementById('snipCode').value;
+            if (!title || !code) return;
+            db.collection('snippets').add({ title, lang, code }).then(function() { closeSnippetModal(); loadSnippets(); });
+        }
+
+        function openPostModal() { document.getElementById('postModal').classList.add('show'); }
+        function closePostModal() { document.getElementById('postModal').classList.remove('show'); }
+        function savePost() {
+            if (!currentUser) { alert('Please sign in to post'); return; }
+            const title = document.getElementById('postTitle').value.trim();
+            const type = document.getElementById('postType').value;
+            const visibility = document.getElementById('postVisibility').value;
+            const content = document.getElementById('postContent').value.trim();
+            if (!title || !content) return;
+            const post = {
+                title, type, visibility, content,
+                authorId: currentUser.uid,
+                authorName: currentUser.displayName || 'Anonymous',
+                likes: 0,
+                comments: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            db.collection('community').add(post).then(function(docRef) {
+                db.collection('users').doc(currentUser.uid).update({
+                    posts: firebase.firestore.FieldValue.arrayUnion({ id: docRef.id, title, type, visibility, createdAt: Date.now() })
+                });
+                closePostModal();
+            });
+        }
+
+        function likePost(id, btn) {
+            if (!currentUser) { alert('Please sign in'); return; }
+            db.collection('community').doc(id).update({
+                likes: firebase.firestore.FieldValue.increment(1)
+            }).then(function() { btn.classList.add('liked'); btn.textContent = 'Liked'; });
+        }
+
+        function collectPost(id) {
+            if (!currentUser) { alert('Please sign in'); return; }
+            db.collection('users').doc(currentUser.uid).update({
+                collections: firebase.firestore.FieldValue.arrayUnion({ type: 'post', id: id, time: Date.now() })
+            }).then(function() { alert('Collected'); });
+        }
+
+        function openPostDetail(id) {
+            currentPostId = id;
+            db.collection('community').doc(id).get().then(function(doc) {
+                const p = doc.data();
+                document.getElementById('detailPostTitle').textContent = p.title;
+                document.getElementById('detailPostContent').innerHTML = '<p style="font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.6;">' + escapeHtml(p.content).replace(/
+/g,'<br>') + '</p><div style="margin-top:12px;font-size:0.65rem;color:rgba(255,255,255,0.3);">By ' + (p.authorName || 'Anonymous') + ' · ' + (p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString() : '') + '</div>';
+                const cl = document.getElementById('commentList');
+                cl.innerHTML = '';
+                (p.comments || []).forEach(function(c) {
+                    cl.innerHTML += '<div class="comment-item"><span class="comment-author">' + (c.author || 'Anonymous') + '</span>' + escapeHtml(c.text) + '</div>';
+                });
+                document.getElementById('postDetailModal').classList.add('show');
+            });
+        }
+        function closePostDetailModal() { document.getElementById('postDetailModal').classList.remove('show'); currentPostId = null; }
+        function addComment() {
+            if (!currentUser || !currentPostId) return;
+            const text = document.getElementById('commentInput').value.trim();
+            if (!text) return;
+            db.collection('community').doc(currentPostId).update({
+                comments: firebase.firestore.FieldValue.arrayUnion({ author: currentUser.displayName || 'Anonymous', text, time: Date.now() })
+            }).then(function() {
+                document.getElementById('commentInput').value = '';
+                openPostDetail(currentPostId);
+            });
+        }
+
+        ['snippetModal','postModal','postDetailModal'].forEach(function(id) {
+            document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+        });
+
+        loadSnippets();
+        loadPosts();
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <title>OBELISK</title>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -23,7 +24,6 @@
         }
         ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
 
-        /* ─── Splash ─── */
         #splash {
             position: fixed;
             inset: 0;
@@ -168,14 +168,12 @@
             display: flex;
             opacity: 1;
         }
-
         #particles {
             position: fixed;
             inset: 0;
             z-index: 0;
             pointer-events: none;
         }
-
         .top-bar {
             position: relative;
             z-index: 10;
@@ -243,7 +241,6 @@
             border-color: rgba(255,255,255,0.3);
             color: #fff;
         }
-
         .center-content {
             position: relative;
             z-index: 5;
@@ -284,7 +281,6 @@
             line-height: 2;
             letter-spacing: 0.05em;
         }
-
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -303,6 +299,8 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
+            text-decoration: none;
+            color: inherit;
         }
         .card::before {
             content: '';
@@ -345,7 +343,6 @@
             letter-spacing: 0.03em;
             line-height: 1.6;
         }
-
         .terminal {
             position: relative;
             z-index: 5;
@@ -395,7 +392,6 @@
         .terminal-body .log-cmd { color: rgba(255,255,255,0.6); }
         .terminal-body .log-out { color: rgba(100,255,150,0.5); }
         .terminal-body .log-err { color: rgba(255,80,80,0.5); }
-
         .main-footer {
             position: relative;
             z-index: 10;
@@ -413,8 +409,6 @@
             letter-spacing: 0.15em;
             color: rgba(255,255,255,0.08);
         }
-
-        /* ─── Login Modal ─── */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -504,12 +498,10 @@
             width: 18px;
             height: 18px;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
         @media (max-width: 768px) {
             .cards-grid { grid-template-columns: repeat(2, 1fr); max-width: 500px; }
             .top-bar { padding: 16px 24px; }
@@ -529,8 +521,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Splash -->
     <div id="splash">
         <video id="video" autoplay muted playsinline disablePictureInPicture disableRemotePlayback>
             <source src="splash.mp4" type="video/mp4">
@@ -545,8 +535,6 @@
         <div class="error-hint" id="errorHint">Video resource missing<br>splash.mp4 not found</div>
         <button class="enter-btn" id="enterBtn" onclick="enterSite()">Enter Site</button>
     </div>
-
-    <!-- Main -->
     <div id="main">
         <canvas id="particles"></canvas>
         <div class="top-bar">
@@ -561,38 +549,33 @@
             <div class="hero-text">
                 <h2>Prism for App Insight</h2>
                 <div class="sub-en">App Insight Prism</div>
-                <p>
-                    Between binaries and permissions, retrieving the hidden flow of data.<br>
-                    <span style="color:rgba(255,255,255,0.2); font-size:0.8rem;">
-                        Real-time monitoring, hook interception, and behavioral analysis.
-                    </span>
-                </p>
+                <p>Between binaries and permissions, retrieving the hidden flow of data.<br><span style="color:rgba(255,255,255,0.2);font-size:0.8rem;">Real-time monitoring, hook interception, and behavioral analysis.</span></p>
             </div>
             <div class="cards-grid">
-                <div class="card" onclick="showToast('Coming Soon')">
+                <a class="card" href="./reverse.html">
                     <div class="card-icon">&#9672;</div>
                     <div class="card-title">Reverse Notes</div>
                     <div class="card-title-en">逆向手记</div>
-                    <div class="card-desc">Hook frameworks &amp; unpacking notes<br>API call tracing records</div>
-                </div>
-                <div class="card" onclick="showToast('Coming Soon')">
+                    <div class="card-desc">APK Analyzer &amp; Decompiler<br>Permission &amp; Risk Scanner</div>
+                </a>
+                <a class="card" href="./darknav.html">
                     <div class="card-icon">&#9673;</div>
                     <div class="card-title">Dark Nav</div>
                     <div class="card-title-en">暗网导航</div>
-                    <div class="card-desc">Tor nodes &amp; protocol analysis<br>Anonymous network index</div>
-                </div>
-                <div class="card" onclick="showToast('Coming Soon')">
+                    <div class="card-desc">Security Resource Index<br>Tor &amp; Protocol Tools</div>
+                </a>
+                <a class="card" href="./inspo.html">
                     <div class="card-icon">&#9674;</div>
                     <div class="card-title">Inspo Ruins</div>
                     <div class="card-title-en">灵感废墟</div>
-                    <div class="card-desc">Fragmented tools &amp; scripts<br>Experimental code snippets</div>
-                </div>
-                <div class="card" onclick="showToast('Coming Soon')">
+                    <div class="card-desc">Code Snippets &amp; Scripts<br>Community Share</div>
+                </a>
+                <a class="card" href="./motion.html">
                     <div class="card-icon">&#9670;</div>
                     <div class="card-title">Motion Lab</div>
                     <div class="card-title-en">动效实验室</div>
-                    <div class="card-desc">WebGL &amp; Canvas experiments<br>Interactive prototypes</div>
-                </div>
+                    <div class="card-desc">APK Structure Visualizer<br>Network Topology &amp; Graphs</div>
+                </a>
             </div>
             <div class="terminal">
                 <div class="terminal-header">
@@ -601,12 +584,7 @@
                     <div class="term-dot"></div>
                     <div class="term-title">obelisk@system ~ /var/log</div>
                 </div>
-                <div class="terminal-body" id="terminalBody">
-                    <div><span class="log-time">[00:00:00]</span> <span class="log-cmd">system.init</span> <span class="log-out">&#8594; OBELISK core loaded</span></div>
-                    <div><span class="log-time">[00:00:01]</span> <span class="log-cmd">particle.engine</span> <span class="log-out">&#8594; 512 nodes active</span></div>
-                    <div><span class="log-time">[00:00:02]</span> <span class="log-cmd">auth.firebase</span> <span class="log-out">&#8594; waiting for provider...</span></div>
-                    <div><span class="log-time">[00:00:03]</span> <span class="log-cmd">monitor.hook</span> <span class="log-err">&#8594; permission denied (expected)</span></div>
-                </div>
+                <div class="terminal-body" id="terminalBody"></div>
             </div>
         </div>
         <div class="main-footer">
@@ -614,8 +592,6 @@
             <span class="en">App Insight &amp; Analysis Platform</span>
         </div>
     </div>
-
-    <!-- Login Modal -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal()">&#215;</button>
@@ -628,58 +604,10 @@
             </button>
         </div>
     </div>
-
     <script>
-        // ─── i18n ───
         const i18n = {
-            en: {
-                enter: "Enter Site",
-                initializing: "Initializing Sequence...",
-                video_missing: "Video resource missing<br>splash.mp4 not found",
-                signin: "Sign In",
-                hero_title: "Prism for App Insight",
-                hero_sub: "App Insight Prism",
-                hero_desc: "Between binaries and permissions, retrieving the hidden flow of data.",
-                hero_desc2: "Real-time monitoring, hook interception, and behavioral analysis.",
-                card_1_title: "Reverse Notes",
-                card_1_desc: "Hook frameworks & unpacking notes<br>API call tracing records",
-                card_2_title: "Dark Nav",
-                card_2_desc: "Tor nodes & protocol analysis<br>Anonymous network index",
-                card_3_title: "Inspo Ruins",
-                card_3_desc: "Fragmented tools & scripts<br>Experimental code snippets",
-                card_4_title: "Motion Lab",
-                card_4_desc: "WebGL & Canvas experiments<br>Interactive prototypes",
-                toast_soon: "Coming Soon",
-                modal_title: "System Access",
-                modal_sub: "Authentication Required",
-                modal_desc: "Authenticate with Google to unlock full access.",
-                modal_desc2: "Sign in to access your Prism Profile and arsenal.",
-                btn_google: "Sign in with Google"
-            },
-            zh: {
-                enter: "进入站点",
-                initializing: "初始化序列中...",
-                video_missing: "视频资源缺失<br>splash.mp4 未找到",
-                signin: "登录",
-                hero_title: "透视应用的棱镜",
-                hero_sub: "App Insight Prism",
-                hero_desc: "在二进制与权限的缝隙之间，打捞被隐匿的数据流向。",
-                hero_desc2: "实时监控、Hook 拦截与行为分析。",
-                card_1_title: "逆向手记",
-                card_1_desc: "Hook 框架与脱壳笔记<br>API 调用追踪实录",
-                card_2_title: "暗网导航",
-                card_2_desc: "Tor 节点与协议分析<br>匿名网络资源索引",
-                card_3_title: "灵感废墟",
-                card_3_desc: "碎片化工具与脚本<br>实验性代码片段",
-                card_4_title: "动效实验室",
-                card_4_desc: "WebGL 与 Canvas 实验<br>交互原型与视觉解构",
-                toast_soon: "即将上线",
-                modal_title: "接入系统",
-                modal_sub: "System Access",
-                modal_desc: "使用 Google 账号验证身份以解锁完整权限",
-                modal_desc2: "登录后即可访问棱镜档案与军火库",
-                btn_google: "使用 Google 登录"
-            }
+            en: { enter: "Enter Site", initializing: "Initializing Sequence...", video_missing: "Video resource missing<br>splash.mp4 not found", signin: "Sign In", hero_title: "Prism for App Insight", hero_sub: "App Insight Prism", hero_desc: "Between binaries and permissions, retrieving the hidden flow of data.", hero_desc2: "Real-time monitoring, hook interception, and behavioral analysis.", modal_title: "System Access", modal_sub: "Authentication Required", modal_desc: "Authenticate with Google to unlock full access.", modal_desc2: "Sign in to access your Prism Profile and arsenal.", btn_google: "Sign in with Google" },
+            zh: { enter: "进入站点", initializing: "初始化序列中...", video_missing: "视频资源缺失<br>splash.mp4 未找到", signin: "登录", hero_title: "透视应用的棱镜", hero_sub: "App Insight Prism", hero_desc: "在二进制与权限的缝隙之间，打捞被隐匿的数据流向。", hero_desc2: "实时监控、Hook 拦截与行为分析。", modal_title: "接入系统", modal_sub: "System Access", modal_desc: "使用 Google 账号验证身份以解锁完整权限", modal_desc2: "登录后即可访问棱镜档案与军火库", btn_google: "使用 Google 登录" }
         };
         let currentLang = localStorage.getItem('obelisk_lang') || 'en';
         function applyLang() {
@@ -692,15 +620,6 @@
             document.querySelector('.hero-text .sub-en').textContent = t.hero_sub;
             const p = document.querySelector('.hero-text p');
             p.innerHTML = t.hero_desc + '<br><span style="color:rgba(255,255,255,0.2);font-size:0.8rem;">' + t.hero_desc2 + '</span>';
-            const cards = document.querySelectorAll('.card');
-            cards[0].querySelector('.card-title').textContent = t.card_1_title;
-            cards[0].querySelector('.card-desc').innerHTML = t.card_1_desc;
-            cards[1].querySelector('.card-title').textContent = t.card_2_title;
-            cards[1].querySelector('.card-desc').innerHTML = t.card_2_desc;
-            cards[2].querySelector('.card-title').textContent = t.card_3_title;
-            cards[2].querySelector('.card-desc').innerHTML = t.card_3_desc;
-            cards[3].querySelector('.card-title').textContent = t.card_4_title;
-            cards[3].querySelector('.card-desc').innerHTML = t.card_4_desc;
             document.querySelector('.modal-box h3').textContent = t.modal_title;
             document.querySelector('.modal-box .modal-en').textContent = t.modal_sub;
             document.querySelector('.modal-box p').innerHTML = t.modal_desc + '<br><span style="font-size:0.7rem;color:rgba(255,255,255,0.15);">' + t.modal_desc2 + '</span>';
@@ -710,10 +629,8 @@
             currentLang = currentLang === 'en' ? 'zh' : 'en';
             localStorage.setItem('obelisk_lang', currentLang);
             applyLang();
-            showToast(currentLang === 'en' ? 'Language: English' : '语言: 中文');
         }
 
-        // ─── Splash Logic ───
         var video = document.getElementById('video');
         var splash = document.getElementById('splash');
         var main = document.getElementById('main');
@@ -735,31 +652,11 @@
         }
 
         if (!hasEntered && !isRedirectBack) {
-            video.addEventListener('play', function() {
-                videoStarted = true;
-                playHint.classList.remove('show');
-            });
-            video.addEventListener('ended', function() {
-                videoEnded = true;
-                splashHint.style.opacity = '0';
-                enterBtn.classList.add('visible');
-            });
-            video.addEventListener('error', function() {
-                splashHint.style.opacity = '0';
-                errorHint.classList.add('show');
-                enterBtn.classList.add('visible');
-            });
-            setTimeout(function() {
-                if (!videoStarted && !videoEnded && !video.error) {
-                    playHint.classList.add('show');
-                }
-            }, 1500);
-            splash.addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON') return;
-                if (video.paused && !videoEnded) {
-                    video.play().catch(function(){});
-                }
-            });
+            video.addEventListener('play', function() { videoStarted = true; playHint.classList.remove('show'); });
+            video.addEventListener('ended', function() { videoEnded = true; splashHint.style.opacity = '0'; enterBtn.classList.add('visible'); });
+            video.addEventListener('error', function() { splashHint.style.opacity = '0'; errorHint.classList.add('show'); enterBtn.classList.add('visible'); });
+            setTimeout(function() { if (!videoStarted && !videoEnded && !video.error) playHint.classList.add('show'); }, 1500);
+            splash.addEventListener('click', function(e) { if (e.target.tagName === 'BUTTON') return; if (video.paused && !videoEnded) video.play().catch(function(){}); });
         }
 
         function enterSite() {
@@ -775,51 +672,26 @@
             }, 500);
         }
 
-        // ─── Particles ───
         function initParticles() {
             const canvas = document.getElementById('particles');
             const ctx = canvas.getContext('2d');
             let width, height, particles = [];
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            }
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
             resize();
             window.addEventListener('resize', resize);
             for (let i = 0; i < 80; i++) {
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3,
-                    size: Math.random() * 2 + 0.5,
-                    alpha: Math.random() * 0.5 + 0.1
-                });
+                particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, size: Math.random() * 2 + 0.5, alpha: Math.random() * 0.5 + 0.1 });
             }
             function draw() {
                 ctx.clearRect(0, 0, width, height);
                 particles.forEach(function(p, i) {
                     p.x += p.vx; p.y += p.vy;
-                    if (p.x < 0) p.x = width;
-                    if (p.x > width) p.x = 0;
-                    if (p.y < 0) p.y = height;
-                    if (p.y > height) p.y = 0;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')';
-                    ctx.fill();
+                    if (p.x < 0) p.x = width; if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height; if (p.y > height) p.y = 0;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')'; ctx.fill();
                     for (let j = i + 1; j < particles.length; j++) {
-                        const p2 = particles[j];
-                        const dx = p.x - p2.x;
-                        const dy = p.y - p2.y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 150) {
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(p2.x, p2.y);
-                            ctx.strokeStyle = 'rgba(255,255,255,' + (0.08 * (1 - dist/150)) + ')';
-                            ctx.stroke();
-                        }
+                        const p2 = particles[j]; const dx = p.x - p2.x; const dy = p.y - p2.y; const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 150) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.strokeStyle = 'rgba(255,255,255,' + (0.08 * (1 - dist/150)) + ')'; ctx.stroke(); }
                     }
                 });
                 requestAnimationFrame(draw);
@@ -827,7 +699,6 @@
             draw();
         }
 
-        // ─── Terminal ───
         const logs = [
             { cmd: 'hook.monitor', out: '&#8594; intercepting SSL pinning...', type: 'out' },
             { cmd: 'network.scan', out: '&#8594; 127.0.0.1:8080 proxy active', type: 'out' },
@@ -841,19 +712,18 @@
         let logIndex = 0;
         function startTerminalLoop() {
             const body = document.getElementById('terminalBody');
+            body.innerHTML = '<div><span class="log-time">[00:00:00]</span> <span class="log-cmd">system.init</span> <span class="log-out">&#8594; OBELISK core loaded</span></div><div><span class="log-time">[00:00:01]</span> <span class="log-cmd">particle.engine</span> <span class="log-out">&#8594; 512 nodes active</span></div><div><span class="log-time">[00:00:02]</span> <span class="log-cmd">auth.firebase</span> <span class="log-out">&#8594; waiting for provider...</span></div><div><span class="log-time">[00:00:03]</span> <span class="log-cmd">monitor.hook</span> <span class="log-err">&#8594; permission denied (expected)</span></div>';
             setInterval(function() {
                 const log = logs[logIndex % logs.length];
                 const time = new Date().toLocaleTimeString('en-US', {hour12: false});
                 const div = document.createElement('div');
                 div.innerHTML = '<span class="log-time">[' + time + ']</span> <span class="log-cmd">' + log.cmd + '</span> <span class="log-' + log.type + '">' + log.out + '</span>';
-                body.appendChild(div);
-                body.scrollTop = body.scrollHeight;
+                body.appendChild(div); body.scrollTop = body.scrollHeight;
                 if (body.children.length > 20) body.removeChild(body.firstChild);
                 logIndex++;
             }, 2500);
         }
 
-        // ─── Toast ───
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap;';
@@ -863,7 +733,6 @@
             setTimeout(function() { toast.remove(); }, 2500);
         }
 
-        // ─── Firebase Auth ───
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
             authDomain: "obelisk-ca117.firebaseapp.com",
@@ -878,72 +747,40 @@
         const provider = new firebase.auth.GoogleAuthProvider();
 
         auth.getRedirectResult().then(function(result) {
-            if (result.user) {
-                addLog('auth.redirect', '&#8594; user authenticated: ' + result.user.displayName, 'out');
-            }
-        }).catch(function(error) {
-            addLog('auth.error', '&#8594; ' + error.message, 'err');
-            console.error('[OBELISK Auth Redirect]', error.code, error.message);
-        });
+            if (result.user) addLog('auth.redirect', '&#8594; user authenticated: ' + result.user.displayName, 'out');
+        }).catch(function(error) { addLog('auth.error', '&#8594; ' + error.message, 'err'); console.error('[OBELISK Auth Redirect]', error.code, error.message); });
 
         auth.onAuthStateChanged(function(user) {
             const btn = document.getElementById('loginBtn');
             const avatar = document.getElementById('userAvatar');
             if (user) {
-                btn.style.display = 'none';
-                avatar.style.display = 'block';
-                avatar.src = user.photoURL || '';
+                btn.style.display = 'none'; avatar.style.display = 'block'; avatar.src = user.photoURL || '';
                 avatar.onclick = function() { window.location.href = './profile.html'; };
                 addLog('auth.state', '&#8594; user authenticated: ' + user.displayName, 'out');
-            } else {
-                btn.style.display = 'block';
-                avatar.style.display = 'none';
-            }
+            } else { btn.style.display = 'block'; avatar.style.display = 'none'; }
         });
-        function openModal() {
-            document.getElementById('loginModal').classList.add('show');
-        }
-        function closeModal() {
-            document.getElementById('loginModal').classList.remove('show');
-        }
+        function openModal() { document.getElementById('loginModal').classList.add('show'); }
+        function closeModal() { document.getElementById('loginModal').classList.remove('show'); }
         function googleSignIn() {
             auth.signInWithPopup(provider).then(function(result) {
-                addLog('auth.popup', '&#8594; user authenticated: ' + result.user.displayName, 'out');
-                closeModal();
+                addLog('auth.popup', '&#8594; user authenticated: ' + result.user.displayName, 'out'); closeModal();
             }).catch(function(err) {
                 console.error('[OBELISK Auth Popup]', err.code, err.message);
-                if (err.code === 'auth/popup-blocked') {
-                    addLog('auth.warn', '&#8594; popup blocked, falling back to redirect...', 'err');
-                    auth.signInWithRedirect(provider);
-                } else if (err.code === 'auth/unauthorized-domain') {
-                    addLog('auth.error', '&#8594; Domain not authorized. Add current domain to Firebase Console.', 'err');
-                    showToast(currentLang === 'en' ? 'Domain not authorized' : '域名未授权');
-                } else {
-                    addLog('auth.error', '&#8594; ' + err.message, 'err');
-                    showToast('Login failed: ' + err.message);
-                }
+                if (err.code === 'auth/popup-blocked') { addLog('auth.warn', '&#8594; popup blocked, falling back to redirect...', 'err'); auth.signInWithRedirect(provider); }
+                else if (err.code === 'auth/unauthorized-domain') { addLog('auth.error', '&#8594; Domain not authorized. Add current domain to Firebase Console.', 'err'); showToast('Domain not authorized'); }
+                else { addLog('auth.error', '&#8594; ' + err.message, 'err'); showToast('Login failed: ' + err.message); }
             });
         }
-        function logout() {
-            auth.signOut().then(function() {
-                addLog('auth.state', '&#8594; session terminated', 'out');
-                window.location.reload();
-            });
-        }
+        function logout() { auth.signOut().then(function() { addLog('auth.state', '&#8594; session terminated', 'out'); window.location.reload(); }); }
         function addLog(cmd, out, type) {
             const body = document.getElementById('terminalBody');
             const time = new Date().toLocaleTimeString('en-US', {hour12: false});
             const div = document.createElement('div');
             div.innerHTML = '<span class="log-time">[' + time + ']</span> <span class="log-cmd">' + cmd + '</span> <span class="log-' + type + '">' + out + '</span>';
-            body.appendChild(div);
-            body.scrollTop = body.scrollHeight;
+            body.appendChild(div); body.scrollTop = body.scrollHeight;
             if (body.children.length > 20) body.removeChild(body.firstChild);
         }
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
-        // Init language
+        document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
         applyLang();
     </script>
 </body>
