@@ -1,315 +1,796 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>OBELISK</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
-<style>
-:root{--bg:#0a0a0a;--parchment:#e8e4dc;--bronze:#b8956a;--sage:#6b8a7a;--muted:#3a3a38;--line:rgba(184,149,106,0.12);--danger:#8b4545;--success:#5a7a6a;--shadow:rgba(0,0,0,0.6)}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--parchment);font-family:'Cormorant Garamond','Noto Serif SC',serif;overflow:hidden;height:100vh;width:100vw;letter-spacing:0.04em}
-::-webkit-scrollbar{width:0;height:0;background:transparent}
-.page-transition{position:fixed;inset:0;background:var(--bg);z-index:99999;pointer-events:none;opacity:0;clip-path:circle(0% at 50% 50%);transition:clip-path 0.8s cubic-bezier(0.7,0,0.3,1),opacity 0.4s}
-.page-transition.active{opacity:1;pointer-events:auto;clip-path:circle(150% at 50% 50%)}
-#splash{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;transition:clip-path 1.2s cubic-bezier(0.7,0,0.3,1),opacity 0.8s 0.4s;clip-path:inset(0 0 0 0)}
-#splash.done{clip-path:inset(0 50% 0 50%);opacity:0;pointer-events:none}
-#splash video{width:100%;height:100%;object-fit:contain;background:var(--bg);position:relative;z-index:1}
-.play-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;opacity:0;transition:opacity 0.8s}
-.play-hint.show{opacity:1}
-.play-hint-inner{text-align:center;color:rgba(232,228,220,0.25)}
-.play-hint-inner .tap-icon{width:56px;height:56px;border:1px solid rgba(184,149,106,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.2rem;animation:pulse 3s infinite;color:var(--bronze)}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:0.4}50%{transform:scale(1.05);opacity:0.8}}
-.play-hint-inner p{font-size:0.75rem;letter-spacing:0.3em;text-transform:uppercase;font-family:'Cinzel',serif}
-.splash-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:0.7rem;letter-spacing:0.4em;color:rgba(232,228,220,0.12);text-transform:uppercase;pointer-events:none;opacity:1;transition:opacity 0.8s;z-index:3;white-space:nowrap;font-family:'Cinzel',serif}
-#splash.done .splash-hint{opacity:0}
-.enter-btn{position:absolute;bottom:70px;left:50%;transform:translateX(-50%) translateY(16px);padding:16px 56px;background:transparent;border:1px solid rgba(184,149,106,0.25);color:rgba(232,228,220,0.5);font-size:0.8rem;letter-spacing:0.3em;text-transform:uppercase;cursor:pointer;opacity:0;pointer-events:none;transition:all 0.8s cubic-bezier(0.4,0,0.2,1);font-family:'Cinzel',serif;z-index:10;overflow:hidden}
-.enter-btn.visible{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
-.enter-btn:hover{border-color:var(--bronze);color:var(--parchment);background:rgba(184,149,106,0.06);letter-spacing:0.4em}
-.enter-btn::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(184,149,106,0.15) 0%,transparent 70%);opacity:0;transition:opacity 0.4s}
-.enter-btn:hover::after{opacity:1}
-.enter-btn:active{transform:translateX(-50%) scale(0.96)}
-.error-hint{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);font-size:0.75rem;color:var(--danger);letter-spacing:0.1em;opacity:0;transition:opacity 0.6s;z-index:3;pointer-events:none;text-align:center;line-height:1.8;font-family:'Cormorant Garamond',serif}
-.error-hint.show{opacity:0.6}
-#main{display:none;height:100vh;width:100vw;flex-direction:column;position:relative;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none;opacity:0;transition:opacity 1.2s ease}
-#main.visible{display:flex;opacity:1}
-.strings-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.string-line{position:absolute;left:0;right:0;height:1px;background:rgba(184,149,106,0.04);transform-origin:center;animation:strum 8s ease-in-out infinite}
-@keyframes strum{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.02)}}
-.top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:28px 48px;flex-shrink:0}
-.logo{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:0.4em;font-weight:400;color:rgba(232,228,220,0.6);position:relative;cursor:pointer}
-.logo::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--bronze);transition:width 0.6s ease}
-.logo:hover::after{width:100%}
-.lang-btn{padding:8px 16px;background:transparent;border:1px solid rgba(184,149,106,0.1);color:rgba(232,228,220,0.3);font-size:0.7rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;font-family:'Cinzel',serif;margin-right:12px}
-.lang-btn:hover{border-color:rgba(184,149,106,0.3);color:rgba(232,228,220,0.6)}
-.login-btn{padding:10px 28px;background:transparent;border:1px solid rgba(184,149,106,0.15);color:rgba(232,228,220,0.35);font-size:0.75rem;letter-spacing:0.2em;cursor:pointer;transition:all 0.4s;font-family:'Cinzel',serif;position:relative;overflow:hidden}
-.login-btn:hover{border-color:rgba(184,149,106,0.4);color:var(--parchment);background:rgba(184,149,106,0.04)}
-.login-btn:active{transform:scale(0.96)}
-.user-avatar{width:36px;height:36px;border-radius:50%;border:1px solid rgba(184,149,106,0.2);cursor:pointer;display:none;object-fit:cover;transition:all 0.4s}
-.user-avatar:hover{border-color:var(--bronze);box-shadow:0 0 16px rgba(184,149,106,0.1);transform:scale(1.05)}
-.user-avatar:active{transform:scale(0.95)}
-.center-content{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;min-height:0}
-.hero-text{text-align:center;margin-bottom:56px;flex-shrink:0;position:relative}
-.hero-text::before{content:'𝄞';position:absolute;top:-40px;left:50%;transform:translateX(-50%);font-size:2rem;color:rgba(184,149,106,0.08);font-family:serif}
-.hero-text h2{font-family:'Cinzel',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:400;letter-spacing:0.2em;margin-bottom:16px;color:var(--parchment)}
-.hero-text .sub-greek{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--bronze);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:20px;opacity:0.8}
-.hero-text p{max-width:520px;color:rgba(232,228,220,0.35);font-size:0.95rem;font-weight:300;line-height:2.2;letter-spacing:0.06em;font-family:'Cormorant Garamond',serif;white-space:pre-line}
-.hero-text .en-sub{display:block;margin-top:12px;font-family:'Cormorant Garamond',serif;font-size:0.85rem;color:rgba(232,228,220,0.15);font-style:italic;letter-spacing:0.05em}
-.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:900px;width:100%;flex-shrink:0}
-.card{background:rgba(232,228,220,0.015);border:1px solid rgba(184,149,106,0.08);padding:32px 20px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all 0.5s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(10px)}
-.card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(184,149,106,0.06) 0%,transparent 70%);opacity:0;transition:opacity 0.5s;pointer-events:none}
-.card:hover::before{opacity:1}
-.card:hover{border-color:rgba(184,149,106,0.2);transform:translateY(-4px);background:rgba(232,228,220,0.025);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-.card:active{transform:translateY(-2px) scale(0.98)}
-.card-icon{font-family:'Cinzel',serif;font-size:1.6rem;margin-bottom:16px;color:rgba(184,149,106,0.4);transition:all 0.4s;display:block}
-.card:hover .card-icon{color:var(--bronze);transform:scale(1.1)}
-.card-title{font-family:'Noto Serif SC',serif;font-size:0.85rem;letter-spacing:0.12em;font-weight:400;color:rgba(232,228,220,0.75);margin-bottom:6px}
-.card-greek{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--bronze);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px;opacity:0.7}
-.card-desc{font-size:0.7rem;color:rgba(232,228,220,0.25);letter-spacing:0.04em;line-height:1.7;font-family:'Cormorant Garamond',serif}
-.terminal{position:relative;z-index:5;max-width:900px;width:calc(100% - 96px);margin:32px auto 20px;background:rgba(0,0,0,0.4);border:1px solid rgba(184,149,106,0.06);border-radius:2px;overflow:hidden;backdrop-filter:blur(20px);flex-shrink:0}
-.terminal-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:rgba(232,228,220,0.02);border-bottom:1px solid rgba(184,149,106,0.06)}
-.term-dot{width:6px;height:6px;border-radius:50%;background:rgba(184,149,106,0.15)}
-.term-title{font-size:0.65rem;color:rgba(232,228,220,0.2);letter-spacing:0.15em;margin-left:8px;font-family:'Courier Prime','Courier New',monospace}
-.terminal-body{padding:16px;font-family:'Courier Prime','Courier New',monospace;font-size:0.72rem;line-height:1.9;color:rgba(232,228,220,0.3);max-height:130px;overflow-y:auto;scrollbar-width:none}
-.terminal-body::-webkit-scrollbar{display:none}
-.terminal-body .log-time{color:rgba(232,228,220,0.15)}
-.terminal-body .log-cmd{color:rgba(232,228,220,0.45)}
-.terminal-body .log-out{color:var(--sage)}
-.terminal-body .log-err{color:var(--danger)}
-.main-footer{position:relative;z-index:10;text-align:center;padding:20px;font-size:0.65rem;color:rgba(232,228,220,0.08);letter-spacing:0.25em;flex-shrink:0;font-family:'Cinzel',serif}
-.main-footer .greek{display:block;margin-top:4px;font-size:0.6rem;letter-spacing:0.2em;color:rgba(232,228,220,0.06)}
-.modal-overlay{position:fixed;inset:0;background:rgba(10,10,10,0.9);backdrop-filter:blur(24px);z-index:10000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.5s ease}
-.modal-overlay.show{display:flex;opacity:1}
-.modal-box{background:rgba(12,12,12,0.95);border:1px solid rgba(184,149,106,0.12);padding:52px;text-align:center;max-width:400px;width:90%;position:relative;transform:translateY(20px) scale(0.98);transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
-.modal-overlay.show .modal-box{transform:translateY(0) scale(1)}
-.modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;background:transparent;border:1px solid rgba(184,149,106,0.1);color:rgba(232,228,220,0.3);cursor:pointer;font-size:1.1rem;transition:all 0.3s;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif}
-.modal-close:hover{border-color:rgba(184,149,106,0.3);color:var(--parchment)}
-.modal-close:active{transform:scale(0.9)}
-.modal-box h3{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:400;letter-spacing:0.2em;margin-bottom:6px;color:rgba(232,228,220,0.9)}
-.modal-box .modal-greek{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--bronze);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:28px;opacity:0.6}
-.modal-box p{font-size:0.85rem;color:rgba(232,228,220,0.3);margin-bottom:36px;line-height:1.8;font-family:'Cormorant Garamond',serif}
-.google-btn{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:16px;background:transparent;border:1px solid rgba(184,149,106,0.12);color:rgba(232,228,220,0.6);font-size:0.85rem;cursor:pointer;transition:all 0.4s;letter-spacing:0.05em;font-family:'Cinzel',serif;position:relative;overflow:hidden}
-.google-btn:hover{background:rgba(184,149,106,0.04);border-color:rgba(184,149,106,0.25);color:var(--parchment)}
-.google-btn:active{transform:scale(0.98)}
-.google-btn svg{width:18px;height:18px}
-#toast{position:fixed;bottom:48px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(10,10,10,0.9);border:1px solid rgba(184,149,106,0.15);color:rgba(232,228,220,0.6);padding:12px 28px;font-size:0.8rem;letter-spacing:0.1em;opacity:0;pointer-events:none;transition:all 0.5s cubic-bezier(0.4,0,0.2,1);z-index:20000;backdrop-filter:blur(10px);font-family:'Cormorant Garamond',serif}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.ripple{position:relative;overflow:hidden}
-.ripple-effect{position:absolute;border-radius:50%;background:rgba(184,149,106,0.15);transform:scale(0);animation:ripple-anim 0.6s ease-out;pointer-events:none}
-@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:768px){.cards-grid{grid-template-columns:repeat(2,1fr);max-width:500px;gap:14px}.top-bar{padding:20px 28px}.terminal{width:calc(100%-56px)}.hero-text{margin-bottom:36px}.hero-text h2{font-size:1.5rem}.center-content{padding-top:20px;justify-content:flex-start}}
-@media(max-width:480px){.cards-grid{grid-template-columns:1fr;max-width:300px;gap:12px}.card{padding:24px 16px}.enter-btn{padding:14px 40px;font-size:0.75rem;bottom:50px}.splash-hint{bottom:50px;font-size:0.65rem}.modal-box{padding:36px 24px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBELISK</title>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            background: #000;
+            color: #e0e0e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        ::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
+
+        /* ─── Splash ─── */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 1s ease, visibility 1s;
+        }
+        #splash.done {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #splash video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+            position: relative;
+            z-index: 1;
+        }
+
+        .play-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s;
+        }
+        .play-hint.show { opacity: 1; }
+        .play-hint-inner {
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+        }
+        .play-hint-inner .tap-icon {
+            width: 48px;
+            height: 48px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .play-hint-inner p {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .splash-hint {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            color: rgba(255,255,255,0.15);
+            text-transform: uppercase;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.6s;
+            z-index: 3;
+            white-space: nowrap;
+        }
+        #splash.done .splash-hint { opacity: 0; }
+
+        .enter-btn {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            padding: 14px 48px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+            z-index: 10;
+        }
+        .enter-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .enter-btn:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.5);
+            color: #fff;
+            letter-spacing: 0.35em;
+        }
+
+        .error-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: rgba(255,80,80,0.5);
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transition: opacity 0.6s;
+            z-index: 3;
+            pointer-events: none;
+            text-align: center;
+            line-height: 1.8;
+        }
+        .error-hint.show { opacity: 1; }
+
+        #main {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #main.visible {
+            display: flex;
+            animation: fadeIn 1.2s ease forwards;
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            flex-shrink: 0;
+        }
+        .logo {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+        }
+        .login-btn {
+            padding: 8px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .login-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            display: none;
+            object-fit: cover;
+        }
+
+        .center-content {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+            min-height: 0;
+        }
+        .hero-text {
+            text-align: center;
+            margin-bottom: 40px;
+            flex-shrink: 0;
+        }
+        .hero-text h2 {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 12px;
+            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-text .sub-en {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .hero-text p {
+            max-width: 520px;
+            color: #555560;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 2;
+            letter-spacing: 0.05em;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 880px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card:hover::before { opacity: 1; }
+        .card:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.04);
+        }
+        .card-icon {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .card:hover .card-icon { opacity: 1; }
+        .card-title {
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            font-weight: 400;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+        }
+        .card-title-en {
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .card-desc {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.03em;
+            line-height: 1.6;
+        }
+
+        .terminal {
+            position: relative;
+            z-index: 5;
+            max-width: 880px;
+            width: calc(100% - 80px);
+            margin: 24px auto 16px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            flex-shrink: 0;
+        }
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .term-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+        .term-title {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.1em;
+            margin-left: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .terminal-body {
+            padding: 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.4);
+            max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .terminal-body::-webkit-scrollbar { display: none; }
+        .terminal-body .log-time { color: rgba(255,255,255,0.2); }
+        .terminal-body .log-cmd { color: rgba(255,255,255,0.6); }
+        .terminal-body .log-out { color: rgba(100,255,150,0.5); }
+        .terminal-body .log-err { color: rgba(255,80,80,0.5); }
+
+        .main-footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 16px;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.1);
+            letter-spacing: 0.2em;
+            flex-shrink: 0;
+        }
+        .main-footer .en {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.08);
+        }
+
+        /* ─── Login Modal ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-box {
+            background: rgba(10,10,10,0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 48px;
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+            position: relative;
+            z-index: 10001;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+        .modal-box h3 {
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
+            color: rgba(255,255,255,0.9);
+        }
+        .modal-box .modal-en {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+        .modal-box p {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.05em;
+        }
+        .google-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+        }
+        .google-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid { grid-template-columns: repeat(2, 1fr); max-width: 500px; }
+            .top-bar { padding: 16px 24px; }
+            .terminal { width: calc(100% - 48px); }
+            .hero-text { margin-bottom: 28px; }
+            .hero-text h2 { font-size: 1.4rem; }
+        }
+        @media (max-width: 480px) {
+            .cards-grid { grid-template-columns: 1fr; max-width: 280px; gap: 12px; }
+            .card { padding: 18px 14px; }
+            .enter-btn { padding: 12px 36px; font-size: 0.7rem; bottom: 40px; }
+            .splash-hint { bottom: 40px; font-size: 0.6rem; }
+            .play-hint-inner .tap-icon { width: 40px; height: 40px; }
+            .modal-box { padding: 32px 20px; }
+            .center-content { justify-content: flex-start; padding-top: 20px; }
+        }
+    </style>
 </head>
 <body>
-<div class="page-transition" id="pageTransition"></div>
-<div id="splash">
-  <video id="video" autoplay muted playsinline disablePictureInPicture disableRemotePlayback><source src="splash.mp4" type="video/mp4"></video>
-  <div class="play-hint" id="playHint"><div class="play-hint-inner"><div class="tap-icon">&#9654;</div><p>Tap to Initialize</p></div></div>
-  <div class="splash-hint" id="splashHint" data-i18n="splashHint">Prelude in C Minor</div>
-  <div class="error-hint" id="errorHint">Video resource missing<br>splash.mp4 not found</div>
-  <button class="enter-btn ripple" id="enterBtn" onclick="enterSite()"><span data-i18n="enter">Enter the Archive</span></button>
-</div>
-<div id="main">
-  <div class="strings-bg" id="stringsBg"></div>
-  <canvas id="particles" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
-  <div class="top-bar">
-    <div class="logo" onclick="location.href='index.html'">OBELISK</div>
-    <div style="display:flex;align-items:center;">
-      <button class="lang-btn ripple" id="langBtn" onclick="toggleLang()">中 / EN</button>
-      <button class="login-btn ripple" id="loginBtn" onclick="openModal()"><span data-i18n="login">Sign In</span></button>
-      <img class="user-avatar" id="userAvatar" onclick="goToProfile()" alt="avatar">
+
+    <!-- Splash -->
+    <div id="splash">
+        <video id="video" autoplay muted playsinline disablePictureInPicture disableRemotePlayback>
+            <source src="splash.mp4" type="video/mp4">
+        </video>
+        <div class="play-hint" id="playHint">
+            <div class="play-hint-inner">
+                <div class="tap-icon">&#9654;</div>
+                <p>Tap to Initialize / 点击启动</p>
+            </div>
+        </div>
+        <div class="splash-hint" id="splashHint">Initializing Sequence...</div>
+        <div class="error-hint" id="errorHint">Video resource missing<br>splash.mp4 not found</div>
+        <button class="enter-btn" id="enterBtn" onclick="enterSite()">Enter Site / 进入站点</button>
     </div>
-  </div>
-  <div class="center-content">
-    <div class="hero-text">
-      <h2 data-i18n="heroTitle">Prism of Application Insight</h2>
-      <div class="sub-greek" data-i18n="heroGreek">ΜΟΥΣΙΚΗ ΚΑΙ ΛΟΓΟΣ</div>
-      <p data-i18n="heroDesc">Between binaries and permissions,
-we listen to structure in silence.
-We retrieve the hidden flow in order.</p>
+
+    <!-- Main -->
+    <div id="main">
+        <canvas id="particles"></canvas>
+        <div class="top-bar">
+            <div class="logo">OBELISK</div>
+            <button class="login-btn" id="loginBtn" onclick="openModal()">登录 / Sign In</button>
+            <img class="user-avatar" id="userAvatar" onclick="logout()" alt="avatar">
+        </div>
+        <div class="center-content">
+            <div class="hero-text">
+                <h2>透视应用的棱镜</h2>
+                <div class="sub-en">App Insight Prism</div>
+                <p>
+                    在二进制与权限的缝隙之间，打捞被隐匿的数据流向。<br>
+                    <span style="color:rgba(255,255,255,0.2); font-size:0.8rem;">
+                        Between binaries and permissions, retrieving the hidden flow of data.
+                    </span>
+                </p>
+            </div>
+            <div class="cards-grid">
+                <div class="card" onclick="window.open('#reverse','_blank')">
+                    <div class="card-icon">&#9672;</div>
+                    <div class="card-title">逆向手记</div>
+                    <div class="card-title-en">Reverse Notes</div>
+                    <div class="card-desc">Hook 框架与脱壳笔记<br>API 调用追踪实录</div>
+                </div>
+                <div class="card" onclick="window.open('#darknav','_blank')">
+                    <div class="card-icon">&#9673;</div>
+                    <div class="card-title">暗网导航</div>
+                    <div class="card-title-en">Dark Nav</div>
+                    <div class="card-desc">Tor 节点与协议分析<br>匿名网络资源索引</div>
+                </div>
+                <div class="card" onclick="window.open('#inspo','_blank')">
+                    <div class="card-icon">&#9674;</div>
+                    <div class="card-title">灵感废墟</div>
+                    <div class="card-title-en">Inspo Ruins</div>
+                    <div class="card-desc">碎片化工具与脚本<br>实验性代码片段</div>
+                </div>
+                <div class="card" onclick="window.open('#motion','_blank')">
+                    <div class="card-icon">&#9670;</div>
+                    <div class="card-title">动效实验室</div>
+                    <div class="card-title-en">Motion Lab</div>
+                    <div class="card-desc">WebGL 与 Canvas 实验<br>交互原型与视觉解构</div>
+                </div>
+            </div>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="term-dot"></div>
+                    <div class="term-dot"></div>
+                    <div class="term-dot"></div>
+                    <div class="term-title">obelisk@system ~ /var/log</div>
+                </div>
+                <div class="terminal-body" id="terminalBody">
+                    <div><span class="log-time">[00:00:00]</span> <span class="log-cmd">system.init</span> <span class="log-out">&#8594; OBELISK core loaded</span></div>
+                    <div><span class="log-time">[00:00:01]</span> <span class="log-cmd">particle.engine</span> <span class="log-out">&#8594; 512 nodes active</span></div>
+                    <div><span class="log-time">[00:00:02]</span> <span class="log-cmd">auth.firebase</span> <span class="log-out">&#8594; waiting for provider...</span></div>
+                    <div><span class="log-time">[00:00:03]</span> <span class="log-cmd">monitor.hook</span> <span class="log-err">&#8594; permission denied (expected)</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="main-footer">
+            OBELISK &#183; 2026
+            <span class="en">App Insight &amp; Analysis Platform</span>
+        </div>
     </div>
-    <div class="cards-grid">
-      <div class="card ripple" onclick="showToast(OBELISK.i18n.t('toastSoon'))">
-        <div class="card-icon">&#937;</div>
-        <div class="card-title" data-i18n="card1Title">Reverse Engineering</div>
-        <div class="card-greek" data-i18n="card1Greek">ΑΝΑΛΥΣΙΣ</div>
-        <div class="card-desc" data-i18n="card1Desc">Hook frameworks & unpacking notes
-API call tracing records</div>
-      </div>
-      <div class="card ripple" onclick="showToast(OBELISK.i18n.t('toastSoon'))">
-        <div class="card-icon">&#9733;</div>
-        <div class="card-title" data-i18n="card2Title">Dark Navigation</div>
-        <div class="card-greek" data-i18n="card2Greek">ΟΔΗΓΟΣ</div>
-        <div class="card-desc" data-i18n="card2Desc">Tor nodes & protocol analysis
-Anonymous network index</div>
-      </div>
-      <div class="card ripple" onclick="showToast(OBELISK.i18n.t('toastSoon'))">
-        <div class="card-icon">&#9836;</div>
-        <div class="card-title" data-i18n="card3Title">Fragmenta</div>
-        <div class="card-greek" data-i18n="card3Greek">ΜΟΥΣΕΙΟΝ</div>
-        <div class="card-desc" data-i18n="card3Desc">Fragmented tools & scripts
-Experimental code snippets</div>
-      </div>
-      <div class="card ripple" onclick="showToast(OBELISK.i18n.t('toastSoon'))">
-        <div class="card-icon">&#9838;</div>
-        <div class="card-title" data-i18n="card4Title">Kinetics Lab</div>
-        <div class="card-greek" data-i18n="card4Greek">ΚΙΝΗΣΙΣ</div>
-        <div class="card-desc" data-i18n="card4Desc">WebGL & Canvas experiments
-Interactive prototypes</div>
-      </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal()">&#215;</button>
+            <h3>&#25509;&#20837;&#31995;&#32479;</h3>
+            <div class="modal-en">System Access</div>
+            <p>&#20351;&#29992; Google &#36134;&#21495;&#39564;&#35777;&#36523;&#20221;&#20197;&#35299;&#38145;&#23436;&#25972;&#26435;&#38480;<br><span style="font-size:0.7rem; color:rgba(255,255,255,0.15);">Authenticate with Google to unlock full access.</span></p>
+            <button class="google-btn" onclick="googleSignIn()">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                &#20351;&#29992; Google &#30331;&#24405; / Sign in with Google
+            </button>
+        </div>
     </div>
-    <div class="terminal">
-      <div class="terminal-header"><div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div><div class="term-title">obelisk@system ~ /var/log</div></div>
-      <div class="terminal-body" id="terminalBody">
-        <div><span class="log-time">[00:00:00]</span> <span class="log-cmd">system.init</span> <span class="log-out">&#8594; OBELISK core loaded</span></div>
-        <div><span class="log-time">[00:00:01]</span> <span class="log-cmd">strings.resonate</span> <span class="log-out">&#8594; 440Hz tuning fork active</span></div>
-        <div><span class="log-time">[00:00:02]</span> <span class="log-cmd">auth.firebase</span> <span class="log-out">&#8594; waiting for provider...</span></div>
-        <div><span class="log-time">[00:00:03]</span> <span class="log-cmd">monitor.hook</span> <span class="log-err">&#8594; permission denied (expected)</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="main-footer"><span data-i18n="footer">OBELISK &#183; 2026</span><span class="greek" data-i18n="footerGreek">ΤΑ ΜΕΓΙΣΤΑ</span></div>
-</div>
-<div class="modal-overlay" id="loginModal">
-  <div class="modal-box">
-    <button class="modal-close ripple" onclick="closeModal()">&#215;</button>
-    <h3 data-i18n="modalTitle">System Access</h3>
-    <div class="modal-greek" data-i18n="modalGreek">System Access</div>
-    <p data-i18n="modalDesc">Authenticate with Google to unlock the archive.</p>
-    <button class="google-btn ripple" onclick="googleSignIn()">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      <span data-i18n="googleBtn">Sign in with Google</span>
-    </button>
-  </div>
-</div>
-<div id="toast"></div>
-<script>
-// ─── I18N ───
-window.OBELISK=window.OBELISK||{};
-OBELISK.i18n={
-  data:{"en":{"enter":"Enter the Archive","splashHint":"Prelude in C Minor","login":"Sign In","heroTitle":"Prism of Application Insight","heroGreek":"ΜΟΥΣΙΚΗ ΚΑΙ ΛΟΓΟΣ","heroDesc":"Between binaries and permissions,\nwe listen to structure in silence.\nWe retrieve the hidden flow in order.","card1Title":"Reverse Engineering","card1Greek":"ΑΝΑΛΥΣΙΣ","card1Desc":"Hook frameworks & unpacking notes\nAPI call tracing records","card2Title":"Dark Navigation","card2Greek":"ΟΔΗΓΟΣ","card2Desc":"Tor nodes & protocol analysis\nAnonymous network index","card3Title":"Fragmenta","card3Greek":"ΜΟΥΣΕΙΟΝ","card3Desc":"Fragmented tools & scripts\nExperimental code snippets","card4Title":"Kinetics Lab","card4Greek":"ΚΙΝΗΣΙΣ","card4Desc":"WebGL & Canvas experiments\nInteractive prototypes","modalTitle":"System Access","modalGreek":"System Access","modalDesc":"Authenticate with Google to unlock the archive.","googleBtn":"Sign in with Google","toastSoon":"Coming Soon","footer":"OBELISK · 2026","footerGreek":"ΤΑ ΜΕΓΙΣΤΑ","langSwitch":"中 / EN"},"zh":{"enter":"进入档案","splashHint":"C 小调前奏曲","login":"登录","heroTitle":"透视应用的棱镜","heroGreek":"音乐与理性","heroDesc":"于静默中聆听结构，\n在秩序里打捞隐匿流向。","card1Title":"逆向解构","card1Greek":"ΑΝΑΛΥΣΙΣ","card1Desc":"Hook 框架与脱壳笔记\nAPI 调用追踪实录","card2Title":"暗网引路","card2Greek":"ΟΔΗΓΟΣ","card2Desc":"Tor 节点与协议分析\n匿名网络资源索引","card3Title":"灵感缪斯","card3Greek":"ΜΟΥΣΕΙΟΝ","card3Desc":"碎片化工具与脚本\n实验性代码片段","card4Title":"律动实验室","card4Greek":"ΚΙΝΗΣΙΣ","card4Desc":"WebGL 与 Canvas 实验\n交互原型与视觉解构","modalTitle":"接入系统","modalGreek":"System Access","modalDesc":"使用 Google 账号验证身份以解锁完整权限","googleBtn":"使用 Google 登录","toastSoon":"即将上线","footer":"OBELISK · 2026","footerGreek":"ΤΑ ΜΕΓΙΣΤΑ","langSwitch":"中 / EN"}},
-  lang:localStorage.getItem('obelisk-lang')||'en',
-  t:function(k){return this.data[this.lang][k]||k;},
-  set:function(l){this.lang=l;localStorage.setItem('obelisk-lang',l);this.render();},
-  render:function(){
-    var self=this;
-    document.querySelectorAll('[data-i18n]').forEach(function(el){
-      var k=el.getAttribute('data-i18n');
-      var v=self.t(k);
-      if(el.tagName==='INPUT')el.placeholder=v;
-      else if(el.tagName==='BUTTON'||el.tagName==='A'){if(el.querySelector('span'))el.querySelector('span').textContent=v;else el.textContent=v;}
-      else el.textContent=v;
-    });
-    document.getElementById('langBtn').textContent=self.lang==='en'?'中 / EN':'EN / 中';
-  }
-};
-function toggleLang(){var l=OBELISK.i18n.lang==='en'?'zh':'en';OBELISK.i18n.set(l);}
 
-// ─── Ripple ───
-document.querySelectorAll('.ripple').forEach(function(el){
-  el.addEventListener('click',function(e){
-    var rect=el.getBoundingClientRect();
-    var span=document.createElement('span');
-    span.className='ripple-effect';
-    var size=Math.max(rect.width,rect.height);
-    span.style.width=span.style.height=size+'px';
-    span.style.left=(e.clientX-rect.left-size/2)+'px';
-    span.style.top=(e.clientY-rect.top-size/2)+'px';
-    el.appendChild(span);
-    setTimeout(function(){span.remove();},600);
-  });
-});
+    <script>
+        // ─── Splash Logic ───
+        var video = document.getElementById('video');
+        var splash = document.getElementById('splash');
+        var main = document.getElementById('main');
+        var enterBtn = document.getElementById('enterBtn');
+        var splashHint = document.getElementById('splashHint');
+        var playHint = document.getElementById('playHint');
+        var errorHint = document.getElementById('errorHint');
+        var videoStarted = false;
+        var videoEnded = false;
 
-// ─── Splash ───
-var video=document.getElementById('video'), splash=document.getElementById('splash'), main=document.getElementById('main');
-var enterBtn=document.getElementById('enterBtn'), splashHint=document.getElementById('splashHint');
-var playHint=document.getElementById('playHint'), errorHint=document.getElementById('errorHint');
-var videoStarted=false, videoEnded=false;
-video.addEventListener('play',function(){videoStarted=true;playHint.classList.remove('show');});
-video.addEventListener('ended',function(){videoEnded=true;splashHint.style.opacity='0';enterBtn.classList.add('visible');});
-video.addEventListener('error',function(){splashHint.style.opacity='0';errorHint.classList.add('show');enterBtn.classList.add('visible');});
-setTimeout(function(){if(!videoStarted&&!videoEnded&&!video.error){playHint.classList.add('show');}},1500);
-splash.addEventListener('click',function(e){if(e.target.tagName==='BUTTON')return;if(video.paused&&!videoEnded){video.play().catch(function(){});}});
-function enterSite(){splash.classList.add('done');video.pause();setTimeout(function(){main.style.display='flex';void main.offsetWidth;main.classList.add('visible');initParticles();initStrings();startTerminalLoop();OBELISK.i18n.render();},600);}
+        video.addEventListener('play', function() {
+            videoStarted = true;
+            playHint.classList.remove('show');
+        });
+        video.addEventListener('ended', function() {
+            videoEnded = true;
+            splashHint.style.opacity = '0';
+            enterBtn.classList.add('visible');
+        });
+        video.addEventListener('error', function() {
+            splashHint.style.opacity = '0';
+            errorHint.classList.add('show');
+            enterBtn.classList.add('visible');
+        });
+        setTimeout(function() {
+            if (!videoStarted && !videoEnded && !video.error) {
+                playHint.classList.add('show');
+            }
+        }, 1500);
+        splash.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            if (video.paused && !videoEnded) {
+                video.play().catch(function(){});
+            }
+        });
+        function enterSite() {
+            splash.classList.add('done');
+            video.pause();
+            setTimeout(function() {
+                main.style.display = 'flex';
+                void main.offsetWidth;
+                main.classList.add('visible');
+                initParticles();
+                startTerminalLoop();
+            }, 500);
+        }
 
-function initParticles(){
-  var canvas=document.getElementById('particles'), ctx=canvas.getContext('2d');
-  var width,height,particles=[];
-  function resize(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
-  resize();window.addEventListener('resize',resize);
-  for(var i=0;i<40;i++){particles.push({x:Math.random()*width,y:Math.random()*height,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,size:Math.random()*1.5+0.3,alpha:Math.random()*0.3+0.05});}
-  function draw(){
-    ctx.clearRect(0,0,width,height);
-    particles.forEach(function(p){
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0)p.x=width;if(p.x>width)p.x=0;if(p.y<0)p.y=height;if(p.y>height)p.y=0;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      ctx.fillStyle='rgba(184,149,106,'+p.alpha+')';ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-function initStrings(){
-  var container=document.getElementById('stringsBg');
-  for(var i=0;i<5;i++){
-    var div=document.createElement('div');
-    div.className='string-line';
-    div.style.top=(20+i*15)+'%';
-    div.style.animationDelay=(i*1.5)+'s';
-    container.appendChild(div);
-  }
-}
+        // ─── Particles ───
+        function initParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            let width, height, particles = [];
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2 + 0.5,
+                    alpha: Math.random() * 0.5 + 0.1
+                });
+            }
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(function(p, i) {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0) p.x = width;
+                    if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height;
+                    if (p.y > height) p.y = 0;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')';
+                    ctx.fill();
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x;
+                        const dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = 'rgba(255,255,255,' + (0.08 * (1 - dist/150)) + ')';
+                            ctx.stroke();
+                        }
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
 
-var logs=[{cmd:'hook.monitor',out:'&#8594; intercepting SSL pinning...',type:'out'},{cmd:'network.scan',out:'&#8594; 127.0.0.1:8080 proxy active',type:'out'},{cmd:'dex.dump',out:'&#8594; extracted 3 classes.dex',type:'out'},{cmd:'frida.server',out:'&#8594; connection refused',type:'err'},{cmd:'adb.devices',out:'&#8594; emulator-5554 device',type:'out'},{cmd:'jadx.decompile',out:'&#8594; resources decoded',type:'out'},{cmd:'permission.check',out:'&#8594; READ_CONTACTS flagged',type:'err'},{cmd:'burp.proxy',out:'&#8594; intercepting HTTPS traffic',type:'out'}];
-var logIndex=0;
-function startTerminalLoop(){
-  var body=document.getElementById('terminalBody');
-  setInterval(function(){
-    var log=logs[logIndex%logs.length];
-    var time=new Date().toLocaleTimeString('en-US',{hour12:false});
-    var div=document.createElement('div');
-    div.innerHTML='<span class="log-time">['+time+']</span> <span class="log-cmd">'+log.cmd+'</span> <span class="log-'+log.type+'">'+log.out+'</span>';
-    body.appendChild(div);body.scrollTop=body.scrollHeight;
-    if(body.children.length>20)body.removeChild(body.firstChild);
-    logIndex++;
-  },2500);
-}
+        // ─── Terminal ───
+        const logs = [
+            { cmd: 'hook.monitor', out: '&#8594; intercepting SSL pinning...', type: 'out' },
+            { cmd: 'network.scan', out: '&#8594; 127.0.0.1:8080 proxy active', type: 'out' },
+            { cmd: 'dex.dump', out: '&#8594; extracted 3 classes.dex', type: 'out' },
+            { cmd: 'frida.server', out: '&#8594; connection refused', type: 'err' },
+            { cmd: 'adb.devices', out: '&#8594; emulator-5554 device', type: 'out' },
+            { cmd: 'jadx.decompile', out: '&#8594; resources decoded', type: 'out' },
+            { cmd: 'permission.check', out: '&#8594; READ_CONTACTS flagged', type: 'err' },
+            { cmd: 'burp.proxy', out: '&#8594; intercepting HTTPS traffic', type: 'out' },
+        ];
+        let logIndex = 0;
+        function startTerminalLoop() {
+            const body = document.getElementById('terminalBody');
+            setInterval(function() {
+                const log = logs[logIndex % logs.length];
+                const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+                const div = document.createElement('div');
+                div.innerHTML = '<span class="log-time">[' + time + ']</span> <span class="log-cmd">' + log.cmd + '</span> <span class="log-' + log.type + '">' + log.out + '</span>';
+                body.appendChild(div);
+                body.scrollTop = body.scrollHeight;
+                if (body.children.length > 20) body.removeChild(body.firstChild);
+                logIndex++;
+            }, 2500);
+        }
 
-var firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
-firebase.initializeApp(firebaseConfig);
-var auth=firebase.auth(), provider=new firebase.auth.GoogleAuthProvider();
-auth.onAuthStateChanged(function(user){
-  var btn=document.getElementById('loginBtn'), avatar=document.getElementById('userAvatar');
-  if(user){btn.style.display='none';avatar.style.display='block';avatar.src=user.photoURL||'';addLog('auth.state','&#8594; user authenticated: '+user.displayName,'out');}
-  else{btn.style.display='block';avatar.style.display='none';}
-});
-function openModal(){document.getElementById('loginModal').classList.add('show');}
-function closeModal(){document.getElementById('loginModal').classList.remove('show');}
-function googleSignIn(){auth.signInWithPopup(provider).catch(function(err){addLog('auth.error','&#8594; '+err.message,'err');console.error('[OBELISK Auth]',err.code,err.message);});}
-function addLog(cmd,out,type){
-  var body=document.getElementById('terminalBody');
-  var time=new Date().toLocaleTimeString('en-US',{hour12:false});
-  var div=document.createElement('div');
-  div.innerHTML='<span class="log-time">['+time+']</span> <span class="log-cmd">'+cmd+'</span> <span class="log-'+type+'">'+out+'</span>';
-  body.appendChild(div);body.scrollTop=body.scrollHeight;
-}
-document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
-function goToProfile(){
-  var trans=document.getElementById('pageTransition');
-  trans.classList.add('active');
-  setTimeout(function(){location.href='profile.html';},800);
-}
-OBELISK.i18n.render();
-</script>
-<div id="module-container" style="display:none;"></div>
-<script id="module-scripts">
-window.OBELISK.register=function(name,initFn){window.OBELISK.modules=window.OBELISK.modules||[];window.OBELISK.modules.push({name:name,init:initFn});if(document.readyState==='complete'||document.readyState==='interactive'){try{initFn();}catch(e){console.error('[OBELISK] Module error:',e);}}};
-</script>
+        // ─── Firebase Auth ───
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
+            authDomain: "obelisk-ca117.firebaseapp.com",
+            projectId: "obelisk-ca117",
+            storageBucket: "obelisk-ca117.firebasestorage.app",
+            messagingSenderId: "574365252836",
+            appId: "1:574365252836:web:f8c21cc4cb1bdcd46480f1",
+            measurementId: "G-D0P8QL36G8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        auth.onAuthStateChanged(function(user) {
+            const btn = document.getElementById('loginBtn');
+            const avatar = document.getElementById('userAvatar');
+            if (user) {
+                btn.style.display = 'none';
+                avatar.style.display = 'block';
+                avatar.src = user.photoURL || '';
+                addLog('auth.state', '&#8594; user authenticated: ' + user.displayName, 'out');
+            } else {
+                btn.style.display = 'block';
+                avatar.style.display = 'none';
+            }
+        });
+        function openModal() {
+            document.getElementById('loginModal').classList.add('show');
+        }
+        function closeModal() {
+            document.getElementById('loginModal').classList.remove('show');
+        }
+        function googleSignIn() {
+            auth.signInWithPopup(provider).catch(function(err) {
+                addLog('auth.error', '&#8594; ' + err.message, 'err');
+                console.error('[OBELISK Auth]', err.code, err.message);
+            });
+        }
+        function logout() {
+            auth.signOut();
+            addLog('auth.state', '&#8594; session terminated', 'out');
+        }
+        function addLog(cmd, out, type) {
+            const body = document.getElementById('terminalBody');
+            const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+            const div = document.createElement('div');
+            div.innerHTML = '<span class="log-time">[' + time + ']</span> <span class="log-cmd">' + cmd + '</span> <span class="log-' + type + '">' + out + '</span>';
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+        }
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+
+    <!-- DYNAMIC MODULE INSERTION INTERFACE -->
+    <div id="module-container" style="display:none;"></div>
+    <script id="module-scripts">
+        window.OBELISK = window.OBELISK || {};
+        window.OBELISK.modules = window.OBELISK.modules || [];
+        window.OBELISK.register = function(name, initFn) {
+            window.OBELISK.modules.push({ name: name, init: initFn });
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                try { initFn(); } catch(e) { console.error('[OBELISK] Module error:', e); }
+            }
+        };
+    </script>
+    <!-- END MODULE INTERFACE -->
+
 </body>
 </html>
