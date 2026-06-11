@@ -36,6 +36,9 @@
             visibility: hidden;
             pointer-events: none;
         }
+        #splash.skip {
+            display: none !important;
+        }
         #splash video {
             width: 100%;
             height: 100%;
@@ -163,6 +166,10 @@
         #main.visible {
             display: flex;
             animation: fadeIn 1.2s ease forwards;
+        }
+        #main.force-show {
+            display: flex;
+            opacity: 1;
         }
 
         #particles {
@@ -474,6 +481,24 @@
             height: 18px;
         }
 
+        /* ─── Toast ─── */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            padding: 10px 24px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(10px);
+            z-index: 99999;
+            transition: opacity 0.5s;
+            white-space: nowrap;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -596,10 +621,26 @@
     </div>
 
     <script>
+        // ─── Auto-skip splash if already entered this session ───
+        var hasEntered = sessionStorage.getItem('obelisk_entered') === 'true';
+        var isRedirectBack = location.search.indexOf('apiKey=') > -1 || location.search.indexOf('oobCode=') > -1;
+
+        if (hasEntered || isRedirectBack) {
+            document.getElementById('splash').classList.add('skip');
+            var main = document.getElementById('main');
+            main.style.display = 'flex';
+            main.classList.add('force-show');
+            initParticles();
+            startTerminalLoop();
+            if (isRedirectBack) {
+                addLog('auth.redirect', '&#8594; processing redirect callback...', 'out');
+            }
+        }
+
         // ─── Splash Logic ───
         var video = document.getElementById('video');
         var splash = document.getElementById('splash');
-        var main = document.getElementById('main');
+        var mainEl = document.getElementById('main');
         var enterBtn = document.getElementById('enterBtn');
         var splashHint = document.getElementById('splashHint');
         var playHint = document.getElementById('playHint');
@@ -607,38 +648,42 @@
         var videoStarted = false;
         var videoEnded = false;
 
-        video.addEventListener('play', function() {
-            videoStarted = true;
-            playHint.classList.remove('show');
-        });
-        video.addEventListener('ended', function() {
-            videoEnded = true;
-            splashHint.style.opacity = '0';
-            enterBtn.classList.add('visible');
-        });
-        video.addEventListener('error', function() {
-            splashHint.style.opacity = '0';
-            errorHint.classList.add('show');
-            enterBtn.classList.add('visible');
-        });
-        setTimeout(function() {
-            if (!videoStarted && !videoEnded && !video.error) {
-                playHint.classList.add('show');
-            }
-        }, 1500);
-        splash.addEventListener('click', function(e) {
-            if (e.target.tagName === 'BUTTON') return;
-            if (video.paused && !videoEnded) {
-                video.play().catch(function(){});
-            }
-        });
+        if (!hasEntered && !isRedirectBack) {
+            video.addEventListener('play', function() {
+                videoStarted = true;
+                playHint.classList.remove('show');
+            });
+            video.addEventListener('ended', function() {
+                videoEnded = true;
+                splashHint.style.opacity = '0';
+                enterBtn.classList.add('visible');
+            });
+            video.addEventListener('error', function() {
+                splashHint.style.opacity = '0';
+                errorHint.classList.add('show');
+                enterBtn.classList.add('visible');
+            });
+            setTimeout(function() {
+                if (!videoStarted && !videoEnded && !video.error) {
+                    playHint.classList.add('show');
+                }
+            }, 1500);
+            splash.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON') return;
+                if (video.paused && !videoEnded) {
+                    video.play().catch(function(){});
+                }
+            });
+        }
+
         function enterSite() {
+            sessionStorage.setItem('obelisk_entered', 'true');
             splash.classList.add('done');
             video.pause();
             setTimeout(function() {
-                main.style.display = 'flex';
-                void main.offsetWidth;
-                main.classList.add('visible');
+                mainEl.style.display = 'flex';
+                void mainEl.offsetWidth;
+                mainEl.classList.add('visible');
                 initParticles();
                 startTerminalLoop();
             }, 500);
@@ -725,7 +770,7 @@
         // ─── Toast ───
         function showToast(msg) {
             const toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap;';
+            toast.className = 'toast';
             toast.textContent = msg;
             document.body.appendChild(toast);
             setTimeout(function() { toast.style.opacity = '0'; }, 2000);
@@ -746,7 +791,7 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // 处理从 Google 重定向回来的结果
+        // 处理 Redirect 回来的结果（如果之前用了 redirect）
         auth.getRedirectResult().then(function(result) {
             if (result.user) {
                 addLog('auth.redirect', '&#8594; user authenticated: ' + result.user.displayName, 'out');
@@ -778,11 +823,23 @@
             document.getElementById('loginModal').classList.remove('show');
         }
 
-        // 改用 signInWithRedirect，避免弹窗被拦截导致闪退
+        // 优先用 Popup（不刷新页面），如果被拦截再降级 Redirect
         function googleSignIn() {
-            auth.signInWithRedirect(provider).catch(function(err) {
-                addLog('auth.error', '&#8594; ' + err.message, 'err');
-                console.error('[OBELISK Auth]', err.code, err.message);
+            auth.signInWithPopup(provider).then(function(result) {
+                addLog('auth.popup', '&#8594; user authenticated: ' + result.user.displayName, 'out');
+                closeModal();
+            }).catch(function(err) {
+                console.error('[OBELISK Auth Popup]', err.code, err.message);
+                if (err.code === 'auth/popup-blocked') {
+                    addLog('auth.warn', '&#8594; popup blocked, falling back to redirect...', 'err');
+                    auth.signInWithRedirect(provider);
+                } else if (err.code === 'auth/unauthorized-domain') {
+                    addLog('auth.error', '&#8594; 域名未授权: 请去 Firebase Console 添加当前域名', 'err');
+                    showToast('域名未授权，请检查 Firebase 设置');
+                } else {
+                    addLog('auth.error', '&#8594; ' + err.message, 'err');
+                    showToast('登录失败: ' + err.message);
+                }
             });
         }
 
