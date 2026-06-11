@@ -43,6 +43,23 @@
             text-decoration: none;
         }
         .logo:hover { color: #fff; }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .icon-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -256,6 +273,26 @@
             margin-bottom: 24px;
             color: #fff;
         }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
         .modal-input {
             width: 100%;
             padding: 12px 16px;
@@ -302,41 +339,110 @@
 <body>
     <div class="top-bar">
         <a class="logo" href="./index.html">&#8592; OBELISK</a>
+        <button class="icon-btn" onclick="toggleLang()">&#127760;</button>
     </div>
     <div class="container">
-        <h1>Dark Nav</h1>
-        <div class="subtitle">Security Resource Index &amp; Tool Directory</div>
+        <h1 data-i18n="title">Dark Nav</h1>
+        <div class="subtitle" data-i18n="subtitle">Security Resource Index & Tool Directory</div>
         <div class="search-bar">
-            <input class="search-input" id="searchInput" placeholder="Search resources...">
-            <button class="search-btn" onclick="filterResources()">Search</button>
+            <input class="search-input" id="searchInput" placeholder="Search resources..." data-i18n-placeholder="search_placeholder">
+            <button class="search-btn" onclick="filterResources()" data-i18n="search">Search</button>
         </div>
         <div class="cat-nav">
-            <button class="cat-btn active" onclick="filterCat('all')">All</button>
-            <button class="cat-btn" onclick="filterCat('blog')">Blogs</button>
-            <button class="cat-btn" onclick="filterCat('ctf')">CTF</button>
-            <button class="cat-btn" onclick="filterCat('tool')">Tools</button>
-            <button class="cat-btn" onclick="filterCat('docs')">Docs</button>
-            <button class="cat-btn" onclick="filterCat('tor')">Tor</button>
+            <button class="cat-btn active" onclick="filterCat('all')" data-i18n="cat_all">All</button>
+            <button class="cat-btn" onclick="filterCat('blog')" data-i18n="cat_blog">Blogs</button>
+            <button class="cat-btn" onclick="filterCat('ctf')" data-i18n="cat_ctf">CTF</button>
+            <button class="cat-btn" onclick="filterCat('tool')" data-i18n="cat_tool">Tools</button>
+            <button class="cat-btn" onclick="filterCat('docs')" data-i18n="cat_docs">Docs</button>
+            <button class="cat-btn" onclick="filterCat('tor')" data-i18n="cat_tor">Tor</button>
         </div>
         <div class="resource-grid" id="resourceGrid"></div>
-        <button class="add-resource-btn" onclick="openAddResource()">+ Add Resource</button>
+        <button class="add-resource-btn" onclick="openAddResource()" data-i18n="add_resource">+ Add Resource</button>
     </div>
     <div class="modal-overlay" id="resourceModal">
         <div class="modal-box">
-            <button class="modal-close" onclick="closeAddResource()" style="position:absolute;top:16px;right:16px;width:32px;height:32px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:pointer;">&#215;</button>
-            <h3>Add Resource</h3>
-            <input class="modal-input" id="resName" placeholder="Name">
-            <input class="modal-input" id="resUrl" placeholder="URL">
-            <input class="modal-input" id="resDesc" placeholder="Description">
-            <input class="modal-input" id="resCat" placeholder="Category (blog/ctf/tool/docs/tor)">
-            <input class="modal-input" id="resTags" placeholder="Tags (comma separated)">
+            <button class="modal-close" onclick="closeAddResource()">&#215;</button>
+            <h3 data-i18n="modal_title">Add Resource</h3>
+            <input class="modal-input" id="resName" placeholder="Name" data-i18n-placeholder="ph_name">
+            <input class="modal-input" id="resUrl" placeholder="URL" data-i18n-placeholder="ph_url">
+            <input class="modal-input" id="resDesc" placeholder="Description" data-i18n-placeholder="ph_desc">
+            <input class="modal-input" id="resCat" placeholder="Category (blog/ctf/tool/docs/tor)" data-i18n-placeholder="ph_cat">
+            <input class="modal-input" id="resTags" placeholder="Tags (comma separated)" data-i18n-placeholder="ph_tags">
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeAddResource()">Cancel</button>
-                <button class="modal-btn primary" onclick="saveResource()">Save</button>
+                <button class="modal-btn" onclick="closeAddResource()" data-i18n="btn_cancel">Cancel</button>
+                <button class="modal-btn primary" onclick="saveResource()" data-i18n="btn_save">Save</button>
             </div>
         </div>
     </div>
     <script>
+        const i18n = {
+            en: {
+                title: "Dark Nav",
+                subtitle: "Security Resource Index & Tool Directory",
+                search: "Search",
+                search_placeholder: "Search resources...",
+                cat_all: "All",
+                cat_blog: "Blogs",
+                cat_ctf: "CTF",
+                cat_tool: "Tools",
+                cat_docs: "Docs",
+                cat_tor: "Tor",
+                add_resource: "+ Add Resource",
+                modal_title: "Add Resource",
+                ph_name: "Name",
+                ph_url: "URL",
+                ph_desc: "Description",
+                ph_cat: "Category (blog/ctf/tool/docs/tor)",
+                ph_tags: "Tags (comma separated)",
+                btn_cancel: "Cancel",
+                btn_save: "Save",
+                collect: "Collect",
+                arsenal: "Arsenal",
+                need_login: "Please sign in"
+            },
+            zh: {
+                title: "暗网导航",
+                subtitle: "安全资源索引与工具目录",
+                search: "搜索",
+                search_placeholder: "搜索资源...",
+                cat_all: "全部",
+                cat_blog: "博客",
+                cat_ctf: "CTF",
+                cat_tool: "工具",
+                cat_docs: "文档",
+                cat_tor: "Tor",
+                add_resource: "+ 添加资源",
+                modal_title: "添加资源",
+                ph_name: "名称",
+                ph_url: "链接",
+                ph_desc: "描述",
+                ph_cat: "分类 (blog/ctf/tool/docs/tor)",
+                ph_tags: "标签 (逗号分隔)",
+                btn_cancel: "取消",
+                btn_save: "保存",
+                collect: "收藏",
+                arsenal: "军火库",
+                need_login: "请先登录"
+            }
+        };
+        let currentLang = localStorage.getItem('obelisk_lang') || 'en';
+        function applyLang() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) el.placeholder = t[key];
+            });
+        }
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('obelisk_lang', currentLang);
+            applyLang();
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",
             authDomain: "obelisk-ca117.firebaseapp.com",
@@ -385,38 +491,39 @@
         function renderResources(list) {
             const grid = document.getElementById('resourceGrid');
             grid.innerHTML = '';
+            const t = i18n[currentLang];
             list.forEach(function(r) {
                 const div = document.createElement('a');
                 div.className = 'resource-item';
                 div.href = r.url;
                 div.target = '_blank';
-                div.innerHTML = '<div class="resource-name">' + r.name + '</div><div class="resource-url">' + r.url + '</div><div class="resource-desc">' + r.desc + '</div><div class="resource-tags">' + (r.tags || []).map(t => '<span class="resource-tag">' + t + '</span>').join('') + '</div><div class="resource-actions"><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();collectResource('' + r.name + '')">Collect</button><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();addToArsenal('' + r.name + '')">Arsenal</button></div>';
+                div.innerHTML = '<div class="resource-name">' + r.name + '</div><div class="resource-url">' + r.url + '</div><div class="resource-desc">' + r.desc + '</div><div class="resource-tags">' + (r.tags || []).map(function(t) { return '<span class="resource-tag">' + t + '</span>'; }).join('') + '</div><div class="resource-actions"><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();collectResource('' + r.name + '')">' + t.collect + '</button><button class="r-btn" onclick="event.preventDefault();event.stopPropagation();addToArsenal('' + r.name + '')">' + t.arsenal + '</button></div>';
                 grid.appendChild(div);
             });
         }
 
         function filterCat(cat) {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
             event.target.classList.add('active');
             if (cat === 'all') renderResources(allResources);
-            else renderResources(allResources.filter(r => r.category === cat));
+            else renderResources(allResources.filter(function(r) { return r.category === cat; }));
         }
 
         function filterResources() {
             const q = document.getElementById('searchInput').value.toLowerCase();
-            renderResources(allResources.filter(r => (r.name + r.desc + r.tags.join(' ')).toLowerCase().includes(q)));
+            renderResources(allResources.filter(function(r) { return (r.name + r.desc + r.tags.join(' ')).toLowerCase().includes(q); }));
         }
 
         function collectResource(name) {
-            if (!currentUser) { alert('Please sign in'); return; }
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
             db.collection('users').doc(currentUser.uid).update({
                 collections: firebase.firestore.FieldValue.arrayUnion({ type: 'resource', name: name, time: Date.now() })
             }).then(function() { alert('Collected'); });
         }
 
         function addToArsenal(name) {
-            if (!currentUser) { alert('Please sign in'); return; }
-            const tool = { name: name, cat: 'Resource', desc: 'From Dark Nav', version: 'N/A', status: 'ready', usage: 'Visit resource page' };
+            if (!currentUser) { alert(i18n[currentLang].need_login); return; }
+            const tool = { name: name, cat: 'Resource', desc: 'From Dark Nav', url: '', version: 'N/A', status: 'ready' };
             db.collection('users').doc(currentUser.uid).update({
                 arsenal: firebase.firestore.FieldValue.arrayUnion(tool)
             }).then(function() { alert('Added to arsenal'); });
@@ -429,9 +536,9 @@
             const url = document.getElementById('resUrl').value.trim();
             const desc = document.getElementById('resDesc').value.trim();
             const cat = document.getElementById('resCat').value.trim() || 'tool';
-            const tags = document.getElementById('resTags').value.split(',').map(t => t.trim()).filter(t => t);
+            const tags = document.getElementById('resTags').value.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
             if (!name || !url) return;
-            const resource = { name, url, desc, category: cat, tags, addedBy: currentUser ? currentUser.uid : 'anonymous' };
+            const resource = { name: name, url: url, desc: desc, category: cat, tags: tags, addedBy: currentUser ? currentUser.uid : 'anonymous' };
             db.collection('resources').add(resource).then(function() {
                 allResources.push(resource);
                 renderResources(allResources);
@@ -440,6 +547,7 @@
         }
 
         document.getElementById('resourceModal').addEventListener('click', function(e) { if (e.target === this) closeAddResource(); });
+        applyLang();
         loadResources();
     </script>
 </body>
