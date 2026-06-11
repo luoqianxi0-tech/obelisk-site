@@ -17,6 +17,7 @@
             --accent: rgba(100,255,150,0.6);
             --accent2: rgba(80,180,255,0.6);
             --danger: rgba(255,80,80,0.6);
+            --warn: rgba(255,200,80,0.7);
             --glass: rgba(255,255,255,0.03);
             --glass-border: rgba(255,255,255,0.08);
         }
@@ -56,6 +57,7 @@
             color: rgba(255,255,255,0.7);
             cursor: pointer;
             transition: opacity 0.3s;
+            text-decoration: none;
         }
         .logo:hover { opacity: 1; color: #fff; }
         .top-actions {
@@ -226,7 +228,10 @@
             margin-top: 32px;
             border-bottom: 1px solid var(--glass-border);
             position: relative;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
+        .tab-nav::-webkit-scrollbar { display: none; }
         .tab-btn {
             padding: 14px 28px;
             background: transparent;
@@ -239,11 +244,10 @@
             transition: all 0.3s;
             position: relative;
             font-family: inherit;
+            white-space: nowrap;
         }
         .tab-btn:hover { color: rgba(255,255,255,0.6); }
-        .tab-btn.active {
-            color: #fff;
-        }
+        .tab-btn.active { color: #fff; }
         .tab-btn.active::after {
             content: '';
             position: absolute;
@@ -290,6 +294,7 @@
             overflow: hidden;
             backdrop-filter: blur(10px);
             transition: transform 0.4s, border-color 0.4s;
+            cursor: pointer;
         }
         .dash-card:hover {
             border-color: rgba(255,255,255,0.15);
@@ -332,6 +337,7 @@
             align-items: center;
             justify-content: center;
             height: 80px;
+            position: relative;
         }
         .gauge-svg {
             width: 70px; height: 70px;
@@ -405,6 +411,12 @@
             font-size: 0.65rem;
             color: rgba(255,255,255,0.3);
             line-height: 1.5;
+        }
+        .arsenal-status {
+            font-size: 0.6rem;
+            color: var(--accent);
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
         }
         .add-tool-btn {
             display: flex;
@@ -493,7 +505,7 @@
             margin-left: 6px;
         }
         .risk-high { background: var(--danger); }
-        .risk-mid { background: rgba(255,200,80,0.7); }
+        .risk-mid { background: var(--warn); }
         .risk-low { background: var(--accent); }
 
         /* ─── Activity Log ─── */
@@ -515,6 +527,7 @@
             padding: 16px 0;
             padding-left: 20px;
             transition: all 0.3s;
+            cursor: pointer;
         }
         .log-entry:hover { background: rgba(255,255,255,0.02); }
         .log-entry::before {
@@ -609,7 +622,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
             backdrop-filter: blur(30px);
             z-index: 20000;
             display: none;
@@ -617,24 +630,49 @@
             justify-content: center;
             opacity: 0;
             transition: opacity 0.4s;
+            overflow-y: auto;
+            padding: 40px 20px;
         }
         .modal-overlay.show { display: flex; opacity: 1; }
         .modal-box {
             background: rgba(8,8,8,0.98);
             border: 1px solid rgba(255,255,255,0.12);
             padding: 40px;
-            max-width: 420px;
-            width: 90%;
+            max-width: 520px;
+            width: 100%;
             position: relative;
             transform: translateY(20px);
             transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .modal-overlay.show .modal-box { transform: translateY(0); }
+        .modal-box.wide { max-width: 700px; }
         .modal-box h3 {
             font-size: 1rem;
             font-weight: 300;
             letter-spacing: 0.15em;
             margin-bottom: 24px;
+            color: #fff;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            border-color: rgba(255,255,255,0.3);
             color: #fff;
         }
         .modal-input {
@@ -679,6 +717,41 @@
         .modal-btn.primary:hover {
             background: rgba(255,255,255,0.12);
         }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.75rem;
+        }
+        .detail-label { color: rgba(255,255,255,0.4); }
+        .detail-value { color: rgba(255,255,255,0.8); font-family: 'Courier New', monospace; }
+        .detail-section {
+            margin-top: 20px;
+        }
+        .detail-section h4 {
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag {
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Courier New', monospace;
+        }
+        .tag.danger { border-color: var(--danger); color: rgba(255,80,80,0.8); }
+        .tag.warn { border-color: var(--warn); color: rgba(255,200,80,0.8); }
+        .tag.safe { border-color: var(--accent); color: var(--accent); }
 
         /* ─── Animations ─── */
         @keyframes fadeInUp {
@@ -699,7 +772,7 @@
     <canvas id="bgCanvas"></canvas>
 
     <div class="top-bar">
-        <div class="logo" onclick="location.href='index.html'" data-i18n="nav_back">← OBELISK</div>
+        <a class="logo" href="./index.html" data-i18n="nav_back">&#8592; OBELISK</a>
         <div class="top-actions">
             <button class="icon-btn" onclick="toggleLang()" title="Language">&#127760;</button>
             <button class="icon-btn" onclick="logout()" title="Logout">&#9099;</button>
@@ -750,16 +823,17 @@
             <!-- Dashboard -->
             <div class="tab-panel active" id="panel-dashboard">
                 <div class="dash-grid">
-                    <div class="dash-card wide">
+                    <div class="dash-card wide" onclick="openDashDetail('traffic')">
                         <div class="dash-label" data-i18n="dash_traffic">Network Traffic</div>
                         <canvas class="dash-canvas" id="trafficCanvas"></canvas>
+                        <div class="dash-sub" data-i18n="dash_live">Live · MB/s</div>
                     </div>
-                    <div class="dash-card">
+                    <div class="dash-card" onclick="openDashDetail('hooks')">
                         <div class="dash-label" data-i18n="dash_hooks">Hooks Intercepted</div>
                         <div class="dash-value" id="hookCount">0</div>
                         <div class="dash-sub" data-i18n="dash_hooks_sub">real-time</div>
                     </div>
-                    <div class="dash-card">
+                    <div class="dash-card" onclick="openDashDetail('risk')">
                         <div class="dash-label" data-i18n="dash_risk">Risk Score</div>
                         <div class="gauge-wrap">
                             <svg class="gauge-svg" viewBox="0 0 60 60">
@@ -769,24 +843,25 @@
                             <span class="gauge-text" id="riskText">0%</span>
                         </div>
                     </div>
-                    <div class="dash-card">
+                    <div class="dash-card" onclick="openDashDetail('packets')">
                         <div class="dash-label" data-i18n="dash_packets">Packets Captured</div>
                         <div class="dash-value" id="packetCount">0</div>
                         <div class="dash-sub" data-i18n="dash_packets_sub">today</div>
                     </div>
-                    <div class="dash-card">
+                    <div class="dash-card" onclick="openDashDetail('scans')">
                         <div class="dash-label" data-i18n="dash_scans">Scans Completed</div>
                         <div class="dash-value" id="scanCount">0</div>
                         <div class="dash-sub" data-i18n="dash_scans_sub">this week</div>
                     </div>
-                    <div class="dash-card">
+                    <div class="dash-card" onclick="openDashDetail('nodes')">
                         <div class="dash-label" data-i18n="dash_nodes">Active Nodes</div>
                         <div class="dash-value" id="nodeCount">0</div>
                         <div class="dash-sub" data-i18n="dash_nodes_sub">live</div>
                     </div>
-                    <div class="dash-card full">
+                    <div class="dash-card full" onclick="openDashDetail('load')">
                         <div class="dash-label" data-i18n="dash_load">System Load</div>
                         <canvas class="dash-canvas" id="loadCanvas"></canvas>
+                        <div class="dash-sub" data-i18n="dash_cpu_mem">CPU · Memory · IO</div>
                     </div>
                 </div>
             </div>
@@ -849,6 +924,7 @@
     <!-- Codename Modal -->
     <div class="modal-overlay" id="codenameModal">
         <div class="modal-box">
+            <button class="modal-close" onclick="closeCodenameModal()">&#215;</button>
             <h3 data-i18n="modal_codename">Set Codename</h3>
             <input class="modal-input" id="codenameInput" placeholder="e.g. PHANTOM-7" maxlength="20">
             <div class="modal-actions">
@@ -861,6 +937,7 @@
     <!-- Add Tool Modal -->
     <div class="modal-overlay" id="toolModal">
         <div class="modal-box">
+            <button class="modal-close" onclick="closeToolModal()">&#215;</button>
             <h3 data-i18n="modal_tool">Add Tool</h3>
             <input class="modal-input" id="toolName" placeholder="Tool Name" maxlength="30">
             <input class="modal-input" id="toolCat" placeholder="Category" maxlength="20">
@@ -869,6 +946,42 @@
                 <button class="modal-btn" onclick="closeToolModal()" data-i18n="btn_cancel">Cancel</button>
                 <button class="modal-btn primary" onclick="saveTool()" data-i18n="btn_save">Save</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Tool Detail Modal -->
+    <div class="modal-overlay" id="toolDetailModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeToolDetailModal()">&#215;</button>
+            <h3 id="toolDetailName">Tool Name</h3>
+            <div id="toolDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- App Detail Modal -->
+    <div class="modal-overlay" id="appDetailModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeAppDetailModal()">&#215;</button>
+            <h3 id="appDetailName">App Name</h3>
+            <div id="appDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Log Detail Modal -->
+    <div class="modal-overlay" id="logDetailModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeLogDetailModal()">&#215;</button>
+            <h3 data-i18n="log_detail_title">Operation Detail</h3>
+            <div id="logDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Detail Modal -->
+    <div class="modal-overlay" id="dashDetailModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeDashDetailModal()">&#215;</button>
+            <h3 id="dashDetailTitle">Detail</h3>
+            <div id="dashDetailContent"></div>
         </div>
     </div>
 
@@ -886,6 +999,7 @@
                 tab_logs: "Logs",
                 tab_settings: "Settings",
                 dash_traffic: "Network Traffic",
+                dash_live: "Live · MB/s",
                 dash_hooks: "Hooks Intercepted",
                 dash_hooks_sub: "real-time",
                 dash_risk: "Risk Score",
@@ -896,6 +1010,7 @@
                 dash_nodes: "Active Nodes",
                 dash_nodes_sub: "live",
                 dash_load: "System Load",
+                dash_cpu_mem: "CPU · Memory · IO",
                 arsenal_add: "+ Add Tool",
                 set_codename: "Codename",
                 set_codename_desc: "Your operative alias",
@@ -918,7 +1033,26 @@
                 log_tool: "Added tool to arsenal",
                 log_scan: "Scan completed",
                 empty_apps: "No recent analysis targets",
-                empty_logs: "No activity recorded"
+                empty_logs: "No activity recorded",
+                log_detail_title: "Operation Detail",
+                detail_pkg: "Package",
+                detail_date: "Analyzed",
+                detail_risk: "Risk Level",
+                detail_perms: "Permissions",
+                detail_findings: "Findings",
+                detail_type: "Type",
+                detail_time: "Timestamp",
+                detail_action: "Action",
+                detail_meta: "Metadata",
+                risk_low: "LOW",
+                risk_mid: "MEDIUM",
+                risk_high: "HIGH",
+                tool_version: "Version",
+                tool_status: "Status",
+                tool_usage: "Usage",
+                tool_added: "Added",
+                status_ready: "READY",
+                status_active: "ACTIVE"
             },
             zh: {
                 nav_back: "← 返回主站",
@@ -931,6 +1065,7 @@
                 tab_logs: "活动日志",
                 tab_settings: "系统设置",
                 dash_traffic: "网络流量",
+                dash_live: "实时 · MB/s",
                 dash_hooks: "Hook 拦截数",
                 dash_hooks_sub: "实时",
                 dash_risk: "风险评分",
@@ -941,6 +1076,7 @@
                 dash_nodes: "活跃节点",
                 dash_nodes_sub: "在线",
                 dash_load: "系统负载",
+                dash_cpu_mem: "CPU · 内存 · IO",
                 arsenal_add: "+ 添加工具",
                 set_codename: "代号",
                 set_codename_desc: "你的行动代号",
@@ -963,7 +1099,26 @@
                 log_tool: "添加工具到军火库",
                 log_scan: "扫描完成",
                 empty_apps: "暂无近期分析目标",
-                empty_logs: "暂无活动记录"
+                empty_logs: "暂无活动记录",
+                log_detail_title: "操作详情",
+                detail_pkg: "包名",
+                detail_date: "分析日期",
+                detail_risk: "风险等级",
+                detail_perms: "权限列表",
+                detail_findings: "发现",
+                detail_type: "类型",
+                detail_time: "时间戳",
+                detail_action: "操作",
+                detail_meta: "元数据",
+                risk_low: "低",
+                risk_mid: "中",
+                risk_high: "高",
+                tool_version: "版本",
+                tool_status: "状态",
+                tool_usage: "用法",
+                tool_added: "添加日期",
+                status_ready: "就绪",
+                status_active: "运行中"
             }
         };
         let currentLang = localStorage.getItem('obelisk_lang') || 'en';
@@ -996,52 +1151,54 @@
         const db = firebase.firestore();
         let currentUser = null;
         let userData = null;
+        let userRef = null;
+        let unsubUser = null;
 
         const defaultArsenal = [
-            { name: "Frida", cat: "Instrumentation", desc: "Dynamic code injection & runtime manipulation" },
-            { name: "Burp Suite", cat: "Proxy", desc: "Web proxy & HTTPS traffic interception" },
-            { name: "JADX", cat: "Decompiler", desc: "Dex to Java decompiler with GUI" },
-            { name: "Apktool", cat: "Reverse", desc: "APK reverse engineering & rebuild" },
-            { name: "Objection", cat: "Runtime", desc: "Mobile runtime exploration toolkit" },
-            { name: "Magisk", cat: "Root", desc: "Root & module framework for Android" },
-            { name: "Termux", cat: "Terminal", desc: "Linux terminal emulator for Android" },
-            { name: "Ghidra", cat: "RE", desc: "Software reverse engineering suite by NSA" },
-            { name: "Wireshark", cat: "Network", desc: "Network protocol analyzer & sniffer" },
-            { name: "Nuclei", cat: "Scanner", desc: "Fast vulnerability scanner with templates" }
+            { name: "Frida", cat: "Instrumentation", desc: "Dynamic code injection & runtime manipulation", version: "16.1.11", status: "ready", usage: "frida -U -f com.target.app -l script.js" },
+            { name: "Burp Suite", cat: "Proxy", desc: "Web proxy & HTTPS traffic interception", version: "2026.2", status: "ready", usage: "Configure proxy 127.0.0.1:8080" },
+            { name: "JADX", cat: "Decompiler", desc: "Dex to Java decompiler with GUI", version: "1.4.7", status: "ready", usage: "jadx-gui target.apk" },
+            { name: "Apktool", cat: "Reverse", desc: "APK reverse engineering & rebuild", version: "2.9.3", status: "ready", usage: "apktool d target.apk" },
+            { name: "Objection", cat: "Runtime", desc: "Mobile runtime exploration toolkit", version: "1.11.0", status: "ready", usage: "objection -g com.target explore" },
+            { name: "Magisk", cat: "Root", desc: "Root & module framework for Android", version: "27.0", status: "active", usage: "magisk --install-module module.zip" },
+            { name: "Termux", cat: "Terminal", desc: "Linux terminal emulator for Android", version: "0.118", status: "active", usage: "pkg install <package>" },
+            { name: "Ghidra", cat: "RE", desc: "Software reverse engineering suite by NSA", version: "11.2", status: "ready", usage: "ghidraRun" },
+            { name: "Wireshark", cat: "Network", desc: "Network protocol analyzer & sniffer", version: "4.2.0", status: "active", usage: "tshark -i eth0 -w capture.pcap" },
+            { name: "Nuclei", cat: "Scanner", desc: "Fast vulnerability scanner with templates", version: "3.2.0", status: "ready", usage: "nuclei -u target.com -t cves/" }
         ];
         const defaultApps = [
-            { name: "TikTok", pkg: "com.zhiliaoapp.musically", date: "2026-06-10", risk: "high" },
-            { name: "WeChat", pkg: "com.tencent.mm", date: "2026-06-09", risk: "mid" },
-            { name: "Chrome", pkg: "com.android.chrome", date: "2026-06-08", risk: "low" }
+            { name: "TikTok", pkg: "com.zhiliaoapp.musically", date: "2026-06-10", risk: "high", permissions: ["READ_CONTACTS","RECORD_AUDIO","CAMERA","ACCESS_FINE_LOCATION"], findings: ["SSL pinning bypassed","Native library obfuscated","Suspicious C2 traffic"] },
+            { name: "WeChat", pkg: "com.tencent.mm", date: "2026-06-09", risk: "mid", permissions: ["READ_CONTACTS","WRITE_EXTERNAL_STORAGE","CAMERA"], findings: ["Encrypted database detected","Xposed hook points found"] },
+            { name: "Chrome", pkg: "com.android.chrome", date: "2026-06-08", risk: "low", permissions: ["INTERNET","ACCESS_NETWORK_STATE"], findings: ["Standard browser behavior","No suspicious APIs"] }
         ];
         const defaultLogs = [
-            { action: "log_auth", type: "AUTH", time: Date.now() - 86400000 },
-            { action: "log_init", type: "SYSTEM", time: Date.now() - 80000000 }
+            { action: "log_auth", type: "AUTH", time: Date.now() - 86400000, meta: { ip: "192.168.1.105", device: "Chrome/Windows" } },
+            { action: "log_init", type: "SYSTEM", time: Date.now() - 80000000, meta: { version: "1.0.0", build: "release" } }
         ];
 
         // ─── Auth ───
         auth.onAuthStateChanged(function(user) {
             if (!user) {
-                location.href = 'index.html';
+                location.href = './index.html';
                 return;
             }
             currentUser = user;
             document.getElementById('idAvatar').src = user.photoURL || '';
             document.getElementById('idName').textContent = user.displayName || 'Unknown';
             document.getElementById('idJoin').textContent = new Date(user.metadata.creationTime).toISOString().slice(0,10).replace(/-/g,'.');
-            loadUserData();
+            initFirestore(user.uid);
         });
 
         function logout() {
             auth.signOut().then(function() {
-                location.href = 'index.html';
+                location.href = './index.html';
             });
         }
 
-        // ─── Firestore Data ───
-        function loadUserData() {
-            const uid = currentUser.uid;
-            db.collection('users').doc(uid).get().then(function(doc) {
+        // ─── Firestore Realtime ───
+        function initFirestore(uid) {
+            userRef = db.collection('users').doc(uid);
+            unsubUser = userRef.onSnapshot(function(doc) {
                 if (doc.exists) {
                     userData = doc.data();
                 } else {
@@ -1056,32 +1213,35 @@
                         logs: defaultLogs,
                         stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
                     };
-                    db.collection('users').doc(uid).set(userData);
+                    userRef.set(userData);
                 }
-                if (!userData.codename) {
-                    openCodenameModal();
+                if (!userData.codename && !document.getElementById('codenameModal').classList.contains('show')) {
+                    setTimeout(openCodenameModal, 500);
                 }
                 renderAll();
-            }).catch(function(err) {
-                console.error('[OBELISK] Firestore load error:', err);
-                // fallback to local
-                userData = JSON.parse(localStorage.getItem('obelisk_profile') || '{}');
-                if (!userData.codename) userData = {
-                    codename: "", level: 1, xp: 0, maxXp: 1000, language: currentLang,
-                    arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs,
-                    stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
-                };
+            }, function(err) {
+                console.error('[OBELISK] Firestore error:', err);
+                // Fallback to localStorage
+                userData = JSON.parse(localStorage.getItem('obelisk_profile_' + uid) || '{}');
+                if (!userData.codename) {
+                    userData = {
+                        codename: "", level: 1, xp: 0, maxXp: 1000, language: currentLang,
+                        arsenal: defaultArsenal, recentApps: defaultApps, logs: defaultLogs,
+                        stats: { hooks: 0, packets: 0, scans: 0, nodes: 0, risk: 0 }
+                    };
+                }
+                if (!userData.codename) setTimeout(openCodenameModal, 500);
                 renderAll();
             });
         }
 
         function saveUserData() {
-            if (!currentUser) return;
+            if (!currentUser || !userData) return;
             const uid = currentUser.uid;
-            db.collection('users').doc(uid).set(userData, { merge: true }).catch(function(err) {
+            userRef.set(userData, { merge: true }).catch(function(err) {
                 console.error('[OBELISK] Firestore save error:', err);
             });
-            localStorage.setItem('obelisk_profile', JSON.stringify(userData));
+            localStorage.setItem('obelisk_profile_' + uid, JSON.stringify(userData));
         }
 
         // ─── Render ───
@@ -1114,8 +1274,9 @@
             (userData.arsenal || []).forEach(function(tool, idx) {
                 const div = document.createElement('div');
                 div.className = 'arsenal-item';
-                div.innerHTML = '<div class="arsenal-name">' + tool.name + '</div><div class="arsenal-cat">' + tool.cat + '</div><div class="arsenal-desc">' + tool.desc + '</div>';
-                div.onclick = function() { showToast(tool.name + ' selected'); };
+                const statusKey = tool.status === 'active' ? 'status_active' : 'status_ready';
+                div.innerHTML = '<div class="arsenal-name">' + tool.name + '</div><div class="arsenal-cat">' + tool.cat + '</div><div class="arsenal-desc">' + tool.desc + '</div><div class="arsenal-status">' + (i18n[currentLang][statusKey] || tool.status.toUpperCase()) + '</div>';
+                div.onclick = function() { openToolDetail(idx); };
                 grid.appendChild(div);
             });
         }
@@ -1128,11 +1289,12 @@
                 list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_apps">' + i18n[currentLang].empty_apps + '</div>';
                 return;
             }
-            apps.forEach(function(app) {
+            apps.forEach(function(app, idx) {
                 const div = document.createElement('div');
                 div.className = 'app-item';
                 const riskClass = 'risk-' + (app.risk || 'low');
                 div.innerHTML = '<div class="app-icon">&#9670;</div><div class="app-info"><div class="app-name">' + app.name + '</div><div class="app-pkg">' + app.pkg + '</div></div><div class="app-meta">' + app.date + '<span class="app-risk ' + riskClass + '"></span></div>';
+                div.onclick = function() { openAppDetail(idx); };
                 list.appendChild(div);
             });
         }
@@ -1145,12 +1307,13 @@
                 tl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;" data-i18n="empty_logs">' + i18n[currentLang].empty_logs + '</div>';
                 return;
             }
-            logs.slice().reverse().forEach(function(log) {
+            logs.slice().reverse().forEach(function(log, idx) {
                 const div = document.createElement('div');
                 div.className = 'log-entry';
                 const date = new Date(log.time).toLocaleString();
                 const actionText = i18n[currentLang][log.action] || log.action;
                 div.innerHTML = '<div class="log-time">' + date + '</div><div class="log-action">' + actionText + '</div><div class="log-type">' + log.type + '</div>';
+                div.onclick = function() { openLogDetail(logs.length - 1 - idx); };
                 tl.appendChild(div);
             });
         }
@@ -1187,12 +1350,161 @@
         window.addEventListener('load', function() {
             const tabs = document.querySelectorAll('.tab-btn');
             const indicator = document.getElementById('tabIndicator');
-            const rect = tabs[0].getBoundingClientRect();
-            const parent = tabs[0].parentElement.getBoundingClientRect();
-            indicator.style.left = (rect.left - parent.left) + 'px';
-            indicator.style.width = rect.width + 'px';
+            if (tabs.length > 0) {
+                const rect = tabs[0].getBoundingClientRect();
+                const parent = tabs[0].parentElement.getBoundingClientRect();
+                indicator.style.left = (rect.left - parent.left) + 'px';
+                indicator.style.width = rect.width + 'px';
+            }
             startDashboardAnim();
         });
+
+        // ─── Detail Modals ───
+        function openToolDetail(idx) {
+            const tool = (userData.arsenal || [])[idx];
+            if (!tool) return;
+            document.getElementById('toolDetailName').textContent = tool.name;
+            const t = i18n[currentLang];
+            const statusText = tool.status === 'active' ? (t.status_active || 'ACTIVE') : (t.status_ready || 'READY');
+            document.getElementById('toolDetailContent').innerHTML = 
+                '<div class="detail-row"><span class="detail-label">' + (t.tool_cat || 'Category') + '</span><span class="detail-value">' + tool.cat + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.tool_version || 'Version') + '</span><span class="detail-value">' + (tool.version || 'N/A') + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.tool_status || 'Status') + '</span><span class="detail-value" style="color:' + (tool.status === 'active' ? 'var(--accent)' : 'var(--muted)') + '">' + statusText + '</span></div>' +
+                '<div class="detail-section"><h4>' + (t.tool_usage || 'Usage') + '</h4><div class="tag-list"><span class="tag" style="font-family:monospace;">' + (tool.usage || 'N/A') + '</span></div></div>' +
+                '<div class="detail-section"><h4>Description</h4><p style="font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.6;">' + tool.desc + '</p></div>';
+            document.getElementById('toolDetailModal').classList.add('show');
+        }
+        function closeToolDetailModal() {
+            document.getElementById('toolDetailModal').classList.remove('show');
+        }
+
+        function openAppDetail(idx) {
+            const app = (userData.recentApps || [])[idx];
+            if (!app) return;
+            document.getElementById('appDetailName').textContent = app.name;
+            const t = i18n[currentLang];
+            const riskLabel = app.risk === 'high' ? (t.risk_high || 'HIGH') : app.risk === 'mid' ? (t.risk_mid || 'MEDIUM') : (t.risk_low || 'LOW');
+            const riskColor = app.risk === 'high' ? 'var(--danger)' : app.risk === 'mid' ? 'var(--warn)' : 'var(--accent)';
+            let permsHtml = '';
+            (app.permissions || []).forEach(function(p) {
+                permsHtml += '<span class="tag' + (p.indexOf('READ_CONTACTS') > -1 || p.indexOf('LOCATION') > -1 ? ' danger' : ' safe') + '">' + p + '</span>';
+            });
+            let findingsHtml = '';
+            (app.findings || []).forEach(function(f) {
+                findingsHtml += '<span class="tag' + (f.indexOf('suspicious') > -1 || f.indexOf('bypassed') > -1 ? ' danger' : ' warn') + '">' + f + '</span>';
+            });
+            document.getElementById('appDetailContent').innerHTML = 
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_pkg || 'Package') + '</span><span class="detail-value">' + app.pkg + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_date || 'Analyzed') + '</span><span class="detail-value">' + app.date + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_risk || 'Risk Level') + '</span><span class="detail-value" style="color:' + riskColor + '">' + riskLabel + '</span></div>' +
+                '<div class="detail-section"><h4>' + (t.detail_perms || 'Permissions') + '</h4><div class="tag-list">' + permsHtml + '</div></div>' +
+                '<div class="detail-section"><h4>' + (t.detail_findings || 'Findings') + '</h4><div class="tag-list">' + findingsHtml + '</div></div>';
+            document.getElementById('appDetailModal').classList.add('show');
+        }
+        function closeAppDetailModal() {
+            document.getElementById('appDetailModal').classList.remove('show');
+        }
+
+        function openLogDetail(idx) {
+            const log = (userData.logs || [])[idx];
+            if (!log) return;
+            const t = i18n[currentLang];
+            const date = new Date(log.time).toLocaleString();
+            const actionText = t[log.action] || log.action;
+            let metaHtml = '';
+            if (log.meta) {
+                for (const [k, v] of Object.entries(log.meta)) {
+                    metaHtml += '<div class="detail-row"><span class="detail-label">' + k + '</span><span class="detail-value">' + v + '</span></div>';
+                }
+            }
+            document.getElementById('logDetailContent').innerHTML = 
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_type || 'Type') + '</span><span class="detail-value">' + log.type + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_time || 'Timestamp') + '</span><span class="detail-value">' + date + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">' + (t.detail_action || 'Action') + '</span><span class="detail-value">' + actionText + '</span></div>' +
+                (metaHtml ? '<div class="detail-section"><h4>' + (t.detail_meta || 'Metadata') + '</h4>' + metaHtml + '</div>' : '');
+            document.getElementById('logDetailModal').classList.add('show');
+        }
+        function closeLogDetailModal() {
+            document.getElementById('logDetailModal').classList.remove('show');
+        }
+
+        function openDashDetail(type) {
+            const t = i18n[currentLang];
+            const stats = userData.stats || {};
+            let title = '';
+            let content = '';
+            switch(type) {
+                case 'traffic':
+                    title = t.dash_traffic;
+                    content = '<div style="height:200px;"><canvas id="detailTrafficCanvas" style="width:100%;height:100%;"></canvas></div><div class="detail-section"><h4>Interface Statistics</h4><div class="detail-row"><span class="detail-label">RX</span><span class="detail-value">' + (stats.rx || '1.2') + ' MB/s</span></div><div class="detail-row"><span class="detail-label">TX</span><span class="detail-value">' + (stats.tx || '0.8') + ' MB/s</span></div><div class="detail-row"><span class="detail-label">Dropped</span><span class="detail-value">' + (stats.dropped || '0') + '</span></div></div>';
+                    break;
+                case 'hooks':
+                    title = t.dash_hooks;
+                    content = '<div class="detail-section"><h4>Hook Statistics</h4><div class="detail-row"><span class="detail-label">SSL Pinning</span><span class="detail-value">' + (stats.sslHooks || '12') + '</span></div><div class="detail-row"><span class="detail-label">Root Detection</span><span class="detail-value">' + (stats.rootHooks || '5') + '</span></div><div class="detail-row"><span class="detail-label">API Monitor</span><span class="detail-value">' + (stats.apiHooks || '34') + '</span></div></div>';
+                    break;
+                case 'risk':
+                    title = t.dash_risk;
+                    content = '<div class="detail-section"><h4>Risk Breakdown</h4><div class="detail-row"><span class="detail-label">Network</span><span class="detail-value">' + (stats.riskNet || '15') + '%</span></div><div class="detail-row"><span class="detail-label">Permissions</span><span class="detail-value">' + (stats.riskPerm || '42') + '%</span></div><div class="detail-row"><span class="detail-label">Code</span><span class="detail-value">' + (stats.riskCode || '28') + '%</span></div></div>';
+                    break;
+                case 'packets':
+                    title = t.dash_packets;
+                    content = '<div class="detail-section"><h4>Packet Summary</h4><div class="detail-row"><span class="detail-label">TCP</span><span class="detail-value">' + (stats.tcp || '8,432') + '</span></div><div class="detail-row"><span class="detail-label">UDP</span><span class="detail-value">' + (stats.udp || '1,203') + '</span></div><div class="detail-row"><span class="detail-label">HTTPS</span><span class="detail-value">' + (stats.https || '6,891') + '</span></div></div>';
+                    break;
+                case 'scans':
+                    title = t.dash_scans;
+                    content = '<div class="detail-section"><h4>Scan History</h4><div class="detail-row"><span class="detail-label">Static</span><span class="detail-value">' + (stats.staticScans || '3') + '</span></div><div class="detail-row"><span class="detail-label">Dynamic</span><span class="detail-value">' + (stats.dynamicScans || '2') + '</span></div><div class="detail-row"><span class="detail-label">Network</span><span class="detail-value">' + (stats.netScans || '1') + '</span></div></div>';
+                    break;
+                case 'nodes':
+                    title = t.dash_nodes;
+                    content = '<div class="detail-section"><h4>Node Status</h4><div class="detail-row"><span class="detail-label">Proxy</span><span class="detail-value">127.0.0.1:8080</span></div><div class="detail-row"><span class="detail-label">Frida Server</span><span class="detail-value">192.168.1.105:27042</span></div><div class="detail-row"><span class="detail-label">ADB</span><span class="detail-value">emulator-5554</span></div></div>';
+                    break;
+                case 'load':
+                    title = t.dash_load;
+                    content = '<div style="height:200px;"><canvas id="detailLoadCanvas" style="width:100%;height:100%;"></canvas></div><div class="detail-section"><h4>Resource Usage</h4><div class="detail-row"><span class="detail-label">CPU</span><span class="detail-value">' + (stats.cpu || '34') + '%</span></div><div class="detail-row"><span class="detail-label">Memory</span><span class="detail-value">' + (stats.mem || '2.1') + ' GB</span></div><div class="detail-row"><span class="detail-label">Disk IO</span><span class="detail-value">' + (stats.io || '45') + ' MB/s</span></div></div>';
+                    break;
+            }
+            document.getElementById('dashDetailTitle').textContent = title;
+            document.getElementById('dashDetailContent').innerHTML = content;
+            document.getElementById('dashDetailModal').classList.add('show');
+            if (type === 'traffic') setTimeout(function() { initDetailCanvas('detailTrafficCanvas', 'rgba(100,255,150,0.6)'); }, 100);
+            if (type === 'load') setTimeout(function() { initDetailCanvas('detailLoadCanvas', 'rgba(80,180,255,0.6)'); }, 100);
+        }
+        function closeDashDetailModal() {
+            document.getElementById('dashDetailModal').classList.remove('show');
+        }
+
+        function initDetailCanvas(id, color) {
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            let data = new Array(100).fill(30);
+            function draw() {
+                if (!document.getElementById(id)) return;
+                const w = canvas.width, h = canvas.height;
+                data.shift();
+                data.push(20 + Math.random() * 40 + Math.sin(Date.now() / 1000) * 10);
+                ctx.clearRect(0, 0, w, h);
+                ctx.beginPath();
+                ctx.moveTo(0, h - data[0]);
+                for (let i = 1; i < data.length; i++) {
+                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
+                }
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.beginPath();
+                for (let i = 0; i < data.length; i++) {
+                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
+                }
+                ctx.lineTo(w, h); ctx.lineTo(0, h);
+                ctx.fillStyle = color.replace('0.6', '0.05');
+                ctx.fill();
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
 
         // ─── Modals ───
         function openCodenameModal() {
@@ -1211,9 +1523,9 @@
                 userData.level = (userData.level || 1) + 1;
                 userData.xp = userData.xp - (userData.maxXp || 1000);
                 userData.maxXp = Math.floor((userData.maxXp || 1000) * 1.2);
-                userData.logs.push({ action: 'log_levelup', type: 'SYSTEM', time: Date.now() });
+                userData.logs.push({ action: 'log_levelup', type: 'SYSTEM', time: Date.now(), meta: { newLevel: userData.level } });
             }
-            userData.logs.push({ action: 'log_init', type: 'SYSTEM', time: Date.now() });
+            userData.logs.push({ action: 'log_init', type: 'SYSTEM', time: Date.now(), meta: { codename: val } });
             saveUserData();
             renderAll();
             closeCodenameModal();
@@ -1232,15 +1544,15 @@
             const cat = document.getElementById('toolCat').value.trim() || 'Custom';
             const desc = document.getElementById('toolDesc').value.trim() || 'Custom tool';
             if (!name) return;
-            userData.arsenal.push({ name, cat, desc });
+            userData.arsenal.push({ name, cat, desc, version: "1.0.0", status: "ready", usage: "manual" });
             userData.xp = (userData.xp || 0) + 30;
-            userData.logs.push({ action: 'log_tool', type: 'ARSENAL', time: Date.now() });
+            userData.logs.push({ action: 'log_tool', type: 'ARSENAL', time: Date.now(), meta: { tool: name } });
             saveUserData();
             renderAll();
             closeToolModal();
         }
         function clearLocalData() {
-            localStorage.removeItem('obelisk_profile');
+            if (currentUser) localStorage.removeItem('obelisk_profile_' + currentUser.uid);
             showToast('Local cache cleared');
         }
 
@@ -1254,7 +1566,7 @@
             setTimeout(function() { toast.remove(); }, 2500);
         }
 
-        // ─── Background Canvas (Abstract Art) ───
+        // ─── Background Canvas ───
         (function() {
             const canvas = document.getElementById('bgCanvas');
             const ctx = canvas.getContext('2d');
@@ -1301,7 +1613,7 @@
             draw();
         })();
 
-        // ─── Dashboard Canvas Animations ───
+        // ─── Dashboard Canvas (Realistic) ───
         let trafficCtx, loadCtx, trafficAnim, loadAnim;
         function startDashboardAnim() {
             if (currentTab !== 0) return;
@@ -1312,14 +1624,21 @@
             loadCtx = lCanvas.getContext('2d');
             tCanvas.width = tCanvas.offsetWidth; tCanvas.height = 80;
             lCanvas.width = lCanvas.offsetWidth; lCanvas.height = 80;
-            let tData = new Array(60).fill(20), lData = new Array(60).fill(30);
+            let tData = [], lData = [];
+            for (let i = 0; i < 60; i++) {
+                tData.push(20 + Math.sin(i * 0.2) * 15 + Math.random() * 10);
+                lData.push(25 + Math.cos(i * 0.15) * 12 + Math.random() * 8);
+            }
+            let frame = 0;
             function drawLine(ctx, data, color) {
                 const w = ctx.canvas.width, h = ctx.canvas.height;
                 ctx.clearRect(0, 0, w, h);
                 ctx.beginPath();
                 ctx.moveTo(0, h - data[0]);
                 for (let i = 1; i < data.length; i++) {
-                    ctx.lineTo((i / (data.length - 1)) * w, h - data[i]);
+                    const x = (i / (data.length - 1)) * w;
+                    const y = h - data[i];
+                    ctx.lineTo(x, y);
                 }
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 1.5;
@@ -1334,8 +1653,13 @@
             }
             function update() {
                 if (currentTab !== 0) return;
-                tData.shift(); tData.push(15 + Math.random() * 50);
-                lData.shift(); lData.push(20 + Math.random() * 40);
+                frame++;
+                tData.shift();
+                const tVal = 20 + Math.sin(frame * 0.05) * 15 + Math.sin(frame * 0.13) * 8 + Math.random() * 6;
+                tData.push(Math.max(10, Math.min(70, tVal)));
+                lData.shift();
+                const lVal = 25 + Math.cos(frame * 0.04) * 12 + Math.cos(frame * 0.11) * 6 + Math.random() * 5;
+                lData.push(Math.max(15, Math.min(65, lVal)));
                 drawLine(trafficCtx, tData, 'rgba(100,255,150,0.6)');
                 drawLine(loadCtx, lData, 'rgba(80,180,255,0.6)');
                 trafficAnim = requestAnimationFrame(update);
@@ -1345,18 +1669,20 @@
         }
 
         // ─── Modal click outside ───
-        document.getElementById('codenameModal').addEventListener('click', function(e) {
-            if (e.target === this) closeCodenameModal();
-        });
-        document.getElementById('toolModal').addEventListener('click', function(e) {
-            if (e.target === this) closeToolModal();
+        ['codenameModal','toolModal','toolDetailModal','appDetailModal','logDetailModal','dashDetailModal'].forEach(function(id) {
+            document.getElementById(id).addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
         });
 
         // ─── Keyboard shortcuts ───
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                closeCodenameModal();
-                closeToolModal();
+                ['codenameModal','toolModal','toolDetailModal','appDetailModal','logDetailModal','dashDetailModal'].forEach(function(id) {
+                    document.getElementById(id).classList.remove('show');
+                });
             }
         });
     </script>
