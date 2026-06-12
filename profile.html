@@ -12,6 +12,13 @@
 :root{--bg:#000;--fg:#e0e0e5;--muted:rgba(255,255,255,0.3);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7);--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08)}
 html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow-x:hidden;min-height:100vh}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* Auth Loading */
+.auth-overlay{position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease}
+.auth-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
+.auth-overlay .spinner{width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 .top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;backdrop-filter:blur(10px)}
 .logo{font-size:0.9rem;letter-spacing:0.3em;font-weight:300;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:none}
@@ -20,16 +27,24 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .icon-btn{width:36px;height:36px;border:1px solid var(--glass-border);background:var(--glass);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;font-size:1rem;backdrop-filter:blur(10px)}
 .icon-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff;background:rgba(255,255,255,0.06)}
 .container{position:relative;z-index:5;max-width:1100px;margin:0 auto;padding:0 24px 60px}
+
 .id-card{background:var(--glass);border:1px solid var(--glass-border);padding:40px;display:flex;gap:32px;align-items:center;position:relative;overflow:hidden;backdrop-filter:blur(20px)}
 .id-card::before{content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(100,255,150,0.04) 0%,transparent 70%);pointer-events:none}
-.id-avatar{width:80px;height:80px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);object-fit:cover;flex-shrink:0;position:relative;z-index:2}
+.id-avatar-wrap{position:relative;flex-shrink:0}
+.id-avatar{width:80px;height:80px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);object-fit:cover;position:relative;z-index:2}
+.id-admin-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-right-color:var(--accent);animation:spin 3s linear infinite;z-index:3;display:none}
+.id-admin-ring.active{display:block}
 .id-info{flex:1;position:relative;z-index:2}
 .id-name{font-size:1.4rem;font-weight:300;letter-spacing:0.1em;margin-bottom:4px;background:linear-gradient(180deg,#fff,rgba(255,255,255,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .id-codename{font-size:0.75rem;color:var(--accent);letter-spacing:0.15em;font-family:'Courier New',monospace;margin-bottom:12px}
-.id-meta{display:flex;gap:24px;font-size:0.7rem;color:var(--muted);letter-spacing:0.05em}
+.id-meta{display:flex;gap:24px;font-size:0.7rem;color:var(--muted);letter-spacing:0.05em;align-items:center}
 .id-meta span{display:flex;align-items:center;gap:6px}
 .id-meta .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 2s infinite}
 @keyframes pulse-dot{0%,100%{opacity:0.4}50%{opacity:1}}
+.admin-badge-inline{padding:3px 10px;background:rgba(100,255,150,0.08);border:1px solid var(--accent);color:var(--accent);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;font-family:'Courier New',monospace;display:none;animation:pulse-admin 2s infinite}
+.admin-badge-inline.active{display:inline-block}
+@keyframes pulse-admin{0%,100%{box-shadow:0 0 4px rgba(100,255,150,0.1)}50%{box-shadow:0 0 12px rgba(100,255,150,0.4)}}
+
 .level-section{margin-top:24px;background:var(--glass);border:1px solid var(--glass-border);padding:32px 40px;backdrop-filter:blur(20px)}
 .level-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
 .level-title{font-size:0.8rem;letter-spacing:0.15em;color:rgba(255,255,255,0.6);text-transform:uppercase}
@@ -38,6 +53,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .xp-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);position:relative}
 .xp-bar::after{content:'';position:absolute;right:0;top:0;bottom:0;width:20px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3))}
 .xp-text{display:flex;justify-content:space-between;margin-top:8px;font-size:0.65rem;color:rgba(255,255,255,0.25);font-family:'Courier New',monospace}
+
 .tab-nav{display:flex;gap:0;margin-top:32px;border-bottom:1px solid var(--glass-border);position:relative;overflow-x:auto;scrollbar-width:none}
 .tab-nav::-webkit-scrollbar{display:none}
 .tab-btn{padding:14px 20px;background:transparent;border:none;color:rgba(255,255,255,0.3);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.3s;position:relative;font-family:inherit;white-space:nowrap}
@@ -48,6 +64,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .tab-panels{position:relative;min-height:400px}
 .tab-panel{display:none;opacity:0;transform:translateY(12px);transition:opacity 0.5s,transform 0.5s;padding-top:24px}
 .tab-panel.active{display:block;opacity:1;transform:translateY(0)}
+
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .dash-card{background:var(--glass);border:1px solid var(--glass-border);padding:24px;position:relative;overflow:hidden;backdrop-filter:blur(10px);transition:transform 0.4s,border-color 0.4s;cursor:pointer}
 .dash-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px)}
@@ -64,8 +81,9 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .dash-card.wide{grid-column:span 2}
 .dash-card.full{grid-column:span 3}
 @media(max-width:768px){.dash-grid{grid-template-columns:1fr}.dash-card.wide,.dash-card.full{grid-column:span 1}.id-card{flex-direction:column;text-align:center;padding:24px}.top-bar{padding:16px 20px}.tab-btn{padding:12px 14px;font-size:0.6rem}}
+
 .arsenal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.arsenal-item{background:var(--glass);border:1px solid var(--glass-border);padding:20px;cursor:pointer;transition:all 0.4s;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+.arsenal-item{background:var(--glass);border:1px solid var(--glass-border);padding:20px;cursor:pointer;transition:all 0.4s;position:relative;overflow:hidden;backdrop-filter:blur(10px);text-decoration:none;color:inherit;display:block}
 .arsenal-item:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-3px);background:rgba(255,255,255,0.05)}
 .arsenal-item::after{content:'';position:absolute;top:0;left:0;width:2px;height:0;background:var(--accent);transition:height 0.4s}
 .arsenal-item:hover::after{height:100%}
@@ -73,10 +91,16 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .arsenal-cat{font-size:0.6rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
 .arsenal-desc{font-size:0.65rem;color:rgba(255,255,255,0.3);line-height:1.5}
 .arsenal-link{font-size:0.6rem;color:var(--accent2);margin-top:8px;font-family:'Courier New',monospace;word-break:break-all}
+.arsenal-detail-btn{position:absolute;top:10px;right:10px;width:22px;height:22px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.7rem;transition:all 0.3s;z-index:5}
+.arsenal-detail-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff}
+.arsenal-item.no-url{cursor:default;opacity:0.5}
+.arsenal-item.no-url:hover{transform:none;border-color:var(--glass-border);background:var(--glass)}
+.arsenal-item.no-url::after{display:none}
 .add-tool-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;background:transparent;border:1px dashed rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);font-size:0.75rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;grid-column:1/-1;margin-top:8px}
 .add-tool-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff;background:rgba(255,255,255,0.03)}
 @media(max-width:768px){.arsenal-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.arsenal-grid{grid-template-columns:1fr}}
+
 .app-list{display:flex;flex-direction:column;gap:8px}
 .app-item{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--glass);border:1px solid var(--glass-border);transition:all 0.3s;cursor:pointer;backdrop-filter:blur(10px)}
 .app-item:hover{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);transform:translateX(4px)}
@@ -87,6 +111,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .app-meta{text-align:right;font-size:0.65rem;color:rgba(255,255,255,0.3);font-family:'Courier New',monospace}
 .app-risk{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px}
 .risk-high{background:var(--danger)}.risk-mid{background:var(--warn)}.risk-low{background:var(--accent)}
+
 .timeline{position:relative;padding-left:24px}
 .timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--accent),transparent)}
 .log-entry{position:relative;padding:16px 0;padding-left:20px;transition:all 0.3s;cursor:pointer}
@@ -96,6 +121,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .log-time{font-size:0.65rem;color:rgba(255,255,255,0.2);font-family:'Courier New',monospace;margin-bottom:4px}
 .log-action{font-size:0.8rem;color:rgba(255,255,255,0.7);letter-spacing:0.02em;line-height:1.5}
 .log-type{font-size:0.6rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
+
 .settings-list{display:flex;flex-direction:column;gap:12px;max-width:600px}
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--glass);border:1px solid var(--glass-border);transition:all 0.3s}
 .setting-row:hover{border-color:rgba(255,255,255,0.15)}
@@ -105,6 +131,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .lang-btn{padding:8px 16px;background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:0.7rem;cursor:pointer;transition:all 0.3s;font-family:inherit}
 .lang-btn.active{background:rgba(255,255,255,0.08);color:#fff}
 .lang-btn:hover:not(.active){color:rgba(255,255,255,0.7)}
+
 .post-list{display:flex;flex-direction:column;gap:12px}
 .post-item{background:var(--glass);border:1px solid var(--glass-border);padding:20px;transition:all 0.3s;cursor:pointer;backdrop-filter:blur(10px)}
 .post-item:hover{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
@@ -112,6 +139,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .post-type{font-size:0.6rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
 .post-content{font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.6}
 .post-meta{display:flex;gap:16px;margin-top:12px;font-size:0.65rem;color:rgba(255,255,255,0.3);font-family:'Courier New',monospace}
+
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(30px);z-index:20000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.4s;overflow-y:auto;padding:40px 20px}
 .modal-overlay.show{display:flex;opacity:1}
 .modal-box{background:rgba(8,8,8,0.98);border:1px solid rgba(255,255,255,0.12);padding:40px;max-width:520px;width:100%;position:relative;transform:translateY(20px);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);max-height:80vh;overflow-y:auto}
@@ -135,6 +163,8 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 </style>
 </head>
 <body>
+<!-- Auth Loading -->
+<div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <canvas id="bgCanvas"></canvas>
 <div class="top-bar">
 <a class="logo" href="./index.html" data-i18n="nav_back">&#8592; OBELISK</a>
@@ -145,7 +175,10 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 </div>
 <div class="container">
 <div class="id-card">
-<img class="id-avatar" id="idAvatar" src="" alt="avatar">
+<div class="id-avatar-wrap">
+  <div class="id-admin-ring" id="adminRing"></div>
+  <img class="id-avatar" id="idAvatar" src="" alt="avatar">
+</div>
 <div class="id-info">
 <div class="id-name" id="idName">Unknown</div>
 <div class="id-codename" id="idCodename">CODENAME: UNSET</div>
@@ -153,6 +186,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 <span><span class="dot"></span> <span data-i18n="status_active">Active</span></span>
 <span id="idRole" data-i18n="role_analyst">Analyst</span>
 <span id="idJoin">2026.06.11</span>
+<span class="admin-badge-inline" id="adminBadgeInline">★ ADMIN</span>
 </div>
 </div>
 </div>
@@ -293,11 +327,15 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 </div>
 
 <script>
+const ADMIN_UIDS=['nCZLU2r9YfXVTrQ79EJqWJxPPT03'];
 const i18n={
-en:{nav_back:"\u2190 OBELISK",status_active:"Active",role_analyst:"Analyst",level_title:"System Clearance",tab_dashboard:"Dashboard",tab_arsenal:"Arsenal",tab_recent:"Recent",tab_logs:"Logs",tab_posts:"My Posts",tab_settings:"Settings",dash_traffic:"Network Traffic",dash_live:"Live \u00b7 MB/s",dash_hooks:"Hooks Intercepted",dash_hooks_sub:"real-time",dash_risk:"Risk Score",dash_packets:"Packets Captured",dash_packets_sub:"today",dash_scans:"Scans Completed",dash_scans_sub:"this week",dash_nodes:"Active Nodes",dash_nodes_sub:"live",dash_load:"System Load",dash_cpu_mem:"CPU \u00b7 Memory \u00b7 IO",arsenal_add:"+ Add Tool",set_codename:"Codename",set_codename_desc:"Your operative alias",set_lang:"Language",set_lang_desc:"Interface language",set_data:"Data Persistence",set_data_desc:"Synced to Firestore",set_clear:"Clear Local Data",set_clear_desc:"Reset profile cache",btn_edit:"Edit",btn_clear:"Clear",btn_cancel:"Cancel",btn_save:"Save",modal_codename:"Set Codename",modal_tool:"Add Tool",status_on:"ON",posts_hint:"Posts from Inspo Ruins Community",empty_apps:"No recent analysis targets",empty_logs:"No activity recorded",empty_posts:"No posts yet. Go to Inspo Ruins to publish!",empty_arsenal:"Your arsenal is empty. Add tools from Dark Nav or Reverse Notes.",detail_traffic:"Network Traffic Detail",detail_hooks:"Hook Interception Detail",detail_risk:"Risk Assessment Detail",detail_packets:"Packet Capture Detail",detail_scans:"Scan History Detail",detail_nodes:"Active Nodes Detail",detail_load:"System Load Detail"},
-zh:{nav_back:"\u2190 \u8fd4\u56de\u4e3b\u7ad9",status_active:"\u5728\u7ebf",role_analyst:"\u5206\u6790\u5458",level_title:"\u7cfb\u7edf\u6743\u9650\u7b49\u7ea7",tab_dashboard:"\u4eea\u8868\u76d8",tab_arsenal:"\u519b\u706b\u5e93",tab_recent:"\u6700\u8fd1\u5206\u6790",tab_logs:"\u6d3b\u52a8\u65e5\u5fd7",tab_posts:"\u6211\u7684\u53d1\u5e03",tab_settings:"\u7cfb\u7edf\u8bbe\u7f6e",dash_traffic:"\u7f51\u7edc\u6d41\u91cf",dash_live:"\u5b9e\u65f6 \u00b7 MB/s",dash_hooks:"Hook \u62e6\u622a\u6570",dash_hooks_sub:"\u5b9e\u65f6",dash_risk:"\u98ce\u9669\u8bc4\u5206",dash_packets:"\u6570\u636e\u5305\u6355\u83b7",dash_packets_sub:"\u4eca\u65e5",dash_scans:"\u626b\u63cf\u5b8c\u6210\u6570",dash_scans_sub:"\u672c\u5468",dash_nodes:"\u6d3b\u8dc3\u8282\u70b9",dash_nodes_sub:"\u5728\u7ebf",dash_load:"\u7cfb\u7edf\u8d1f\u8f7d",dash_cpu_mem:"CPU \u00b7 \u5185\u5b58 \u00b7 IO",arsenal_add:"+ \u6dfb\u52a0\u5de5\u5177",set_codename:"\u4ee3\u53f7",set_codename_desc:"\u4f60\u7684\u884c\u52a8\u4ee3\u53f7",set_lang:"\u8bed\u8a00",set_lang_desc:"\u754c\u9762\u8bed\u8a00",set_data:"\u6570\u636e\u6301\u4e45\u5316",set_data_desc:"\u5df2\u540c\u6b65\u81f3 Firestore",set_clear:"\u6e05\u9664\u672c\u5730\u6570\u636e",set_clear_desc:"\u91cd\u7f6e\u4e2a\u4eba\u6863\u6848\u7f13\u5b58",btn_edit:"\u7f16\u8f91",btn_clear:"\u6e05\u9664",btn_cancel:"\u53d6\u6d88",btn_save:"\u4fdd\u5b58",modal_codename:"\u8bbe\u7f6e\u4ee3\u53f7",modal_tool:"\u6dfb\u52a0\u5de5\u5177",status_on:"\u5f00\u542f",posts_hint:"\u6765\u81ea\u7075\u611f\u5e9f\u589f\u793e\u533a\u7684\u53d1\u5e03",empty_apps:"\u6682\u65e0\u8fd1\u671f\u5206\u6790\u76ee\u6807",empty_logs:"\u6682\u65e0\u6d3b\u52a8\u8bb0\u5f55",empty_posts:"\u6682\u65e0\u53d1\u5e03\u3002\u53bb\u7075\u611f\u5e9f\u589f\u53d1\u5e03\u5427\uff01",empty_arsenal:"\u519b\u706b\u5e93\u4e3a\u7a7a\u3002\u4ece\u6697\u7f51\u5bfc\u822a\u6216\u9006\u5411\u624b\u8bb0\u6dfb\u52a0\u5de5\u5177\u3002",detail_traffic:"\u7f51\u7edc\u6d41\u91cf\u8be6\u60c5",detail_hooks:"Hook \u62e6\u622a\u8be6\u60c5",detail_risk:"\u98ce\u9669\u8bc4\u4f30\u8be6\u60c5",detail_packets:"\u6570\u636e\u5305\u6355\u83b7\u8be6\u60c5",detail_scans:"\u626b\u63cf\u5386\u53f2\u8be6\u60c5",detail_nodes:"\u6d3b\u8dc3\u8282\u70b9\u8be6\u60c5",detail_load:"\u7cfb\u7edf\u8d1f\u8f7d\u8be6\u60c5"}
+en:{nav_back:"← OBELISK",status_active:"Active",role_analyst:"Analyst",level_title:"System Clearance",tab_dashboard:"Dashboard",tab_arsenal:"Arsenal",tab_recent:"Recent",tab_logs:"Logs",tab_posts:"My Posts",tab_settings:"Settings",dash_traffic:"Network Traffic",dash_live:"Live · MB/s",dash_hooks:"Hooks Intercepted",dash_hooks_sub:"real-time",dash_risk:"Risk Score",dash_packets:"Packets Captured",dash_packets_sub:"today",dash_scans:"Scans Completed",dash_scans_sub:"this week",dash_nodes:"Active Nodes",dash_nodes_sub:"live",dash_load:"System Load",dash_cpu_mem:"CPU · Memory · IO",arsenal_add:"+ Add Tool",set_codename:"Codename",set_codename_desc:"Your operative alias",set_lang:"Language",set_lang_desc:"Interface language",set_data:"Data Persistence",set_data_desc:"Synced to Firestore",set_clear:"Clear Local Data",set_clear_desc:"Reset profile cache",btn_edit:"Edit",btn_clear:"Clear",btn_cancel:"Cancel",btn_save:"Save",modal_codename:"Set Codename",modal_tool:"Add Tool",status_on:"ON",posts_hint:"Posts from Inspo Ruins Community",empty_apps:"No recent analysis targets",empty_logs:"No activity recorded",empty_posts:"No posts yet. Go to Inspo Ruins to publish!",empty_arsenal:"Your arsenal is empty. Add tools from Dark Nav or Reverse Notes.",detail_traffic:"Network Traffic Detail",detail_hooks:"Hook Interception Detail",detail_risk:"Risk Assessment Detail",detail_packets:"Packet Capture Detail",detail_scans:"Scan History Detail",detail_nodes:"Active Nodes Detail",detail_load:"System Load Detail"},
+zh:{nav_back:"← 返回主站",status_active:"在线",role_analyst:"分析员",level_title:"系统权限等级",tab_dashboard:"仪表盘",tab_arsenal:"军火库",tab_recent:"最近分析",tab_logs:"活动日志",tab_posts:"我的发布",tab_settings:"系统设置",dash_traffic:"网络流量",dash_live:"实时 · MB/s",dash_hooks:"Hook 拦截数",dash_hooks_sub:"实时",dash_risk:"风险评分",dash_packets:"数据包捕获",dash_packets_sub:"今日",dash_scans:"扫描完成数",dash_scans_sub:"本周",dash_nodes:"活跃节点",dash_nodes_sub:"在线",dash_load:"系统负载",dash_cpu_mem:"CPU · 内存 · IO",arsenal_add:"+ 添加工具",set_codename:"代号",set_codename_desc:"你的行动代号",set_lang:"语言",set_lang_desc:"界面语言",set_data:"数据持久化",set_data_desc:"已同步至 Firestore",set_clear:"清除本地数据",set_clear_desc:"重置个人档案缓存",btn_edit:"编辑",btn_clear:"清除",btn_cancel:"取消",btn_save:"保存",modal_codename:"设置代号",modal_tool:"添加工具",status_on:"开启",posts_hint:"来自灵感废墟社区的发布",empty_apps:"暂无近期分析目标",empty_logs:"暂无活动记录",empty_posts:"暂无发布。去灵感废墟发布吧！",empty_arsenal:"军火库为空。从暗网导航或逆向手记添加工具。",detail_traffic:"网络流量详情",detail_hooks:"Hook 拦截详情",detail_risk:"风险评估详情",detail_packets:"数据包捕获详情",detail_scans:"扫描历史详情",detail_nodes:"活跃节点详情",detail_load:"系统负载详情"}
 };
 let currentLang=localStorage.getItem('obelisk_lang')||'en';
+let authReady=false;
+let isAdmin=false;
+
 function setLang(lang){
 currentLang=lang;localStorage.setItem('obelisk_lang',lang);
 document.getElementById('langEn').classList.toggle('active',lang==='en');
@@ -305,6 +343,11 @@ document.getElementById('langCn').classList.toggle('active',lang==='zh');
 document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAttribute('data-i18n');if(i18n[lang][key])el.textContent=i18n[lang][key];});
 }
 function toggleLang(){setLang(currentLang==='en'?'zh':'en');}
+
+function hideAuthOverlay(){
+  const overlay=document.getElementById('authOverlay');
+  if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
+}
 
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
 firebase.initializeApp(firebaseConfig);
@@ -327,16 +370,32 @@ const defaultArsenal=[
 ];
 
 auth.onAuthStateChanged(function(user){
-if(!user){window.location.href='./index.html';return;}
-currentUser=user;
-document.getElementById('idAvatar').src=user.photoURL||'';
-document.getElementById('idName').textContent=user.displayName||'Unknown';
-document.getElementById('idJoin').textContent=new Date(user.metadata.creationTime).toISOString().slice(0,10).replace(/-/g,'.');
-initFirestore(user.uid);
+  authReady=true;
+  if(!user){
+    // 不再立即跳转，而是显示未登录提示，给用户手动返回主页的选择
+    hideAuthOverlay();
+    document.getElementById('idName').textContent='Guest';
+    document.getElementById('idCodename').textContent='CODENAME: UNAUTHORIZED';
+    document.getElementById('idAvatar').src='';
+    document.getElementById('adminRing').classList.remove('active');
+    document.getElementById('adminBadgeInline').classList.remove('active');
+    renderAll();
+    return;
+  }
+  currentUser=user;
+  isAdmin=ADMIN_UIDS.includes(user.uid);
+  document.getElementById('idAvatar').src=user.photoURL||'';
+  document.getElementById('idName').textContent=user.displayName||'Unknown';
+  document.getElementById('idJoin').textContent=new Date(user.metadata.creationTime).toISOString().slice(0,10).replace(/-/g,'.');
+  if(isAdmin){
+    document.getElementById('adminRing').classList.add('active');
+    document.getElementById('adminBadgeInline').classList.add('active');
+  }
+  initFirestore(user.uid);
 });
 
 function logout(){
-if(!confirm(currentLang==='en'?'Logout from OBELISK?':'\u4ece OBELISK \u9000\u51fa\u767b\u5f55\uff1f'))return;
+if(!confirm(currentLang==='en'?'Logout from OBELISK?':'从 OBELISK 退出登录？'))return;
 auth.signOut().then(function(){window.location.href='./index.html';});
 }
 
@@ -350,12 +409,14 @@ userRef.set(userData);
 }
 if(!userData.codename)setTimeout(openCodenameModal,500);
 setLang(userData.language||currentLang);
+hideAuthOverlay();
 renderAll();
 }).catch(function(err){
 console.error('[OBELISK] Firestore error:',err);
 userData=JSON.parse(localStorage.getItem('obelisk_profile_'+uid)||'{}');
 if(!userData.codename){userData={codename:"",level:1,xp:0,maxXp:1000,language:currentLang,arsenal:defaultArsenal,recentApps:[],logs:[],stats:{hooks:0,packets:0,scans:0,nodes:0,risk:0}};}
 if(!userData.codename)setTimeout(openCodenameModal,500);
+hideAuthOverlay();
 renderAll();
 });
 }
@@ -385,9 +446,13 @@ const grid=document.getElementById('arsenalGrid');grid.innerHTML='';
 const tools=userData.arsenal||[];
 if(tools.length===0){grid.innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;grid-column:1/-1;">'+i18n[currentLang].empty_arsenal+'</div>';return;}
 tools.forEach(function(tool,idx){
-const div=document.createElement('div');div.className='arsenal-item';
-div.onclick=function(){openArsenalDetail(idx);};
-div.innerHTML='<div class="arsenal-name">'+escapeHtml(tool.name)+'</div><div class="arsenal-cat">'+escapeHtml(tool.cat)+'</div><div class="arsenal-desc">'+escapeHtml(tool.desc)+'</div>'+(tool.url?'<div class="arsenal-link">'+escapeHtml(tool.url)+'</div>':'');
+const div=document.createElement('div');
+const hasUrl=tool.url&&tool.url.trim().length>0;
+div.className='arsenal-item'+(hasUrl?'':' no-url');
+if(hasUrl){
+  div.onclick=function(e){if(e.target.classList.contains('arsenal-detail-btn'))return;window.open(tool.url,'_blank');};
+}
+div.innerHTML='<div class="arsenal-name">'+escapeHtml(tool.name)+'</div><div class="arsenal-cat">'+escapeHtml(tool.cat)+'</div><div class="arsenal-desc">'+escapeHtml(tool.desc)+'</div>'+(tool.url?'<div class="arsenal-link">'+escapeHtml(tool.url)+'</div>':'')+'<button class="arsenal-detail-btn" onclick="openArsenalDetail('+idx+')">&#9432;</button>';
 grid.appendChild(div);
 });
 }
@@ -400,7 +465,7 @@ html+='<p><strong>Description:</strong> '+escapeHtml(tool.desc)+'</p>';
 if(tool.url)html+='<p><strong>URL:</strong> <a href="'+tool.url+'" target="_blank" style="color:var(--accent2);">'+escapeHtml(tool.url)+'</a></p>';
 if(tool.version)html+='<p><strong>Version:</strong> '+escapeHtml(tool.version)+'</p>';
 if(tool.status)html+='<p><strong>Status:</strong> '+escapeHtml(tool.status)+'</p>';
-html+='<div style="margin-top:16px;"><button class="modal-btn primary" onclick="window.open(\''+(tool.url||'#')+'\',\'_blank\')">Visit Official Site</button></div>';
+html+='<div style="margin-top:16px;">'+(tool.url?'<button class="modal-btn primary" onclick="window.open(''+tool.url+'','_blank')">Visit Official Site</button>':'<span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">No official URL</span>')+'</div>';
 document.getElementById('detailContent').innerHTML=html;
 document.getElementById('detailModal').classList.add('show');
 }
@@ -424,7 +489,8 @@ let html='<p><strong>Package:</strong> '+escapeHtml(app.pkg)+'</p>';
 html+='<p><strong>Date:</strong> '+app.date+'</p>';
 html+='<p><strong>Risk:</strong> <span style="color:'+(app.risk==='high'?'var(--danger)':app.risk==='mid'?'var(--warn)':'var(--accent)')+'">'+(app.risk||'low').toUpperCase()+'</span></p>';
 if(app.permissions&&app.permissions.length){html+='<p><strong>Permissions:</strong></p><div>';app.permissions.forEach(function(p){html+='<span class="detail-tag">'+escapeHtml(p)+'</span>';});html+='</div>';}
-if(app.findings&&app.findings.length){html+='<p><strong>Findings:</strong></p><pre>'+app.findings.map(function(f){return escapeHtml(f);}).join('\n')+'</pre>';}
+if(app.findings&&app.findings.length){html+='<p><strong>Findings:</strong></p><pre>'+app.findings.map(function(f){return escapeHtml(f);}).join('
+')+'</pre>';}
 document.getElementById('detailContent').innerHTML=html;
 document.getElementById('detailModal').classList.add('show');
 }
@@ -469,7 +535,7 @@ if(snap.empty){list.innerHTML='<div style="text-align:center;padding:40px;color:
 snap.forEach(function(doc){
 const p=doc.data();
 const div=document.createElement('div');div.className='post-item';
-div.innerHTML='<div class="post-title">'+escapeHtml(p.title)+'</div><div class="post-type">'+p.type+' \u00b7 '+(p.visibility==='public'?'Public':'Private')+'</div><div class="post-content">'+(p.content.length>150?escapeHtml(p.content.slice(0,150))+'...':escapeHtml(p.content))+'</div><div class="post-meta"><span>'+(p.createdAt?new Date(p.createdAt.toDate()).toLocaleDateString():'')+'</span><span>Likes: '+(p.likes||0)+'</span><span>Comments: '+((p.comments||[]).length)+'</span></div>';
+div.innerHTML='<div class="post-title">'+escapeHtml(p.title)+'</div><div class="post-type">'+p.type+' · '+(p.visibility==='public'?'Public':'Private')+'</div><div class="post-content">'+(p.content.length>150?escapeHtml(p.content.slice(0,150))+'...':escapeHtml(p.content))+'</div><div class="post-meta"><span>'+(p.createdAt?new Date(p.createdAt.toDate()).toLocaleDateString():'')+'</span><span>Likes: '+(p.likes||0)+'</span><span>Comments: '+((p.comments||[]).length)+'</span></div>';
 list.appendChild(div);
 });
 }).catch(function(){document.getElementById('myPostList').innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.2);font-size:0.8rem;">Unable to load posts</div>';});

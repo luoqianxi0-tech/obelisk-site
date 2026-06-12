@@ -13,6 +13,13 @@
 :root{--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7)}
 html,body{background:#000;color:#e0e0e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* Auth Loading */
+.auth-overlay{position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease}
+.auth-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
+.auth-overlay .spinner{width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 .top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;backdrop-filter:blur(10px)}
 .logo{font-size:0.9rem;letter-spacing:0.3em;font-weight:300;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:none}
 .logo:hover{color:#fff}
@@ -49,6 +56,7 @@ h1{font-size:1.4rem;font-weight:300;letter-spacing:0.15em;margin-bottom:8px;back
 </style>
 </head>
 <body>
+<div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <div class="top-bar">
 <a class="logo" href="./index.html">&#8592; OBELISK</a>
 <button class="icon-btn" onclick="toggleLang()">&#127760;</button>
@@ -77,16 +85,19 @@ h1{font-size:1.4rem;font-weight:300;letter-spacing:0.15em;margin-bottom:8px;back
 </div>
 </div>
 <script>
+const ADMIN_UIDS=['nCZLU2r9YfXVTrQ79EJqWJxPPT03'];
 const i18n={
-en:{title:"Reverse Notes",subtitle:"APK Analyzer & Static Scanner",drop_text:"Drop APK here or click to upload",drop_hint:"Max 50MB \u00b7 Pure client-side analysis",pkg_name:"Package Name",version:"Version",risk:"Risk Assessment",permissions:"Permissions",libraries:"Native Libraries",strings:"Suspicious Strings",save_profile:"Save to Profile",add_arsenal:"Add to Arsenal",visualize:"Visualize Structure",analyzing:"Analyzing...",complete:"Analysis Complete",failed:"Analysis failed",risk_high:"HIGH RISK",risk_mid:"MEDIUM RISK",risk_low:"LOW RISK",need_login:"Please sign in first",saved_ok:"Saved to profile",saved_fail:"Save failed",added_ok:"Added to arsenal",no_apk:"No analysis data"},
-zh:{title:"\u9006\u5411\u624b\u8bb0",subtitle:"APK \u5206\u6790\u4e0e\u9759\u6001\u626b\u63cf",drop_text:"\u62d6\u62fd APK \u5230\u6b64\u5904\u6216\u70b9\u51fb\u4e0a\u4f20",drop_hint:"\u6700\u5927 50MB \u00b7 \u7eaf\u5ba2\u6237\u7aef\u5206\u6790",pkg_name:"\u5305\u540d",version:"\u7248\u672c",risk:"\u98ce\u9669\u8bc4\u4f30",permissions:"\u6743\u9650\u5217\u8868",libraries:"\u539f\u751f\u5e93",strings:"\u53ef\u7591\u5b57\u7b26\u4e32",save_profile:"\u4fdd\u5b58\u5230\u6863\u6848",add_arsenal:"\u52a0\u5165\u519b\u706b\u5e93",visualize:"\u53ef\u89c6\u5316\u7ed3\u6784",analyzing:"\u5206\u6790\u4e2d...",complete:"\u5206\u6790\u5b8c\u6210",failed:"\u5206\u6790\u5931\u8d25",risk_high:"\u9ad8\u98ce\u9669",risk_mid:"\u4e2d\u98ce\u9669",risk_low:"\u4f4e\u98ce\u9669",need_login:"\u8bf7\u5148\u767b\u5f55",saved_ok:"\u5df2\u4fdd\u5b58\u5230\u6863\u6848",saved_fail:"\u4fdd\u5b58\u5931\u8d25",added_ok:"\u5df2\u52a0\u5165\u519b\u706b\u5e93",no_apk:"\u6ca1\u6709\u5206\u6790\u6570\u636e"}
+en:{title:"Reverse Notes",subtitle:"APK Analyzer & Static Scanner",drop_text:"Drop APK here or click to upload",drop_hint:"Max 50MB · Pure client-side analysis",pkg_name:"Package Name",version:"Version",risk:"Risk Assessment",permissions:"Permissions",libraries:"Native Libraries",strings:"Suspicious Strings",save_profile:"Save to Profile",add_arsenal:"Add to Arsenal",visualize:"Visualize Structure",analyzing:"Analyzing...",complete:"Analysis Complete",failed:"Analysis failed",risk_high:"HIGH RISK",risk_mid:"MEDIUM RISK",risk_low:"LOW RISK",need_login:"Please sign in first",saved_ok:"Saved to profile",saved_fail:"Save failed",added_ok:"Added to arsenal",no_apk:"No analysis data"},
+zh:{title:"逆向手记",subtitle:"APK 分析与静态扫描",drop_text:"拖拽 APK 到此处或点击上传",drop_hint:"最大 50MB · 纯客户端分析",pkg_name:"包名",version:"版本",risk:"风险评估",permissions:"权限列表",libraries:"原生库",strings:"可疑字符串",save_profile:"保存到档案",add_arsenal:"加入军火库",visualize:"可视化结构",analyzing:"分析中...",complete:"分析完成",failed:"分析失败",risk_high:"高风险",risk_mid:"中风险",risk_low:"低风险",need_login:"请先登录",saved_ok:"已保存到档案",saved_fail:"保存失败",added_ok:"已加入军火库",no_apk:"没有分析数据"}
 };
 let currentLang=localStorage.getItem('obelisk_lang')||'en';
+let authReady=false;
 function applyLang(){
 const t=i18n[currentLang];
 document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAttribute('data-i18n');if(t[key])el.textContent=t[key];});
 }
 function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);applyLang();}
+function hideAuthOverlay(){const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
 
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
 firebase.initializeApp(firebaseConfig);
@@ -96,7 +107,11 @@ const db=firebase.firestore();
 let currentUser=null;
 let lastAnalysis=null;
 
-auth.onAuthStateChanged(function(user){currentUser=user;});
+auth.onAuthStateChanged(function(user){
+  authReady=true;
+  currentUser=user;
+  hideAuthOverlay();
+});
 
 const dropZone=document.getElementById('dropZone');
 const fileInput=document.getElementById('fileInput');

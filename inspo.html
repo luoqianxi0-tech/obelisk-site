@@ -12,6 +12,13 @@
 :root{--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7)}
 html,body{background:#000;color:#e0e0e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* Auth Loading */
+.auth-overlay{position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease}
+.auth-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
+.auth-overlay .spinner{width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 .top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;backdrop-filter:blur(10px);border-bottom:1px solid var(--glass-border)}
 .logo{font-size:0.9rem;letter-spacing:0.3em;font-weight:300;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:none}
 .logo:hover{color:#fff}
@@ -101,6 +108,7 @@ html,body{background:#000;color:#e0e0e5;font-family:-apple-system,BlinkMacSystem
 </style>
 </head>
 <body>
+<div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <div class="top-bar">
 <a class="logo" href="./index.html">&#8592; OBELISK</a>
 <div class="top-actions">
@@ -226,12 +234,15 @@ html,body{background:#000;color:#e0e0e5;font-family:-apple-system,BlinkMacSystem
 </div>
 
 <script>
+const ADMIN_UIDS=['nCZLU2r9YfXVTrQ79EJqWJxPPT03'];
 const i18n={
 en:{title:"Inspo Ruins",subtitle:"Code Snippets & Community Share",need_login:"Please sign in to post",empty_posts:"No posts yet. Be the first!",copied:"Copied!",added_arsenal:"Added to arsenal",published:"Published",commented:"Comment added",liked:"Liked",collected:"Collected"},
-zh:{title:"\u7075\u611f\u5e9f\u589f",subtitle:"\u4ee3\u7801\u7247\u6bb5\u4e0e\u793e\u533a\u5206\u4eab",need_login:"\u8bf7\u5148\u767b\u5f55\u518d\u53d1\u5e03",empty_posts:"\u6682\u65e0\u5e16\u5b50\u3002\u6765\u505a\u7b2c\u4e00\u4e2a\u5427\uff01",copied:"\u5df2\u590d\u5236\uff01",added_arsenal:"\u5df2\u52a0\u5165\u519b\u706b\u5e93",published:"\u5df2\u53d1\u5e03",commented:"\u8bc4\u8bba\u5df2\u6dfb\u52a0",liked:"\u5df2\u70b9\u8d5e",collected:"\u5df2\u6536\u85cf"}
+zh:{title:"灵感废墟",subtitle:"代码片段与社区分享",need_login:"请先登录再发布",empty_posts:"暂无帖子。来做第一个吧！",copied:"已复制！",added_arsenal:"已加入军火库",published:"已发布",commented:"评论已添加",liked:"已点赞",collected:"已收藏"}
 };
 let currentLang=localStorage.getItem('obelisk_lang')||'en';
+let authReady=false;
 function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);location.reload();}
+function hideAuthOverlay(){const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
 
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
 firebase.initializeApp(firebaseConfig);
@@ -244,7 +255,11 @@ let allPosts=[];
 let currentFilter='all';
 let currentSort='new';
 
-auth.onAuthStateChanged(function(user){currentUser=user;});
+auth.onAuthStateChanged(function(user){
+  authReady=true;
+  currentUser=user;
+  hideAuthOverlay();
+});
 
 function showToast(msg){
 const existing=document.querySelector('.toast');if(existing)existing.remove();
@@ -255,12 +270,60 @@ setTimeout(function(){toast.style.opacity='0';},2500);setTimeout(function(){toas
 function escapeHtml(text){return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const defaultSnippets=[
-{title:"SSL Pinning Bypass",lang:"javascript",code:"Java.perform(function() {\n  var X509TrustManager = Java.use('javax.net.ssl.X509TrustManager');\n  var TrustManager = Java.registerClass({\n    implements: [X509TrustManager],\n    methods: {\n      checkClientTrusted: function() {},\n      checkServerTrusted: function() {},\n      getAcceptedIssuers: function() { return null; }\n    }\n  });\n});"},
-{title:"Frida Hook Template",lang:"javascript",code:"Interceptor.attach(Module.findExportByName(null, 'strcmp'), {\n  onEnter: function(args) {\n    console.log('strcmp called: ' + Memory.readUtf8String(args[0]));\n  },\n  onLeave: function(retval) {\n    console.log('retval: ' + retval);\n  }\n});"},
-{title:"ADB Pull APK",lang:"bash",code:"# Get APK path\nadb shell pm path com.target.app\n\n# Pull APK\nadb pull /data/app/com.target.app/base.apk ./target.apk\n\n# Verify\nls -la target.apk"},
-{title:"Python Proxy Scanner",lang:"python",code:"import requests\nfrom urllib.parse import urljoin\n\nproxies = {\n    'http': 'http://127.0.0.1:8080',\n    'https': 'http://127.0.0.1:8080'\n}\n\n# Test with Burp\nresp = requests.get('https://target.com/api', proxies=proxies, verify=False)\nprint(resp.status_code)"},
-{title:"Objection Explore",lang:"bash",code:"# Start objection session\nobjection -g com.target.app explore\n\n# Common commands\nandroid hooking list activities\nandroid hooking search methods\nandroid heap search instances\nandroid root disable"},
-{title:"APK Sign Check",lang:"bash",code:"# Check certificate\nkeytool -printcert -jarfile target.apk\n\n# Verify signature\napksigner verify -v target.apk\n\n# Extract cert\nunzip -p target.apk META-INF/*.RSA | keytool -printcert -v"}
+{title:"SSL Pinning Bypass",lang:"javascript",code:"Java.perform(function() {
+  var X509TrustManager = Java.use('javax.net.ssl.X509TrustManager');
+  var TrustManager = Java.registerClass({
+    implements: [X509TrustManager],
+    methods: {
+      checkClientTrusted: function() {},
+      checkServerTrusted: function() {},
+      getAcceptedIssuers: function() { return null; }
+    }
+  });
+});"},
+{title:"Frida Hook Template",lang:"javascript",code:"Interceptor.attach(Module.findExportByName(null, 'strcmp'), {
+  onEnter: function(args) {
+    console.log('strcmp called: ' + Memory.readUtf8String(args[0]));
+  },
+  onLeave: function(retval) {
+    console.log('retval: ' + retval);
+  }
+});"},
+{title:"ADB Pull APK",lang:"bash",code:"# Get APK path
+adb shell pm path com.target.app
+
+# Pull APK
+adb pull /data/app/com.target.app/base.apk ./target.apk
+
+# Verify
+ls -la target.apk"},
+{title:"Python Proxy Scanner",lang:"python",code:"import requests
+from urllib.parse import urljoin
+
+proxies = {
+    'http': 'http://127.0.0.1:8080',
+    'https': 'http://127.0.0.1:8080'
+}
+
+# Test with Burp
+resp = requests.get('https://target.com/api', proxies=proxies, verify=False)
+print(resp.status_code)"},
+{title:"Objection Explore",lang:"bash",code:"# Start objection session
+objection -g com.target.app explore
+
+# Common commands
+android hooking list activities
+android hooking search methods
+android heap search instances
+android root disable"},
+{title:"APK Sign Check",lang:"bash",code:"# Check certificate
+keytool -printcert -jarfile target.apk
+
+# Verify signature
+apksigner verify -v target.apk
+
+# Extract cert
+unzip -p target.apk META-INF/*.RSA | keytool -printcert -v"}
 ];
 
 function loadSnippets(){
@@ -279,7 +342,7 @@ function renderSnippets(list){
 const grid=document.getElementById('snippetGrid');grid.innerHTML='';
 list.forEach(function(s){
 const div=document.createElement('div');div.className='snippet-item';
-div.innerHTML='<div class="snippet-title">'+escapeHtml(s.title)+'</div><div class="snippet-lang">'+escapeHtml(s.lang)+'</div><div class="snippet-code">'+escapeHtml(s.code)+'</div><div class="snippet-actions"><button class="s-btn" onclick="copyCode(this)">Copy</button><button class="s-btn" onclick="saveToArsenal(\''+s.title.replace(/'/g,"\\'")+'\',\''+s.lang.replace(/'/g,"\\'")+'\')">Arsenal</button></div>';
+div.innerHTML='<div class="snippet-title">'+escapeHtml(s.title)+'</div><div class="snippet-lang">'+escapeHtml(s.lang)+'</div><div class="snippet-code">'+escapeHtml(s.code)+'</div><div class="snippet-actions"><button class="s-btn" onclick="copyCode(this)">Copy</button><button class="s-btn" onclick="saveToArsenal(''+s.title.replace(/'/g,"\'")+'',''+s.lang.replace(/'/g,"\'")+'')">Arsenal</button></div>';
 grid.appendChild(div);
 });
 }
@@ -375,7 +438,8 @@ currentPostId=id;
 db.collection('community').doc(id).get().then(function(doc){
 const p=doc.data();
 document.getElementById('detailPostTitle').textContent=p.title;
-document.getElementById('detailPostContent').innerHTML='<div class="post-meta-top" style="margin-bottom:16px"><span class="post-author">'+(p.authorName||'Anonymous')+'</span><span class="post-time">'+(p.createdAt?new Date(p.createdAt.toDate()).toLocaleString():'')+'</span><span class="post-type-tag">'+p.type+'</span></div><div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.8">'+escapeHtml(p.content).replace(/\n/g,'<br>')+'</div>';
+document.getElementById('detailPostContent').innerHTML='<div class="post-meta-top" style="margin-bottom:16px"><span class="post-author">'+(p.authorName||'Anonymous')+'</span><span class="post-time">'+(p.createdAt?new Date(p.createdAt.toDate()).toLocaleString():'')+'</span><span class="post-type-tag">'+p.type+'</span></div><div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.8">'+escapeHtml(p.content).replace(/
+/g,'<br>')+'</div>';
 const cl=document.getElementById('commentList');cl.innerHTML='';
 if((p.comments||[]).length===0){cl.innerHTML='<div style="color:rgba(255,255,255,0.2);font-size:0.75rem;padding:12px 0">No comments yet. Be the first!</div>';}
 else{(p.comments||[]).forEach(function(c){cl.innerHTML+='<div class="comment-item"><div class="comment-author">'+(c.author||'Anonymous')+'</div><div class="comment-text">'+escapeHtml(c.text)+'</div><div class="comment-time">'+new Date(c.time).toLocaleString()+'</div></div>';});}
