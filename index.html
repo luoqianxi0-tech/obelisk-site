@@ -150,7 +150,10 @@ var video=document.getElementById('video');
 var splash=document.getElementById('splash');
 var main=document.getElementById('main');
 var enterBtn=document.getElementById('enterBtn');
-var hasEntered=sessionStorage.getItem('obelisk_entered')==='true';
+// 检查是否从profile返回（不显示开屏）
+var urlParams=new URLSearchParams(window.location.search);
+var skipSplash=urlParams.get('splash')==='false'||sessionStorage.getItem('obelisk_entered')==='true';
+var hasEntered=skipSplash;
 
 if(hasEntered){
   splash.classList.add('done');

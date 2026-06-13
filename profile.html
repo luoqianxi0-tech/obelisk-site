@@ -180,7 +180,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 <div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <canvas id="bgCanvas"></canvas>
 <div class="top-bar">
-<a class="logo" href="./index.html" data-i18n="nav_back">&#8592; OBELISK</a>
+<a class="logo" href="./index.html?splash=false" data-i18n="nav_back">&#8592; OBELISK</a>
 <div class="top-actions">
 <button class="icon-btn" onclick="toggleLang()" title="Language">&#127760;</button>
 <button class="icon-btn" onclick="logout()" title="Logout">&#9099;</button>
@@ -371,7 +371,7 @@ const db=firebase.firestore();
 let currentUser=null,userData=null,userRef=null;
 
 const defaultArsenal=[
-{name:"Frida",cat:"Instrumentation",desc:"Dynamic code injection",url:"https://frida.re"},
+{name:"Frida",cat:"Instrumentation",desc:"Dynamic code injection & hooking",url:"https://frida.re"},
 {name:"Burp Suite",cat:"Proxy",desc:"Web proxy & HTTPS interception",url:"https://portswigger.net/burp"},
 {name:"JADX",cat:"Decompiler",desc:"Dex to Java decompiler",url:"https://github.com/skylot/jadx"},
 {name:"Apktool",cat:"Reverse",desc:"APK reverse engineering",url:"https://ibotpeaches.github.io/Apktool/"},
@@ -381,6 +381,21 @@ const defaultArsenal=[
 {name:"Ghidra",cat:"RE",desc:"Software reverse engineering",url:"https://ghidra-sre.org"},
 {name:"Wireshark",cat:"Network",desc:"Network protocol analyzer",url:"https://www.wireshark.org"},
 {name:"Nuclei",cat:"Scanner",desc:"Fast vulnerability scanner",url:"https://nuclei.projectdiscovery.io"}
+];
+
+// 默认最近分析的应用示例
+const defaultRecentApps=[
+{name:"SecureBank_v3.2.1",pkg:"com.securebank.app",date:"2026-06-12",risk:"high",permissions:["READ_CONTACTS","ACCESS_FINE_LOCATION","RECORD_AUDIO","READ_SMS"],"findings":["Sends SMS to premium numbers","Exports contacts to remote server","Root detection bypass"]},
+{name:"WeatherPlus_v1.8",pkg:"com.weatherplus.app",date:"2026-06-11",risk:"mid",permissions:["ACCESS_NETWORK_STATE","INTERNET"],"findings":["Ads SDK with location tracking","Background data collection"]},
+{name:"Game2048_v2.1",pkg:"com.game2048.free",date:"2026-06-10",risk:"low",permissions:["INTERNET"],"findings":["Clean app, no suspicious behavior"]}
+];
+
+// 默认日志示例
+const defaultLogs=[
+{action:"Initial system access",type:"SYSTEM",time:Date.now()-86400000},
+{action:"Connected to Frida server",type:"HOOK",time:Date.now()-43200000},
+{action:"Analyzed SecureBank_v3.2.1",type:"SCAN",time:Date.now()-21600000},
+{action:"SSL pinning bypass successful",type:"HOOK",time:Date.now()-10800000}
 ];
 
 auth.onAuthStateChanged(function(user){
@@ -419,7 +434,24 @@ userRef=db.collection('users').doc(uid);
 userRef.get().then(function(doc){
 if(doc.exists){userData=doc.data();}
 else{
-userData={codename:"",level:1,xp:0,maxXp:1000,language:currentLang,arsenal:defaultArsenal,recentApps:[],logs:[],stats:{hooks:0,packets:0,scans:0,nodes:0,risk:0}};
+// 新用户使用默认数据
+userData={
+codename:"",
+level:1,
+xp:150,
+maxXp:1000,
+language:currentLang,
+arsenal:defaultArsenal,
+recentApps:defaultRecentApps,
+logs:defaultLogs,
+stats:{
+hooks:Math.floor(Math.random()*50)+10,
+packets:Math.floor(Math.random()*5000)+1000,
+scans:Math.floor(Math.random()*10)+1,
+nodes:Math.floor(Math.random()*3)+1,
+risk:Math.floor(Math.random()*30)+15
+}
+};
 userRef.set(userData);
 }
 if(!userData.codename)setTimeout(openCodenameModal,500);
@@ -428,8 +460,27 @@ hideAuthOverlay();
 renderAll();
 }).catch(function(err){
 console.error('[OBELISK] Firestore error:',err);
+// 离线模式使用本地缓存
 userData=JSON.parse(localStorage.getItem('obelisk_profile_'+uid)||'{}');
-if(!userData.codename){userData={codename:"",level:1,xp:0,maxXp:1000,language:currentLang,arsenal:defaultArsenal,recentApps:[],logs:[],stats:{hooks:0,packets:0,scans:0,nodes:0,risk:0}};}
+if(!userData.codename){
+userData={
+codename:"",
+level:1,
+xp:150,
+maxXp:1000,
+language:currentLang,
+arsenal:defaultArsenal,
+recentApps:defaultRecentApps,
+logs:defaultLogs,
+stats:{
+hooks:Math.floor(Math.random()*50)+10,
+packets:Math.floor(Math.random()*5000)+1000,
+scans:Math.floor(Math.random()*10)+1,
+nodes:Math.floor(Math.random()*3)+1,
+risk:Math.floor(Math.random()*30)+15
+}
+};
+}
 if(!userData.codename)setTimeout(openCodenameModal,500);
 hideAuthOverlay();
 renderAll();
@@ -596,10 +647,25 @@ const scanVal=stats.scans||appCount;
 const nodeVal=stats.nodes||(1+Math.floor(arsenalSize/3));
 const highRiskApps=(userData.recentApps||[]).filter(function(a){return a.risk==='high';}).length;
 const riskVal=stats.risk||Math.min(20+highRiskApps*15+appCount*5,100);
+// 更新历史数据
+if(typeof __agentHistory !== 'undefined'){
+__agentHistory.hooks=hookVal;
+__agentHistory.packets=packetVal;
+}
+// 初始化显示数值
 document.getElementById('hookCount').textContent=hookVal;
 document.getElementById('packetCount').textContent=packetVal;
 document.getElementById('scanCount').textContent=scanVal;
 document.getElementById('nodeCount').textContent=nodeVal;
+// 初始化流量和CPU
+var trafficEl=document.getElementById('trafficNum');
+var loadEl=document.getElementById('loadNum');
+if(trafficEl){
+trafficEl.textContent=(Math.random()*200+100).toFixed(2)+' KB/s';
+}
+if(loadEl){
+loadEl.textContent=Math.round(Math.random()*40+20)+'%';
+}
 const risk=Math.min(riskVal,100);
 document.getElementById('riskText').textContent=risk+'%';
 const circumference=2*Math.PI*28;
