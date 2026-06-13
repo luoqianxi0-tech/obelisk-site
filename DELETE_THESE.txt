@@ -1,0 +1,9 @@
+⚠️ 上传补丁前，请手动删除以下冲突文件：
+
+1. vite.config.ts   ← 和 vite.config.js 冲突，必须删掉！
+2. 如果根目录有旧的 index.html（非 React 版本），请备份后删除，用补丁里的 index.html 覆盖
+
+操作步骤：
+1. 在 GitHub 仓库页面，点击 vite.config.ts → 右上角 ⋮ → Delete file → Commit
+2. 把本补丁包里的 4 个文件直接拖拽上传到仓库根目录（覆盖同名文件）
+3. 等待 Vercel 自动重新部署（约 30 秒）
