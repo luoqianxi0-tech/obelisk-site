@@ -7,7 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
 // Auth overlay safety timeout
 
-setTimeout(function(){hideAuthOverlay();},3000);
+
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){var t=document.querySelector('.toast');if(t)t.remove();}
 });
@@ -56,6 +56,9 @@ h1{font-size:1.4rem;font-weight:300;letter-spacing:0.15em;margin-bottom:8px;back
 </style>
 </head>
 <body>
+<div class="file-warn" id="fileWarn" style="position:fixed;top:0;left:0;right:0;background:rgba(255,200,80,0.12);border-bottom:1px solid rgba(255,200,80,0.4);color:rgba(255,200,80,0.9);padding:10px;text-align:center;font-size:0.7rem;z-index:100000;letter-spacing:0.1em;display:none">⚠ RUNNING FROM LOCAL FILE - Firebase will fail. Use HTTPS URL instead.
+<script>if(location.protocol==="file:")document.getElementById("fileWarn").style.display="block";</script>
+</div>
 <div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <div class="top-bar">
 <a class="logo" href="./index.html">&#8592; OBELISK</a>
@@ -90,7 +93,7 @@ let currentLang=localStorage.getItem('obelisk_lang')||'en';
 let authReady=false;
 function applyLang(){const t=i18n[currentLang];document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAttribute('data-i18n');if(t[key])el.textContent=t[key];});}
 function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);applyLang();location.reload();}
-function hideAuthOverlay(){window.__authOverlayRemoved=true;
+function hideAuthOverlay(){window.__authOverlayRemoved=true;window.__authOverlayRemoved=true;
   window.__authOverlayRemoved=true;const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
 
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
@@ -99,6 +102,7 @@ const auth=firebase.auth();
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 auth.onAuthStateChanged(function(user){
+try{
   authReady=true;
   hideAuthOverlay();
 });
@@ -157,5 +161,6 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){var t=document.querySelector('.toast');if(t)t.remove();}
 });
 </script>
+<script>setTimeout(function(){var o=document.getElementById("authOverlay");if(o){o.classList.add("done");setTimeout(function(){o.remove();},600);}},1500);</script>
 </body>
 </html>

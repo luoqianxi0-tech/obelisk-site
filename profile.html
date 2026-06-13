@@ -7,7 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
 // Auth overlay safety timeout
 
-setTimeout(function(){hideAuthOverlay();},3000);
+
 </script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
 // Auth overlay safety timeout
@@ -173,6 +173,9 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 </style>
 </head>
 <body>
+<div class="file-warn" id="fileWarn" style="position:fixed;top:0;left:0;right:0;background:rgba(255,200,80,0.12);border-bottom:1px solid rgba(255,200,80,0.4);color:rgba(255,200,80,0.9);padding:10px;text-align:center;font-size:0.7rem;z-index:100000;letter-spacing:0.1em;display:none">⚠ RUNNING FROM LOCAL FILE - Firebase will fail. Use HTTPS URL instead.
+<script>if(location.protocol==="file:")document.getElementById("fileWarn").style.display="block";</script>
+</div>
 <!-- Auth Loading -->
 <div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
 <canvas id="bgCanvas"></canvas>
@@ -354,7 +357,7 @@ document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAt
 }
 function toggleLang(){setLang(currentLang==='en'?'zh':'en');}
 
-function hideAuthOverlay(){window.__authOverlayRemoved=true;
+function hideAuthOverlay(){window.__authOverlayRemoved=true;window.__authOverlayRemoved=true;
   window.__authOverlayRemoved=true;
   const overlay=document.getElementById('authOverlay');
   if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
@@ -381,6 +384,7 @@ const defaultArsenal=[
 ];
 
 auth.onAuthStateChanged(function(user){
+try{
   authReady=true;
   if(!user){
     // 不再立即跳转，而是显示未登录提示，给用户手动返回主页的选择
@@ -757,5 +761,6 @@ if(e.key==='Escape'){['codenameModal','toolModal','detailModal'].forEach(functio
 // Auth overlay safety timeout
 
 </script>
+<script>setTimeout(function(){var o=document.getElementById("authOverlay");if(o){o.classList.add("done");setTimeout(function(){o.remove();},600);}},1500);</script>
 </body>
 </html>
