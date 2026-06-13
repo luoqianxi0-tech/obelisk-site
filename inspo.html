@@ -4,521 +4,263 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OBELISK | Inspo Ruins</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
-// Auth overlay safety timeout
-
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
-// Auth overlay safety timeout
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js">
-// Auth overlay safety timeout
-
-</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7)}
 html,body{background:#000;color:#e0e0e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
 
-/* Auth Loading */
 .auth-overlay{position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease}
 .auth-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
 .auth-overlay .spinner{width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;backdrop-filter:blur(10px);border-bottom:1px solid var(--glass-border)}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.top-bar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;backdrop-filter:blur(10px)}
 .logo{font-size:0.9rem;letter-spacing:0.3em;font-weight:300;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:none}
 .logo:hover{color:#fff}
-.top-actions{display:flex;gap:12px;align-items:center}
 .icon-btn{width:36px;height:36px;border:1px solid var(--glass-border);background:var(--glass);color:rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;font-size:1rem}
 .icon-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff}
-.post-btn{padding:8px 20px;background:rgba(100,255,150,0.08);border:1px solid var(--accent);color:var(--accent);font-size:0.7rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;font-family:inherit;text-transform:uppercase}
-.post-btn:hover{background:rgba(100,255,150,0.15);color:#fff}
-.container{max-width:1200px;margin:0 auto;padding:24px;position:relative;z-index:5}
-.forum-layout{display:grid;grid-template-columns:200px 1fr 240px;gap:24px}
-@media(max-width:1024px){.forum-layout{grid-template-columns:1fr}}
-.sidebar-left{display:flex;flex-direction:column;gap:16px}
-.sidebar-right{display:flex;flex-direction:column;gap:16px}
-@media(max-width:1024px){.sidebar-left,.sidebar-right{display:none}}
-.side-card{background:var(--glass);border:1px solid var(--glass-border);padding:16px;backdrop-filter:blur(10px)}
-.side-title{font-size:0.7rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px}
-.side-item{padding:8px 0;font-size:0.75rem;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.3s;border-bottom:1px solid rgba(255,255,255,0.03)}
-.side-item:hover{color:#fff;padding-left:8px;border-left:2px solid var(--accent)}
-.side-item.active{color:var(--accent);border-left:2px solid var(--accent);padding-left:8px}
-.side-tag{display:inline-block;padding:3px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:0.6rem;color:rgba(255,255,255,0.4);margin:2px;cursor:pointer;transition:all 0.3s}
-.side-tag:hover{border-color:var(--accent);color:var(--accent)}
-.hot-item{padding:8px 0;font-size:0.7rem;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.3s;line-height:1.4}
-.hot-item:hover{color:#fff}
-.hot-item .num{color:var(--accent);font-family:'Courier New',monospace;margin-right:6px}
-.main-feed{display:flex;flex-direction:column;gap:12px}
-.feed-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.feed-title{font-size:0.8rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase}
-.feed-sort{display:flex;gap:8px}
-.sort-btn{padding:6px 12px;background:transparent;border:1px solid var(--glass-border);color:rgba(255,255,255,0.4);font-size:0.65rem;cursor:pointer;transition:all 0.3s;font-family:inherit}
-.sort-btn:hover,.sort-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(100,255,150,0.03)}
-.post-card{background:var(--glass);border:1px solid var(--glass-border);padding:20px;transition:all 0.3s;cursor:pointer;backdrop-filter:blur(10px)}
-.post-card:hover{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);transform:translateX(4px)}
-.post-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.post-title{font-size:1rem;color:rgba(255,255,255,0.9);letter-spacing:0.02em;line-height:1.4;margin-bottom:6px}
-.post-meta-top{display:flex;gap:12px;align-items:center;font-size:0.65rem;color:rgba(255,255,255,0.3);margin-bottom:10px}
-.post-author{color:var(--accent);font-family:'Courier New',monospace}
-.post-time{font-family:'Courier New',monospace}
-.post-type-tag{padding:2px 8px;background:rgba(100,255,150,0.08);border:1px solid rgba(100,255,150,0.2);color:var(--accent);font-size:0.6rem;letter-spacing:0.05em;text-transform:uppercase}
-.post-content{font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:12px}
-.post-footer{display:flex;gap:16px;align-items:center;font-size:0.65rem;color:rgba(255,255,255,0.3)}
-.post-footer span{display:flex;align-items:center;gap:4px}
-.post-footer .icon{font-size:0.8rem}
-.empty-state{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2);font-size:0.85rem}
-.empty-state .big-icon{font-size:3rem;margin-bottom:16px;opacity:0.3}
-.snippet-section{margin-top:24px}
-.snippet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(max-width:768px){.snippet-grid{grid-template-columns:1fr}}
-.snippet-item{background:var(--glass);border:1px solid var(--glass-border);padding:16px;cursor:pointer;transition:all 0.3s;backdrop-filter:blur(10px)}
-.snippet-item:hover{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
-.snippet-title{font-size:0.8rem;color:rgba(255,255,255,0.8);margin-bottom:4px}
-.snippet-lang{font-size:0.6rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
-.snippet-code{font-family:'Courier New',monospace;font-size:0.65rem;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.4);padding:10px;border:1px solid rgba(255,255,255,0.05);overflow-x:auto;white-space:pre;max-height:100px;overflow-y:auto}
-.snippet-actions{display:flex;gap:8px;margin-top:10px}
-.s-btn{padding:5px 10px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);font-size:0.6rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;font-family:inherit}
-.s-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(30px);z-index:20000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.4s;overflow-y:auto;padding:40px 20px}
-.modal-overlay.show{display:flex;opacity:1}
-.modal-box{background:rgba(8,8,8,0.98);border:1px solid rgba(255,255,255,0.12);padding:40px;max-width:600px;width:100%;position:relative;transform:translateY(20px);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);max-height:85vh;overflow-y:auto}
-.modal-overlay.show .modal-box{transform:translateY(0)}
-.modal-box.wide{max-width:700px}
-.modal-box h3{font-size:1rem;font-weight:300;letter-spacing:0.15em;margin-bottom:24px;color:#fff}
-.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:pointer;font-size:1rem;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
-.modal-close:hover{border-color:rgba(255,255,255,0.3);color:#fff}
-.modal-input,.modal-textarea{width:100%;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:0.85rem;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color 0.3s}
-.modal-input:focus,.modal-textarea:focus{border-color:var(--accent)}
-.modal-textarea{min-height:120px;resize:vertical}
-.modal-select{width:100%;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:0.85rem;font-family:inherit;margin-bottom:16px;outline:none}
-.modal-actions{display:flex;gap:12px;justify-content:flex-end}
-.modal-btn{padding:10px 24px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-size:0.75rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;font-family:inherit}
-.modal-btn.primary{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.25);color:#fff}
-.modal-btn:hover{border-color:rgba(255,255,255,0.4);color:#fff}
-.modal-btn.primary:hover{background:rgba(255,255,255,0.12)}
-.detail-content{font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.8}
-.detail-content pre{background:rgba(0,0,0,0.4);padding:12px;border:1px solid rgba(255,255,255,0.05);font-family:'Courier New',monospace;font-size:0.7rem;overflow-x:auto;margin:12px 0;color:rgba(255,255,255,0.6)}
-.comment-section{margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08)}
-.comment-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
-.comment-author{color:var(--accent);font-family:'Courier New',monospace;font-size:0.7rem;margin-bottom:4px}
-.comment-text{font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.5}
-.comment-time{font-size:0.6rem;color:rgba(255,255,255,0.2);margin-top:4px;font-family:'Courier New',monospace}
+.container{max-width:900px;margin:0 auto;padding:0 24px 60px;position:relative;z-index:5}
+h1{font-size:1.4rem;font-weight:300;letter-spacing:0.15em;margin-bottom:8px;background:linear-gradient(180deg,#fff,rgba(255,255,255,0.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:0.75rem;color:rgba(255,255,255,0.3);letter-spacing:0.1em;margin-bottom:32px}
+
+.post-form{background:var(--glass);border:1px solid var(--glass-border);padding:24px;margin-bottom:32px;backdrop-filter:blur(10px)}
+.form-title{font-size:0.8rem;color:rgba(255,255,255,0.6);letter-spacing:0.1em;margin-bottom:16px}
+.form-row{margin-bottom:16px}
+.form-label{font-size:0.65rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em;margin-bottom:8px;display:block}
+.form-input{width:100%;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:0.85rem;font-family:inherit;outline:none;transition:border-color 0.3s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:rgba(255,255,255,0.2)}
+.form-textarea{min-height:120px;resize:vertical;font-family:'Courier New',monospace}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L2 4h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.form-actions{display:flex;gap:12px;justify-content:flex-end}
+.form-btn{padding:10px 24px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-size:0.75rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;font-family:inherit}
+.form-btn:hover{border-color:rgba(255,255,255,0.3);color:#fff}
+.form-btn.primary{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.25);color:#fff}
+.form-btn.primary:hover{background:rgba(255,255,255,0.12)}
+
+.post-list{display:flex;flex-direction:column;gap:16px}
+.post-item{background:var(--glass);border:1px solid var(--glass-border);padding:20px;transition:all 0.3s;backdrop-filter:blur(10px)}
+.post-item:hover{border-color:rgba(255,255,255,0.15)}
+.post-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.post-title{font-size:0.9rem;color:rgba(255,255,255,0.8)}
+.post-type{font-size:0.6rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase}
+.post-content{font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.6;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all}
+.post-meta{display:flex;gap:16px;margin-top:16px;font-size:0.65rem;color:rgba(255,255,255,0.3)}
+.post-author{color:var(--accent2)}
+.post-actions{display:flex;gap:8px;margin-top:12px}
+.post-action-btn{padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);font-size:0.65rem;cursor:pointer;transition:all 0.3s}
+.post-action-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff}
+.post-action-btn.liked{border-color:var(--accent);color:var(--accent)}
+
+.empty-state{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2);font-size:0.8rem}
+
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:10px 24px;font-size:0.75rem;letter-spacing:0.1em;backdrop-filter:blur(10px);z-index:99999;transition:opacity 0.5s;white-space:nowrap}
-.mobile-tabs{display:none;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
-.mobile-tabs::-webkit-scrollbar{display:none}
-@media(max-width:1024px){.mobile-tabs{display:flex}}
-.m-tab{padding:8px 16px;background:transparent;border:1px solid var(--glass-border);color:rgba(255,255,255,0.4);font-size:0.7rem;cursor:pointer;transition:all 0.3s;font-family:inherit;white-space:nowrap}
-.m-tab:hover,.m-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(100,255,150,0.03)}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.top-bar{padding:16px 20px}.form-actions{flex-direction:column}.form-btn{width:100%}}
 </style>
 </head>
 <body>
-<div class="file-warn" id="fileWarn" style="position:fixed;top:0;left:0;right:0;background:rgba(255,200,80,0.12);border-bottom:1px solid rgba(255,200,80,0.4);color:rgba(255,200,80,0.9);padding:10px;text-align:center;font-size:0.7rem;z-index:100000;letter-spacing:0.1em;display:none">⚠ RUNNING FROM LOCAL FILE - Firebase will fail. Use HTTPS URL instead.
-<script>if(location.protocol==="file:")document.getElementById("fileWarn").style.display="block";</script>
-</div>
 <div class="auth-overlay" id="authOverlay"><div class="spinner"></div></div>
+<canvas id="bgCanvas"></canvas>
 <div class="top-bar">
 <a class="logo" href="./index.html">&#8592; OBELISK</a>
-<div class="top-actions">
-<button class="icon-btn" onclick="toggleLang()">&#127760;</button>
-<button class="post-btn" onclick="openPostModal()">+ New Post</button>
-</div>
+<button class="icon-btn" onclick="toggleLang()" title="Language">&#127760;</button>
 </div>
 <div class="container">
-<div class="mobile-tabs">
-<button class="m-tab active" onclick="switchMobileTab('posts')">Posts</button>
-<button class="m-tab" onclick="switchMobileTab('snippets')">Snippets</button>
-</div>
-<div class="forum-layout" id="forumLayout">
-<div class="sidebar-left">
-<div class="side-card">
-<div class="side-title">Categories</div>
-<div class="side-item active" onclick="filterPosts('all')">All Posts</div>
-<div class="side-item" onclick="filterPosts('insight')">Insight</div>
-<div class="side-item" onclick="filterPosts('tool')">Tools</div>
-<div class="side-item" onclick="filterPosts('writeup')">Writeups</div>
-<div class="side-item" onclick="filterPosts('question')">Questions</div>
-</div>
-<div class="side-card">
-<div class="side-title">Tags</div>
-<div style="display:flex;flex-wrap:wrap">
-<span class="side-tag" onclick="filterTag('frida')">frida</span>
-<span class="side-tag" onclick="filterTag('android')">android</span>
-<span class="side-tag" onclick="filterTag('hook')">hook</span>
-<span class="side-tag" onclick="filterTag('reverse')">reverse</span>
-<span class="side-tag" onclick="filterTag('proxy')">proxy</span>
-<span class="side-tag" onclick="filterTag('ctf')">ctf</span>
-</div>
-</div>
-</div>
-<div class="main-feed" id="mainFeed">
-<div class="feed-header">
-<div class="feed-title">Community Feed</div>
-<div class="feed-sort">
-<button class="sort-btn active" onclick="sortPosts('new')">New</button>
-<button class="sort-btn" onclick="sortPosts('hot')">Hot</button>
-</div>
-</div>
-<div id="postList"></div>
-<div class="snippet-section" id="snippetSection" style="display:none">
-<div class="feed-title" style="margin-bottom:12px">Code Snippets</div>
-<div class="snippet-grid" id="snippetGrid"></div>
-<button class="post-btn" style="margin-top:16px;width:100%" onclick="openSnippetModal()">+ Add Snippet</button>
-</div>
-</div>
-<div class="sidebar-right">
-<div class="side-card">
-<div class="side-title">Hot Topics</div>
-<div class="hot-item" onclick="showToast('Coming soon')"><span class="num">1</span>SSL Pinning Bypass Collection</div>
-<div class="hot-item" onclick="showToast('Coming soon')"><span class="num">2</span>Frida Hook Best Practices</div>
-<div class="hot-item" onclick="showToast('Coming soon')"><span class="num">3</span>APK Decompilation Guide</div>
-<div class="hot-item" onclick="showToast('Coming soon')"><span class="num">4</span>Android Root Detection</div>
-</div>
-<div class="side-card">
-<div class="side-title">Stats</div>
-<div style="font-size:0.7rem;color:rgba(255,255,255,0.4);line-height:2">
-<div>Total Posts: <span id="statPosts" style="color:var(--accent)">0</span></div>
-<div>Total Users: <span style="color:var(--accent2)">--</span></div>
-<div>Today Active: <span style="color:var(--accent)">--</span></div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<h1 data-i18n="title">Inspo Ruins</h1>
+<div class="subtitle" data-i18n="subtitle">Code Snippets & Community Share</div>
 
-<div class="modal-overlay" id="postModal">
-<div class="modal-box">
-<button class="modal-close" onclick="closePostModal()">&#215;</button>
-<h3>New Post</h3>
-<input class="modal-input" id="postTitle" placeholder="Title">
-<select class="modal-select" id="postType">
-<option value="insight">Insight</option>
-<option value="tool">Tool</option>
-<option value="writeup">Writeup</option>
-<option value="question">Question</option>
+<div class="post-form" id="postForm" style="display:none">
+<div class="form-title" data-i18n="form_title">Share Your Code</div>
+<div class="form-row">
+<label class="form-label" data-i18n="form_title_label">Title</label>
+<input class="form-input" id="postTitle" type="text" placeholder="Snippet title...">
+</div>
+<div class="form-row">
+<label class="form-label" data-i18n="form_type_label">Type</label>
+<select class="form-input form-select" id="postType">
+<option value="snippet">Code Snippet</option>
+<option value="script">Script</option>
+<option value="tool">Tool Config</option>
+<option value="note">Technical Note</option>
 </select>
-<select class="modal-select" id="postVisibility">
-<option value="public">Public - Everyone can see</option>
-<option value="private">Private - Only logged-in users</option>
+</div>
+<div class="form-row">
+<label class="form-label" data-i18n="form_content_label">Content</label>
+<textarea class="form-input form-textarea" id="postContent" placeholder="// Your code here..."></textarea>
+</div>
+<div class="form-row">
+<label class="form-label" data-i18n="form_visibility_label">Visibility</label>
+<select class="form-input form-select" id="postVisibility">
+<option value="public">Public</option>
+<option value="private">Private</option>
 </select>
-<textarea class="modal-textarea" id="postContent" placeholder="Share your thoughts, tools, or writeups..."></textarea>
-<div class="modal-actions">
-<button class="modal-btn" onclick="closePostModal()">Cancel</button>
-<button class="modal-btn primary" onclick="savePost()">Publish</button>
 </div>
-</div>
-</div>
-
-<div class="modal-overlay" id="snippetModal">
-<div class="modal-box">
-<button class="modal-close" onclick="closeSnippetModal()">&#215;</button>
-<h3>Add Snippet</h3>
-<input class="modal-input" id="snipTitle" placeholder="Title">
-<input class="modal-input" id="snipLang" placeholder="Language (js/python/bash/...)">
-<textarea class="modal-textarea" id="snipCode" placeholder="Paste your code here..."></textarea>
-<div class="modal-actions">
-<button class="modal-btn" onclick="closeSnippetModal()">Cancel</button>
-<button class="modal-btn primary" onclick="saveSnippet()">Save</button>
-</div>
+<div class="form-actions">
+<button class="form-btn" onclick="clearForm()" data-i18n="btn_clear">Clear</button>
+<button class="form-btn primary" onclick="submitPost()" data-i18n="btn_submit">Submit</button>
 </div>
 </div>
 
-<div class="modal-overlay" id="postDetailModal">
-<div class="modal-box wide">
-<button class="modal-close" onclick="closePostDetailModal()">&#215;</button>
-<h3 id="detailPostTitle">Post</h3>
-<div class="detail-content" id="detailPostContent"></div>
-<div class="comment-section">
-<div class="side-title" style="margin-bottom:12px">Comments</div>
-<div id="commentList"></div>
-<input class="modal-input" id="commentInput" placeholder="Write a comment..." style="margin-top:12px">
-<div class="modal-actions" style="margin-top:8px">
-<button class="modal-btn primary" onclick="addComment()">Comment</button>
-<button class="modal-btn" onclick="likeCurrentPost()">Like</button>
-<button class="modal-btn" onclick="collectCurrentPost()">Collect</button>
-</div>
-</div>
+<div class="post-list" id="postList">
+<div class="empty-state" data-i18n="loading">Loading posts...</div>
 </div>
 </div>
 
 <script>
-const ADMIN_UIDS=['nCZLU2r9YfXVTrQ79EJqWJxPPT03'];
-const i18n={
-en:{title:"Inspo Ruins",subtitle:"Code Snippets & Community Share",need_login:"Please sign in to post",empty_posts:"No posts yet. Be the first!",copied:"Copied!",added_arsenal:"Added to arsenal",published:"Published",commented:"Comment added",liked:"Liked",collected:"Collected"},
-zh:{title:"灵感废墟",subtitle:"代码片段与社区分享",need_login:"请先登录再发布",empty_posts:"暂无帖子。来做第一个吧！",copied:"已复制！",added_arsenal:"已加入军火库",published:"已发布",commented:"评论已添加",liked:"已点赞",collected:"已收藏"}
-};
-let currentLang=localStorage.getItem('obelisk_lang')||'en';
-let authReady=false;
-function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);location.reload();}
-function hideAuthOverlay(){window.__authOverlayRemoved=true;window.__authOverlayRemoved=true;
-  window.__authOverlayRemoved=true;const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
-
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 const db=firebase.firestore();
-let currentUser=null;
-let currentPostId=null;
-let allPosts=[];
-let currentFilter='all';
-let currentSort='new';
+
+var currentUser=null;
+var currentLang='en';
+const i18n={
+  en:{title:"Inspo Ruins",subtitle:"Code Snippets & Community Share",form_title:"Share Your Code",form_title_label:"Title",form_type_label:"Type",form_content_label:"Content",form_visibility_label:"Visibility",btn_clear:"Clear",btn_submit:"Submit",loading:"Loading posts...",empty:"No posts yet. Be the first to share!",login_required:"Sign in to share your code"},
+  zh:{title:"灵感废墟",subtitle:"代码片段与社区分享",form_title:"分享你的代码",form_title_label:"标题",form_type_label:"类型",form_content_label:"内容",form_visibility_label:"可见性",btn_clear:"清空",btn_submit:"提交",loading:"加载中...",empty:"暂无帖子，成为第一个分享者！",login_required:"登录后可分享代码"}
+};
+
+function toggleLang(){
+  currentLang=currentLang==='en'?'zh':'en';
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    const key=el.getAttribute('data-i18n');
+    if(i18n[currentLang][key])el.textContent=i18n[currentLang][key];
+  });
+}
 
 auth.onAuthStateChanged(function(user){
-try{
-  authReady=true;
   currentUser=user;
-  hideAuthOverlay();
-});
-
-function showToast(msg){
-const existing=document.querySelector('.toast');if(existing)existing.remove();
-const toast=document.createElement('div');toast.className='toast';toast.textContent=msg;document.body.appendChild(toast);
-setTimeout(function(){toast.style.opacity='0';},2500);setTimeout(function(){toast.remove();},3000);
-}
-
-function escapeHtml(text){return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-const defaultSnippets=[
-{title:"SSL Pinning Bypass",lang:"javascript",code:"Java.perform(function() {
-  var X509TrustManager = Java.use('javax.net.ssl.X509TrustManager');
-  var TrustManager = Java.registerClass({
-    implements: [X509TrustManager],
-    methods: {
-      checkClientTrusted: function() {},
-      checkServerTrusted: function() {},
-      getAcceptedIssuers: function() { return null; }
-    }
-  });
-});"},
-{title:"Frida Hook Template",lang:"javascript",code:"Interceptor.attach(Module.findExportByName(null, 'strcmp'), {
-  onEnter: function(args) {
-    console.log('strcmp called: ' + Memory.readUtf8String(args[0]));
-  },
-  onLeave: function(retval) {
-    console.log('retval: ' + retval);
+  var form=document.getElementById('postForm');
+  if(user){
+    form.style.display='block';
+  }else{
+    form.style.display='none';
   }
-});"},
-{title:"ADB Pull APK",lang:"bash",code:"# Get APK path
-adb shell pm path com.target.app
-
-# Pull APK
-adb pull /data/app/com.target.app/base.apk ./target.apk
-
-# Verify
-ls -la target.apk"},
-{title:"Python Proxy Scanner",lang:"python",code:"import requests
-from urllib.parse import urljoin
-
-proxies = {
-    'http': 'http://127.0.0.1:8080',
-    'https': 'http://127.0.0.1:8080'
-}
-
-# Test with Burp
-resp = requests.get('https://target.com/api', proxies=proxies, verify=False)
-print(resp.status_code)"},
-{title:"Objection Explore",lang:"bash",code:"# Start objection session
-objection -g com.target.app explore
-
-# Common commands
-android hooking list activities
-android hooking search methods
-android heap search instances
-android root disable"},
-{title:"APK Sign Check",lang:"bash",code:"# Check certificate
-keytool -printcert -jarfile target.apk
-
-# Verify signature
-apksigner verify -v target.apk
-
-# Extract cert
-unzip -p target.apk META-INF/*.RSA | keytool -printcert -v"}
-];
-
-function loadSnippets(){
-db.collection('snippets').get().then(function(snap){
-const list=[];
-snap.forEach(function(doc){list.push(doc.data());});
-if(list.length===0){
-defaultSnippets.forEach(function(s){db.collection('snippets').add(s);});
-list.push(...defaultSnippets);
-}
-renderSnippets(list);
-}).catch(function(err){renderSnippets(defaultSnippets);});
-}
-
-function renderSnippets(list){
-const grid=document.getElementById('snippetGrid');grid.innerHTML='';
-list.forEach(function(s){
-const div=document.createElement('div');div.className='snippet-item';
-div.innerHTML='<div class="snippet-title">'+escapeHtml(s.title)+'</div><div class="snippet-lang">'+escapeHtml(s.lang)+'</div><div class="snippet-code">'+escapeHtml(s.code)+'</div><div class="snippet-actions"><button class="s-btn" onclick="copyCode(this)">Copy</button><button class="s-btn" onclick="saveToArsenal(''+s.title.replace(/'/g,"\'")+'',''+s.lang.replace(/'/g,"\'")+'')">Arsenal</button></div>';
-grid.appendChild(div);
+  loadPosts();
+  setTimeout(function(){
+    var overlay=document.getElementById('authOverlay');
+    if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
+  },800);
 });
-}
-
-function copyCode(btn){
-const code=btn.closest('.snippet-item').querySelector('.snippet-code').textContent;
-navigator.clipboard.writeText(code).then(function(){btn.textContent=i18n[currentLang].copied;setTimeout(function(){btn.textContent='Copy';},2000);});
-}
-
-function saveToArsenal(name,lang){
-const t=i18n[currentLang];
-if(!currentUser){showToast(t.need_login);return;}
-const tool={name:name,cat:'Snippet',desc:lang+' code snippet',url:'',version:'1.0',status:'ready'};
-db.collection('users').doc(currentUser.uid).update({arsenal:firebase.firestore.FieldValue.arrayUnion(tool)}).then(function(){showToast(t.added_arsenal);}).catch(function(err){showToast('Error: '+err.message);});
-}
 
 function loadPosts(){
-db.collection('community').orderBy('createdAt','desc').onSnapshot(function(snap){
-allPosts=[];
-snap.forEach(function(doc){allPosts.push({id:doc.id,...doc.data()});});
-document.getElementById('statPosts').textContent=allPosts.length;
-renderPostsList();
-},function(err){renderPostsList();});
+  db.collection('community').where('visibility','==','public').orderBy('createdAt','desc').limit(20).get().then(function(snap){
+    var list=document.getElementById('postList');
+    list.innerHTML='';
+    if(snap.empty){
+      list.innerHTML='<div class="empty-state">'+i18n[currentLang].empty+'</div>';
+      return;
+    }
+    snap.forEach(function(doc){
+      var p=doc.data();
+      var div=document.createElement('div');
+      div.className='post-item';
+      div.innerHTML='<div class="post-header"><div class="post-title">'+escapeHtml(p.title)+'</div><div class="post-type">'+p.type+'</div></div><div class="post-content">'+escapeHtml(p.content)+'</div><div class="post-meta"><span class="post-author">'+(p.authorName||'Anonymous')+'</span><span>'+formatDate(p.createdAt)+'</span><span>Likes: '+p.likes+'</span></div><div class="post-actions"><button class="post-action-btn" onclick="likePost(\''+doc.id+'\')">Like</button></div>';
+      list.appendChild(div);
+    });
+  }).catch(function(err){
+    console.error(err);
+    document.getElementById('postList').innerHTML='<div class="empty-state">Error loading posts</div>';
+  });
 }
 
-function renderPostsList(){
-const grid=document.getElementById('postList');grid.innerHTML='';
-let list=allPosts.slice();
-if(currentFilter!=='all'){list=list.filter(function(p){return p.type===currentFilter;});}
-if(currentSort==='hot'){list.sort(function(a,b){return(b.likes||0)-(a.likes||0);});}
-if(list.length===0){
-grid.innerHTML='<div class="empty-state"><div class="big-icon">&#9674;</div>'+i18n[currentLang].empty_posts+'</div>';
-return;
-}
-list.forEach(function(p){
-if(p.visibility==='private'&&!currentUser)return;
-const div=document.createElement('div');div.className='post-card';
-div.onclick=function(){openPostDetail(p.id);};
-const timeStr=p.createdAt?new Date(p.createdAt.toDate()).toLocaleDateString():'';
-const commentCount=(p.comments||[]).length;
-var plainText=p.content.replace(/[#*`\[\]\(\)]/g,'').replace(/\n/g,' ');
-div.innerHTML='<div class="post-header"><div><div class="post-title">'+escapeHtml(p.title)+'</div><div class="post-meta-top"><span class="post-author">'+(p.authorName||'Anonymous')+'</span><span class="post-time">'+timeStr+'</span><span class="post-type-tag">'+p.type+'</span></div></div></div><div class="post-content">'+(plainText.length>200?escapeHtml(plainText.slice(0,200))+'...':escapeHtml(plainText))+'</div><div class="post-footer"><span class="like-btn" style="cursor:pointer;transition:transform 0.2s" onclick="event.stopPropagation();likePostDirect(\''+p.id+'\',this)"><span class="icon">&#9829;</span> <span class="like-count">'+(p.likes||0)+'</span></span><span><span class="icon">&#9993;</span> '+commentCount+'</span><span><span class="icon">&#128065;</span> '+(p.views||0)+'</span></div>';
-grid.appendChild(div);
-});
-}
-
-function filterPosts(type){
-currentFilter=type;
-document.querySelectorAll('.side-item').forEach(function(el){el.classList.remove('active');});
-event.target.classList.add('active');
-renderPostsList();
-}
-
-function filterTag(tag){showToast('Filter by tag: '+tag);}
-
-function sortPosts(sort){currentSort=sort;document.querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});event.target.classList.add('active');renderPostsList();}
-
-function switchMobileTab(tab){
-document.querySelectorAll('.m-tab').forEach(function(b){b.classList.remove('active');});event.target.classList.add('active');
-if(tab==='posts'){document.getElementById('postList').style.display='block';document.getElementById('snippetSection').style.display='none';}
-else{document.getElementById('postList').style.display='none';document.getElementById('snippetSection').style.display='block';}
-}
-
-function openPostModal(){document.getElementById('postModal').classList.add('show');}
-function closePostModal(){document.getElementById('postModal').classList.remove('show');}
-function savePost(){
-const t=i18n[currentLang];
-if(!currentUser){showToast(t.need_login);return;}
-const title=document.getElementById('postTitle').value.trim();
-const type=document.getElementById('postType').value;
-const visibility=document.getElementById('postVisibility').value;
-const content=document.getElementById('postContent').value.trim();
-if(!title||!content){showToast('Title and content required');return;}
-const post={title:title,type:type,visibility:visibility,content:content,authorId:currentUser.uid,authorName:currentUser.displayName||'Anonymous',likes:0,comments:[],views:0,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-db.collection('community').add(post).then(function(docRef){
-db.collection('users').doc(currentUser.uid).update({posts:firebase.firestore.FieldValue.arrayUnion({id:docRef.id,title:title,type:type,visibility:visibility,createdAt:Date.now()})});
-showToast(t.published);closePostModal();
-document.getElementById('postTitle').value='';document.getElementById('postContent').value='';
-}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-function openSnippetModal(){document.getElementById('snippetModal').classList.add('show');}
-function closeSnippetModal(){document.getElementById('snippetModal').classList.remove('show');}
-function saveSnippet(){
-const title=document.getElementById('snipTitle').value.trim();
-const lang=document.getElementById('snipLang').value.trim();
-const code=document.getElementById('snipCode').value;
-if(!title||!code){showToast('Title and code required');return;}
-db.collection('snippets').add({title:title,lang:lang,code:code}).then(function(){closeSnippetModal();loadSnippets();document.getElementById('snipTitle').value='';document.getElementById('snipLang').value='';document.getElementById('snipCode').value='';}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-function openPostDetail(id){
-currentPostId=id;
-db.collection('community').doc(id).get().then(function(doc){
-const p=doc.data();
-document.getElementById('detailPostTitle').textContent=p.title;
-document.getElementById('detailPostContent').innerHTML='<div class="post-meta-top" style="margin-bottom:16px"><span class="post-author">'+(p.authorName||'Anonymous')+'</span><span class="post-time">'+(p.createdAt?new Date(p.createdAt.toDate()).toLocaleString():'')+'</span><span class="post-type-tag">'+p.type+'</span></div><div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.8">'+escapeHtml(p.content).replace(/
-/g,'<br>')+'</div>';
-const cl=document.getElementById('commentList');cl.innerHTML='';
-if((p.comments||[]).length===0){cl.innerHTML='<div style="color:rgba(255,255,255,0.2);font-size:0.75rem;padding:12px 0">No comments yet. Be the first!</div>';}
-else{(p.comments||[]).forEach(function(c){cl.innerHTML+='<div class="comment-item"><div class="comment-author">'+(c.author||'Anonymous')+'</div><div class="comment-text">'+escapeHtml(c.text)+'</div><div class="comment-time">'+new Date(c.time).toLocaleString()+'</div></div>';});}
-document.getElementById('postDetailModal').classList.add('show');
-}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-function closePostDetailModal(){document.getElementById('postDetailModal').classList.remove('show');currentPostId=null;}
-
-function addComment(){
-if(!currentUser||!currentPostId)return;
-const text=document.getElementById('commentInput').value.trim();
-if(!text)return;
-db.collection('community').doc(currentPostId).update({comments:firebase.firestore.FieldValue.arrayUnion({author:currentUser.displayName||'Anonymous',text:text,time:Date.now()})}).then(function(){document.getElementById('commentInput').value='';showToast(i18n[currentLang].commented);openPostDetail(currentPostId);}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-function likeCurrentPost(){
-if(!currentUser||!currentPostId){showToast(i18n[currentLang].need_login);return;}
-db.collection('community').doc(currentPostId).update({likes:firebase.firestore.FieldValue.increment(1)}).then(function(){showToast(i18n[currentLang].liked);}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-function collectCurrentPost(){
-if(!currentUser||!currentPostId){showToast(i18n[currentLang].need_login);return;}
-db.collection('users').doc(currentUser.uid).update({collections:firebase.firestore.FieldValue.arrayUnion({type:'post',id:currentPostId,time:Date.now()})}).then(function(){showToast(i18n[currentLang].collected);}).catch(function(err){showToast('Error: '+err.message);});
-}
-
-['postModal','snippetModal','postDetailModal'].forEach(function(id){
-document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
-});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){['postModal','snippetModal','postDetailModal'].forEach(function(id){document.getElementById(id).classList.remove('show');});}});
-
-loadSnippets();
-
-// E: Like animation + Markdown styles
-function likePostDirect(id,btn){
-  if(!currentUser){showToast(i18n[currentLang].need_login);return;}
-  var countSpan=btn.querySelector('.like-count');
-  var current=parseInt(countSpan.textContent)||0;
-  countSpan.textContent=current+1;
-  btn.style.transform='scale(1.3)';
-  btn.querySelector('.icon').style.color='var(--danger)';
-  setTimeout(function(){btn.style.transform='scale(1)';},200);
-  db.collection('community').doc(id).update({likes:firebase.firestore.FieldValue.increment(1)}).catch(function(e){});
-}
-// Markdown body styles
-var mdStyle=document.createElement('style');
-mdStyle.textContent='.markdown-body h1,.markdown-body h2,.markdown-body h3{color:rgba(255,255,255,0.9);margin:12px 0;font-weight:300;letter-spacing:0.05em}.markdown-body code{background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;font-family:Courier New,monospace;font-size:0.75rem;color:var(--accent)}.markdown-body pre{background:rgba(0,0,0,0.4);padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:4px;overflow-x:auto;margin:8px 0}.markdown-body pre code{background:transparent;padding:0;color:rgba(255,255,255,0.7)}.markdown-body blockquote{border-left:2px solid var(--accent);padding-left:12px;color:rgba(255,255,255,0.4);margin:8px 0}.markdown-body ul,.markdown-body ol{padding-left:20px;margin:8px 0}.markdown-body li{margin:4px 0}.markdown-body a{color:var(--accent2);text-decoration:none}.markdown-body a:hover{text-decoration:underline}.markdown-body img{max-width:100%;border-radius:4px;opacity:0.8}.markdown-body hr{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:16px 0}';
-document.head.appendChild(mdStyle);
-
-// B: Keyboard shortcuts
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    ['postModal','snippetModal','postDetailModal'].forEach(function(id){var m=document.getElementById(id);if(m)m.classList.remove('show');});
+function submitPost(){
+  if(!currentUser){
+    showToast(i18n[currentLang].login_required);
+    return;
   }
-});
+  var title=document.getElementById('postTitle').value.trim();
+  var type=document.getElementById('postType').value;
+  var content=document.getElementById('postContent').value.trim();
+  var visibility=document.getElementById('postVisibility').value;
+  if(!title||!content){
+    showToast('Title and content required');
+    return;
+  }
+  db.collection('community').add({
+    title:title,
+    type:type,
+    content:content,
+    visibility:visibility,
+    authorId:currentUser.uid,
+    authorName:currentUser.displayName||currentUser.email||'Anonymous',
+    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    likes:0,
+    comments:[]
+  }).then(function(){
+    showToast('Post submitted');
+    clearForm();
+    loadPosts();
+  }).catch(function(err){
+    console.error(err);
+    showToast('Error submitting post');
+  });
+}
 
-loadPosts();
+function clearForm(){
+  document.getElementById('postTitle').value='';
+  document.getElementById('postContent').value='';
+}
 
-// Auth overlay safety timeout
+function likePost(postId){
+  db.collection('community').doc(postId).update({
+    likes:firebase.firestore.FieldValue.increment(1)
+  }).then(function(){
+    loadPosts();
+  });
+}
 
+function formatDate(ts){
+  if(!ts)return '';
+  var d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleDateString();
+}
+
+function escapeHtml(text){
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg){
+  var existing=document.querySelector('.toast');
+  if(existing)existing.remove();
+  var toast=document.createElement('div');
+  toast.className='toast';
+  toast.textContent=msg;
+  document.body.appendChild(toast);
+  setTimeout(function(){toast.style.opacity='0';},2000);
+  setTimeout(function(){toast.remove();},2500);
+}
+
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const ctx=canvas.getContext('2d');
+  let w,h,nodes=[];
+  function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  for(let i=0;i<30;i++){
+    nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2,r:Math.random()*1.5+0.5});
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(var i=0;i<nodes.length;i++){
+      var n=nodes[i];
+      n.x+=n.vx;n.y+=n.vy;
+      if(n.x<0)n.x=w;if(n.x>w)n.x=0;
+      if(n.y<0)n.y=h;if(n.y>h)n.y=0;
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.15)';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 </script>
 <script>setTimeout(function(){var o=document.getElementById("authOverlay");if(o){o.classList.add("done");setTimeout(function(){o.remove();},600);}},1500);</script>
 </body>

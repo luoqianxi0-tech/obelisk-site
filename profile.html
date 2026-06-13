@@ -626,14 +626,30 @@ var tabs=document.querySelectorAll('.tab-btn');
 var panels=document.querySelectorAll('.tab-panel');
 var indicator=document.getElementById('tabIndicator');
 if(idx<0||idx>=tabs.length||idx>=panels.length)return;
-tabs.forEach(function(t){t.classList.remove('active');});
-panels.forEach(function(p){p.classList.remove('active');p.style.display='none';});
+// 先停止当前动画
+if(currentTab===0)stopDashboardAnim();
+// 更新标签状态
+tabs.forEach(function(t,i){if(i===idx)t.classList.add('active');else t.classList.remove('active');});
+// 先显示目标面板，再隐藏其他面板
+panels.forEach(function(p,i){
+  if(i===idx){
+    p.style.display='block';
+    setTimeout(function(){p.classList.add('active');},10);
+  }else{
+    p.classList.remove('active');
+    p.style.display='none';
+  }
+});
 currentTab=idx;
-tabs[idx].classList.add('active');
-panels[idx].style.display='block';
-setTimeout(function(){panels[idx].classList.add('active');},20);
-if(indicator){indicator.style.left=tabs[idx].offsetLeft+'px';indicator.style.width=tabs[idx].offsetWidth+'px';}
-if(idx===0)startDashboardAnim();else stopDashboardAnim();
+// 更新指示器位置
+if(indicator){
+  var rect=tabs[idx].getBoundingClientRect();
+  var parentRect=tabs[idx].parentElement.getBoundingClientRect();
+  indicator.style.left=(rect.left-parentRect.left)+'px';
+  indicator.style.width=rect.width+'px';
+}
+// 启动仪表盘动画（如果是第一个标签）
+if(idx===0)startDashboardAnim();
 }
 
 window.addEventListener('load',function(){
@@ -713,43 +729,66 @@ var lastTime=0;
 function draw(timestamp){if(timestamp-lastTime<33){requestAnimationFrame(draw);return;}lastTime=timestamp;ctx.clearRect(0,0,w,h);for(var i=0;i<nodes.length;i++){var n=nodes[i];n.x+=n.vx;n.y+=n.vy;if(n.x<0)n.x=w;if(n.x>w)n.x=0;if(n.y<0)n.y=h;if(n.y>h)n.y=0;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fill();}requestAnimationFrame(draw);}requestAnimationFrame(draw);
 })();
 
-let trafficCtx,loadCtx,trafficAnim,loadAnim;
+let trafficCtx,loadCtx,trafficAnim=null;
 function startDashboardAnim(){
 if(currentTab!==0)return;
 const tCanvas=document.getElementById('trafficCanvas');const lCanvas=document.getElementById('loadCanvas');
 if(!tCanvas||!lCanvas)return;
+// 确保canvas正确尺寸
+tCanvas.width=tCanvas.offsetWidth||200;tCanvas.height=80;
+lCanvas.width=lCanvas.offsetWidth||200;lCanvas.height=80;
 trafficCtx=tCanvas.getContext('2d');loadCtx=lCanvas.getContext('2d');
-tCanvas.width=tCanvas.offsetWidth;tCanvas.height=80;lCanvas.width=lCanvas.offsetWidth;lCanvas.height=80;
 let tData=[],lData=[];
 for(let i=0;i<60;i++){tData.push(20+Math.sin(i*0.2)*15+Math.random()*10);lData.push(25+Math.cos(i*0.15)*12+Math.random()*8);}
 let frame=0;
 function drawLine(ctx,data,color){
-const w=ctx.canvas.width,h=ctx.canvas.height;ctx.clearRect(0,0,w,h);ctx.beginPath();ctx.moveTo(0,h-data[0]);
+const w=ctx.canvas.width,h=ctx.canvas.height;
+ctx.clearRect(0,0,w,h);
+// 绘制网格背景
+ctx.strokeStyle='rgba(255,255,255,0.05)';
+ctx.lineWidth=0.5;
+for(let y=0;y<h;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+// 绘制数据线
+ctx.beginPath();
+ctx.moveTo(0,h-data[0]);
 for(let i=1;i<data.length;i++){ctx.lineTo((i/(data.length-1))*w,h-data[i]);}
-ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();
+ctx.strokeStyle=color;
+ctx.lineWidth=1.5;
+ctx.stroke();
+// 绘制填充区域
+ctx.beginPath();
 for(let i=0;i<data.length;i++){ctx.lineTo((i/(data.length-1))*w,h-data[i]);}
-ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fillStyle=color.replace('0.6','0.05');ctx.fill();
+ctx.lineTo(w,h);ctx.lineTo(0,h);
+ctx.fillStyle=color.replace('0.6','0.08');
+ctx.fill();
 }
 function update(){
-if(currentTab!==0)return;
+if(currentTab!==0){trafficAnim=null;return;}
 frame++;
 const appCount=(userData&&userData.recentApps)?userData.recentApps.length:0;
-const baseTraffic=1.2+appCount*0.3;const baseLoad=15+appCount*5;
+const baseTraffic=1.2+appCount*0.3;
+const baseLoad=15+appCount*5;
 tData.shift();
 const tVal=baseTraffic+Math.sin(frame*0.05)*0.8+Math.sin(frame*0.13)*0.4+(Math.random()-0.5)*0.3;
 tData.push(Math.max(0.5,Math.min(8,tVal)));
 lData.shift();
 const lVal=baseLoad+Math.cos(frame*0.04)*8+Math.cos(frame*0.11)*4+(Math.random()-0.5)*3;
 lData.push(Math.max(5,Math.min(85,lVal)));
-drawLine(trafficCtx,tData,'rgba(100,255,150,0.6)');drawLine(loadCtx,lData,'rgba(80,180,255,0.6)');
+drawLine(trafficCtx,tData,'rgba(100,255,150,0.6)');
+drawLine(loadCtx,lData,'rgba(80,180,255,0.6)');
 document.getElementById('trafficNum').textContent=tVal.toFixed(2)+' MB/s';
 document.getElementById('loadNum').textContent=Math.round(lVal)+'%';
 trafficAnim=requestAnimationFrame(update);
 }
-if(trafficAnim)cancelAnimationFrame(trafficAnim);
+if(trafficAnim){cancelAnimationFrame(trafficAnim);trafficAnim=null;}
 update();
 }
-function stopDashboardAnim(){if(trafficAnim){cancelAnimationFrame(trafficAnim);trafficAnim=null;}}
+function stopDashboardAnim(){
+if(trafficAnim){
+cancelAnimationFrame(trafficAnim);
+trafficAnim=null;
+}
+}
 
 ['codenameModal','toolModal','detailModal'].forEach(function(id){
 document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
