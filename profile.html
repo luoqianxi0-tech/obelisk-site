@@ -6,15 +6,16 @@
 <title>OBELISK | Prism Profile</title>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
 // Auth overlay safety timeout
-setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+
+setTimeout(function(){hideAuthOverlay();},3000);
 </script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
 // Auth overlay safety timeout
-setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+
 </script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js">
 // Auth overlay safety timeout
-setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -194,7 +195,7 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 <div class="id-meta">
 <span><span class="dot"></span> <span data-i18n="status_active">Active</span></span>
 <span id="idRole" data-i18n="role_analyst">Analyst</span>
-<span id="idJoin">2026.06.11</span>
+<span id="idJoin">2026.06.11</span><span id="agentStatus" style="font-size:0.6rem;color:rgba(255,255,255,0.2);font-family:Courier New,monospace">AGENT: OFFLINE</span>
 <span class="admin-badge-inline" id="adminBadgeInline">★ ADMIN</span>
 </div>
 </div>
@@ -353,7 +354,7 @@ document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAt
 }
 function toggleLang(){setLang(currentLang==='en'?'zh':'en');}
 
-function hideAuthOverlay(){
+function hideAuthOverlay(){window.__authOverlayRemoved=true;
   window.__authOverlayRemoved=true;
   const overlay=document.getElementById('authOverlay');
   if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
@@ -436,6 +437,70 @@ if(!currentUser||!userData)return;
 userRef.set(userData,{merge:true}).catch(function(err){console.error('[OBELISK] Firestore save error:',err);});
 localStorage.setItem('obelisk_profile_'+currentUser.uid,JSON.stringify(userData));
 }
+
+
+// ========== C: Agent WebSocket Dashboard ==========
+var __agentWS=null,__agentConnected=false,__agentHistory={traffic:[],load:[]};
+function connectAgent(){
+  try{
+    __agentWS=new WebSocket('ws://localhost:8765');
+    __agentWS.onopen=function(){
+      __agentConnected=true;
+      var el=document.getElementById('agentStatus');
+      if(el){el.textContent='AGENT: ONLINE';el.style.color='var(--accent)';}
+      // Request stats immediately
+      __agentWS.send(JSON.stringify({action:'get_stats'}));
+    };
+    __agentWS.onmessage=function(ev){
+      try{
+        var msg=JSON.parse(ev.data);
+        if(msg.type==='stats')updateDashboardReal(msg.data);
+        else if(msg.type==='hook'){document.getElementById('hookCount').textContent=msg.data.total||parseInt(document.getElementById('hookCount').textContent)+1;}
+        else if(msg.type==='packets')document.getElementById('packetCount').textContent=msg.data.total||0;
+      }catch(e){}
+    };
+    __agentWS.onclose=function(){
+      __agentConnected=false;
+      var el=document.getElementById('agentStatus');
+      if(el){el.textContent='AGENT: OFFLINE';el.style.color='rgba(255,255,255,0.2)';}
+    };
+    __agentWS.onerror=function(){__agentConnected=false;};
+  }catch(e){}
+}
+function updateDashboardReal(data){
+  if(data.traffic_mbps!==undefined){
+    document.getElementById('trafficNum').textContent=data.traffic_mbps.toFixed(2)+' MB/s';
+    __agentHistory.traffic.push(data.traffic_mbps);
+    if(__agentHistory.traffic.length>60)__agentHistory.traffic.shift();
+  }
+  if(data.cpu_percent!==undefined){
+    document.getElementById('loadNum').textContent=Math.round(data.cpu_percent)+'%';
+    __agentHistory.load.push(data.cpu_percent);
+    if(__agentHistory.load.length>60)__agentHistory.load.shift();
+  }
+  if(data.hooks_intercepted!==undefined)document.getElementById('hookCount').textContent=data.hooks_intercepted;
+  if(data.packets_total!==undefined)document.getElementById('packetCount').textContent=data.packets_total;
+  if(data.active_nodes!==undefined)document.getElementById('nodeCount').textContent=data.active_nodes;
+  // Risk from agent if available
+  if(data.risk_score!==undefined){
+    var r=Math.min(data.risk_score,100);
+    document.getElementById('riskText').textContent=r+'%';
+    document.getElementById('riskGauge').style.strokeDashoffset=2*Math.PI*28*(1-r/100);
+  }
+}
+setTimeout(connectAgent,1500);
+
+// ========== B: Keyboard Shortcuts ==========
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    ['codenameModal','toolModal','detailModal'].forEach(function(id){var m=document.getElementById(id);if(m)m.classList.remove('show');});
+  }
+  if(e.ctrlKey&&e.key>='1'&&e.key<='6'){
+    e.preventDefault();
+    var idx=parseInt(e.key)-1;
+    switchTab(idx);
+  }
+});
 
 function renderAll(){
 if(!userData)return;
@@ -553,25 +618,17 @@ list.appendChild(div);
 
 let currentTab=0;
 function switchTab(idx){
-const tabs=document.querySelectorAll('.tab-btn');
-const panels=document.querySelectorAll('.tab-panel');
-const indicator=document.getElementById('tabIndicator');
-if(tabs.length===0||panels.length===0)return;
-if(currentTab>=0&&currentTab<tabs.length){
-  tabs[currentTab].classList.remove('active');
-  panels[currentTab].classList.remove('active');
-}
+var tabs=document.querySelectorAll('.tab-btn');
+var panels=document.querySelectorAll('.tab-panel');
+var indicator=document.getElementById('tabIndicator');
+if(idx<0||idx>=tabs.length||idx>=panels.length)return;
+tabs.forEach(function(t){t.classList.remove('active');});
+panels.forEach(function(p){p.classList.remove('active');p.style.display='none';});
 currentTab=idx;
-if(currentTab>=0&&currentTab<tabs.length){
-  tabs[currentTab].classList.add('active');
-  panels[currentTab].classList.add('active');
-}
-if(indicator&&tabs[currentTab]){
-  const rect=tabs[currentTab].getBoundingClientRect();
-  const parent=tabs[currentTab].parentElement.getBoundingClientRect();
-  indicator.style.left=(rect.left-parent.left)+'px';
-  indicator.style.width=rect.width+'px';
-}
+tabs[idx].classList.add('active');
+panels[idx].style.display='block';
+setTimeout(function(){panels[idx].classList.add('active');},20);
+if(indicator){indicator.style.left=tabs[idx].offsetLeft+'px';indicator.style.width=tabs[idx].offsetWidth+'px';}
 if(idx===0)startDashboardAnim();else stopDashboardAnim();
 }
 
@@ -698,7 +755,7 @@ if(e.key==='Escape'){['codenameModal','toolModal','detailModal'].forEach(functio
 });
 
 // Auth overlay safety timeout
-setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+
 </script>
 </body>
 </html>
