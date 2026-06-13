@@ -7,5 +7,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), wasm()],
   server: { port: 5173, host: true },
   build: { outDir: 'dist', sourcemap: true },
+  base: '/',
   optimizeDeps: { exclude: ['@obelisk/wasm'] }
 })
