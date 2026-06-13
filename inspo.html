@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OBELISK | Inspo Ruins</title>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7)}
@@ -242,7 +251,8 @@ zh:{title:"灵感废墟",subtitle:"代码片段与社区分享",need_login:"请�
 let currentLang=localStorage.getItem('obelisk_lang')||'en';
 let authReady=false;
 function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);location.reload();}
-function hideAuthOverlay(){const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
+function hideAuthOverlay(){
+  window.__authOverlayRemoved=true;const o=document.getElementById('authOverlay');if(o){o.classList.add('done');setTimeout(function(){o.remove();},600);}}
 
 const firebaseConfig={apiKey:"AIzaSyAlvwV6tQMdLGAYnGZsMxwIW5B8cYdiKNY",authDomain:"obelisk-ca117.firebaseapp.com",projectId:"obelisk-ca117",storageBucket:"obelisk-ca117.firebasestorage.app",messagingSenderId:"574365252836",appId:"1:574365252836:web:f8c21cc4cb1bdcd46480f1",measurementId:"G-D0P8QL36G8"};
 firebase.initializeApp(firebaseConfig);
@@ -473,6 +483,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){['postModal
 
 loadSnippets();
 loadPosts();
+
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
 </script>
 </body>
 </html>

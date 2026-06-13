@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OBELISK</title>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08);--accent:rgba(100,255,150,0.6);--danger:rgba(255,80,80,0.6)}
@@ -196,6 +205,7 @@ document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAt
 function toggleLang(){currentLang=currentLang==='en'?'zh':'en';localStorage.setItem('obelisk_lang',currentLang);applyLang();showToast(currentLang==='en'?'Language: English':'语言: 中文');}
 
 function hideAuthOverlay(){
+  window.__authOverlayRemoved=true;
   const overlay=document.getElementById('authOverlay');
   if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
 }
@@ -302,6 +312,9 @@ const body=document.getElementById('terminalBody');const time=new Date().toLocal
 }
 document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 applyLang();
+
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
 </script>
 </body>
 </html>

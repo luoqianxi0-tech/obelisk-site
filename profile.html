@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OBELISK | Prism Profile</title>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js">
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#000;--fg:#e0e0e5;--muted:rgba(255,255,255,0.3);--accent:rgba(100,255,150,0.6);--accent2:rgba(80,180,255,0.6);--danger:rgba(255,80,80,0.6);--warn:rgba(255,200,80,0.7);--glass:rgba(255,255,255,0.03);--glass-border:rgba(255,255,255,0.08)}
@@ -62,8 +71,8 @@ html,body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMa
 .tab-btn.active::after{content:'';position:absolute;bottom:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
 .tab-indicator{position:absolute;bottom:-1px;height:1px;background:var(--accent);transition:left 0.4s cubic-bezier(0.4,0,0.2,1),width 0.4s cubic-bezier(0.4,0,0.2,1)}
 .tab-panels{position:relative;min-height:400px}
-.tab-panel{display:none;opacity:0;transform:translateY(12px);transition:opacity 0.5s,transform 0.5s;padding-top:24px}
-.tab-panel.active{display:block;opacity:1;transform:translateY(0)}
+.tab-panel{display:none;opacity:0;transform:translateY(12px);transition:opacity 0.5s,transform 0.5s;padding-top:24px;min-height:200px}
+.tab-panel.active{display:block !important;opacity:1;transform:translateY(0)}
 
 .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .dash-card{background:var(--glass);border:1px solid var(--glass-border);padding:24px;position:relative;overflow:hidden;backdrop-filter:blur(10px);transition:transform 0.4s,border-color 0.4s;cursor:pointer}
@@ -345,6 +354,7 @@ document.querySelectorAll('[data-i18n]').forEach(function(el){const key=el.getAt
 function toggleLang(){setLang(currentLang==='en'?'zh':'en');}
 
 function hideAuthOverlay(){
+  window.__authOverlayRemoved=true;
   const overlay=document.getElementById('authOverlay');
   if(overlay){overlay.classList.add('done');setTimeout(function(){overlay.remove();},600);}
 }
@@ -546,28 +556,40 @@ function switchTab(idx){
 const tabs=document.querySelectorAll('.tab-btn');
 const panels=document.querySelectorAll('.tab-panel');
 const indicator=document.getElementById('tabIndicator');
-tabs[currentTab].classList.remove('active');
-panels[currentTab].classList.remove('active');
+if(tabs.length===0||panels.length===0)return;
+if(currentTab>=0&&currentTab<tabs.length){
+  tabs[currentTab].classList.remove('active');
+  panels[currentTab].classList.remove('active');
+}
 currentTab=idx;
-tabs[currentTab].classList.add('active');
-panels[currentTab].classList.add('active');
-const rect=tabs[currentTab].getBoundingClientRect();
-const parent=tabs[currentTab].parentElement.getBoundingClientRect();
-indicator.style.left=(rect.left-parent.left)+'px';
-indicator.style.width=rect.width+'px';
+if(currentTab>=0&&currentTab<tabs.length){
+  tabs[currentTab].classList.add('active');
+  panels[currentTab].classList.add('active');
+}
+if(indicator&&tabs[currentTab]){
+  const rect=tabs[currentTab].getBoundingClientRect();
+  const parent=tabs[currentTab].parentElement.getBoundingClientRect();
+  indicator.style.left=(rect.left-parent.left)+'px';
+  indicator.style.width=rect.width+'px';
+}
 if(idx===0)startDashboardAnim();else stopDashboardAnim();
 }
 
 window.addEventListener('load',function(){
 const tabs=document.querySelectorAll('.tab-btn');
+const panels=document.querySelectorAll('.tab-panel');
 const indicator=document.getElementById('tabIndicator');
-if(tabs.length>0){
-const rect=tabs[0].getBoundingClientRect();
-const parent=tabs[0].parentElement.getBoundingClientRect();
-indicator.style.left=(rect.left-parent.left)+'px';
-indicator.style.width=rect.width+'px';
+if(tabs.length>0&&panels.length>0){
+  tabs[0].classList.add('active');
+  panels[0].classList.add('active');
+  const rect=tabs[0].getBoundingClientRect();
+  const parent=tabs[0].parentElement.getBoundingClientRect();
+  if(indicator){
+    indicator.style.left=(rect.left-parent.left)+'px';
+    indicator.style.width=rect.width+'px';
+  }
+  startDashboardAnim();
 }
-startDashboardAnim();
 });
 
 function openCodenameModal(){document.getElementById('codenameModal').classList.add('show');document.getElementById('codenameInput').value=userData.codename||'';}
@@ -674,6 +696,9 @@ document.getElementById(id).addEventListener('click',function(e){if(e.target===t
 document.addEventListener('keydown',function(e){
 if(e.key==='Escape'){['codenameModal','toolModal','detailModal'].forEach(function(id){document.getElementById(id).classList.remove('show');});}
 });
+
+// Auth overlay safety timeout
+setTimeout(function(){if(!window.__authOverlayRemoved)hideAuthOverlay();},5000);
 </script>
 </body>
 </html>
