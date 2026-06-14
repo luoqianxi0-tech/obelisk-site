@@ -2,11 +2,11 @@ import { useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
 
 export function useAuth() {
-  const { user, userData, isAdmin, loading, init } = useAuthStore()
+  const { user, userData, isAdmin, loading, init, login, logout } = useAuthStore()
 
   useEffect(() => {
     init()
   }, [init])
 
-  return { user, userData, isAdmin, loading }
+  return { user, userData, isAdmin, loading, login, logout }
 }

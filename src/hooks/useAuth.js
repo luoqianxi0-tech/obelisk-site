@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut } from 'firebase/auth'
 import { auth, googleProvider } from '../firebase.js'
 import { useObeliskStore } from '../store.js'
 
