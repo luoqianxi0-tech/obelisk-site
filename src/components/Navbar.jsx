@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider.jsx'
-import { t, toggleLang, getLang } from '../i18n.js'
+import { useI18n } from '../i18n.js'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, User, LogIn, LogOut, Shield, Globe } from 'lucide-react'
 
 export default function Navbar() {
   const { user, isAdmin, login, logout } = useAuth()
+  const { t, toggleLang, lang } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [lang, setLang] = useState(getLang())
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
 
@@ -19,11 +19,7 @@ export default function Navbar() {
   }, [])
 
   const handleLogin = async () => {
-    try {
-      await login()
-    } catch (e) {
-      alert('登录失败: ' + e.message)
-    }
+    try { await login() } catch (e) { alert(t('auth.login') + '失败: ' + e.message) }
   }
 
   const navItems = [
@@ -44,9 +40,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-obelisk-line rounded flex items-center justify-center">
               <span className="text-white font-bold text-sm">O</span>
             </div>
-            <span className="font-bold text-lg tracking-tight text-obelisk-line hidden sm:block">
-              {t('siteName')}
-            </span>
+            <span className="font-bold text-lg tracking-tight text-obelisk-line hidden sm:block">{t('siteName')}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -55,9 +49,7 @@ export default function Navbar() {
                 key={item.path}
                 to={item.path}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === item.path
-                    ? 'bg-obelisk-line text-white'
-                    : 'text-obelisk-textMuted hover:text-obelisk-line hover:bg-obelisk-surfaceDark'
+                  location.pathname === item.path ? 'bg-obelisk-line text-white' : 'text-obelisk-textMuted hover:text-obelisk-line hover:bg-obelisk-surfaceDark'
                 }`}
               >
                 {item.label}
@@ -67,9 +59,9 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { toggleLang(); setLang(getLang()) }}
+              onClick={toggleLang}
               className="p-2 rounded-lg hover:bg-obelisk-surfaceDark transition-colors"
-              title="切换语言"
+              title="Language"
             >
               <Globe className="w-4 h-4 text-obelisk-textMuted" />
             </button>
@@ -121,20 +113,14 @@ export default function Navbar() {
                   to={item.path}
                   onClick={() => setMenuOpen(false)}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium ${
-                    location.pathname === item.path
-                      ? 'bg-obelisk-line text-white'
-                      : 'text-obelisk-text'
+                    location.pathname === item.path ? 'bg-obelisk-line text-white' : 'text-obelisk-text'
                   }`}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Link to="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">
-                {t('nav.profile')}
-              </Link>
-              <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">
-                {t('nav.settings')}
-              </Link>
+              <Link to="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">{t('nav.profile')}</Link>
+              <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">{t('nav.settings')}</Link>
             </div>
           </motion.div>
         )}
