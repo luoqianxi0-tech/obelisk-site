@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer components {
+  .glass {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 2px solid #111111;
+  }
+  .glass-strong {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 2px solid #111111;
+  }
+  .struct-line {
+    border: 2px solid #111111;
+  }
+  .struct-line-t {
+    border-top: 2px solid #111111;
+  }
+  .struct-line-b {
+    border-bottom: 2px solid #111111;
+  }
+  .struct-line-l {
+    border-left: 2px solid #111111;
+  }
+  .struct-line-r {
+    border-right: 2px solid #111111;
+  }
+  .btn-primary {
+    @apply bg-obelisk-line text-white px-5 py-2.5 font-semibold text-sm tracking-wide;
+    border: 2px solid #111111;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+  }
+  .btn-primary:hover {
+    @apply bg-obelisk-accent text-obelisk-line;
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+  .btn-secondary {
+    @apply bg-transparent text-obelisk-line px-5 py-2.5 font-semibold text-sm tracking-wide;
+    border: 2px solid #111111;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary:hover {
+    @apply bg-obelisk-line text-white;
+  }
+  .input-struct {
+    @apply w-full px-4 py-3 bg-white/60 text-obelisk-line placeholder-obelisk-muted;
+    border: 2px solid #111111;
+    border-radius: 2px;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  .input-struct:focus {
+    background: rgba(255,255,255,0.9);
+    border-color: #c9a227;
+  }
+  .scroll-hide::-webkit-scrollbar { display: none; }
+  .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
