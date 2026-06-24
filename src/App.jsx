@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { I18nProvider } from './i18n.jsx'
+import { AuthProvider } from './hooks/useAuth.jsx'
 import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
 import SteleLayout from './pages/Stele/SteleLayout.jsx'
@@ -30,32 +31,34 @@ function AdminGuard({ children }) {
 
 export default function App() {
   return (
-    <I18nProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/stele" element={<SteleLayout />}>
-            <Route index element={<AllFeed />} />
-            <Route path="following" element={<FollowingFeed />} />
-            <Route path="trending" element={<TrendingFeed />} />
-            <Route path="groups" element={<GroupsList />} />
-            <Route path="groups/:id" element={<GroupDetail />} />
-            <Route path="tags/:tag" element={<AllFeed />} />
-          </Route>
-          <Route path="/stele/post/:id" element={<PostDetail />} />
-          <Route path="/stele/new" element={<NewPost />} />
-          <Route path="/aggregate" element={<Aggregate />} />
-          <Route path="/index" element={<IndexPage />} />
-          <Route path="/design" element={<Design />} />
-          <Route path="/labs" element={<Labs />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/writeups" element={<Writeups />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
-    </I18nProvider>
+    <AuthProvider>
+      <I18nProvider>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/stele" element={<SteleLayout />}>
+              <Route index element={<AllFeed />} />
+              <Route path="following" element={<FollowingFeed />} />
+              <Route path="trending" element={<TrendingFeed />} />
+              <Route path="groups" element={<GroupsList />} />
+              <Route path="groups/:id" element={<GroupDetail />} />
+              <Route path="tags/:tag" element={<AllFeed />} />
+            </Route>
+            <Route path="/stele/post/:id" element={<PostDetail />} />
+            <Route path="/stele/new" element={<NewPost />} />
+            <Route path="/aggregate" element={<Aggregate />} />
+            <Route path="/index" element={<IndexPage />} />
+            <Route path="/design" element={<Design />} />
+            <Route path="/labs" element={<Labs />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/writeups" element={<Writeups />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      </I18nProvider>
+    </AuthProvider>
   )
 }

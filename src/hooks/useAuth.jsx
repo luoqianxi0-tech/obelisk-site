@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { auth, db } from '../firebase.js'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 const ADMIN_UIDS = ['nCZLU2r9YfXVTrQ79EJqWJxPPT03']
@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async () => {
-    const provider = new (await import('firebase/auth')).GoogleAuthProvider()
+    const provider = new GoogleAuthProvider()
     await signInWithPopup(auth, provider)
   }, [])
 
