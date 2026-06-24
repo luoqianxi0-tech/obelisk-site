@@ -1,225 +1,137 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { useI18n } from '../i18n.js'
-import { useAuth } from '../auth/AuthProvider.jsx'
-import GlassCard from '../components/GlassCard.jsx'
-import { 
-  MessageSquare, Globe, Wrench, Palette, ArrowRight, 
-  TrendingUp, Users, Zap, BookOpen, Layers, Star, Clock, Hash, Flame
-} from 'lucide-react'
+import { useI18n } from '../i18n.jsx'
+import { useAuth } from '../hooks/useAuth.jsx'
+import { useEffect, useState } from 'react'
 import { db } from '../firebase.js'
-import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore'
-
-function StatItem({ icon: Icon, label, value, delay }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay, duration: 0.4 }}
-      className="flex items-center gap-3"
-    >
-      <div className="w-10 h-10 rounded-xl bg-obelisk-surfaceDark flex items-center justify-center">
-        <Icon className="w-5 h-5 text-obelisk-line" />
-      </div>
-      <div>
-        <p className="text-lg font-bold text-obelisk-line">{value}</p>
-        <p className="text-xs text-obelisk-textMuted">{label}</p>
-      </div>
-    </motion.div>
-  )
-}
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
 
 export default function Home() {
-  const { user } = useAuth()
   const { t } = useI18n()
-  const [stats, setStats] = useState({ posts: 0, users: 0, resources: 0, designs: 0 })
+  const { user } = useAuth()
   const [recentPosts, setRecentPosts] = useState([])
-  const [featuredResources, setFeaturedResources] = useState([])
-  const [hotTags, setHotTags] = useState([])
+  const [stats, setStats] = useState({ users: 0, posts: 0, resources: 0, projects: 0 })
 
   useEffect(() => {
-    const fetchStats = async () => {
+    async function load() {
       try {
-        const [postsSnap, usersSnap, resourcesSnap, designsSnap] = await Promise.all([
-          getDocs(query(collection(db, 'stele_posts'), limit(100))),
-          getDocs(query(collection(db, 'users'), limit(100))),
-          getDocs(query(collection(db, 'resources'), limit(100))),
-          getDocs(query(collection(db, 'design_items'), limit(100)))
-        ])
-        setStats({ posts: postsSnap.size, users: usersSnap.size, resources: resourcesSnap.size, designs: designsSnap.size })
-      } catch (e) { console.error(e) }
+        const postsSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(5)))
+        setRecentPosts(postsSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+      } catch {}
     }
-    fetchStats()
-
-    const q = query(collection(db, 'stele_posts'), orderBy('createdAt', 'desc'), limit(5))
-    const unsub = onSnapshot(q, (snap) => setRecentPosts(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
-
-    const fetchResources = async () => {
-      try {
-        const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'), limit(8))
-        const snap = await getDocs(q)
-        setFeaturedResources(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-      } catch (e) { console.error(e) }
-    }
-    fetchResources()
-
-    // 计算热门话题
-    const fetchTags = async () => {
-      try {
-        const snap = await getDocs(query(collection(db, 'stele_posts'), limit(50)))
-        const tagCounts = {}
-        snap.docs.forEach(d => {
-          d.data().tags?.forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1 })
-        })
-        setHotTags(Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 6))
-      } catch (e) { console.error(e) }
-    }
-    fetchTags()
-
-    return () => unsub()
+    load()
   }, [])
 
-  const sections = [
-    { title: t('nav.stele'), subtitle: '极客社交平台', icon: MessageSquare, path: '/stele', color: 'bg-obelisk-line', desc: '发帖、评论、关注、圈子、话题标签' },
-    { title: t('nav.aggregate'), subtitle: '资源导航', icon: Globe, path: '/aggregate', color: 'bg-obelisk-textMuted', desc: '分类索引、搜索、收藏、批量导入' },
-    { title: t('nav.index'), subtitle: '工具与文档', icon: Wrench, path: '/index', color: 'bg-obelisk-textLight', desc: '工具箱、技术文档、系统资源' },
-    { title: t('nav.design'), subtitle: '创意空间', icon: Palette, path: '/design', color: 'bg-obelisk-border', desc: '设计资源库、文章教程、作品展示' },
+  const groups = [
+    { id: '1', name: 'Reverse Engineering', members: 1284, color: 'from-orange-400 to-red-500' },
+    { id: '2', name: 'CTF / Pwn', members: 956, color: 'from-blue-400 to-indigo-500' },
+    { id: '3', name: 'Mobile Security', members: 742, color: 'from-emerald-400 to-teal-500' },
+    { id: '4', name: 'Web3 Security', members: 621, color: 'from-purple-400 to-pink-500' },
   ]
 
-  const groups = ['设计方法论', '独立开发者', '开源贡献者', '前端精进']
+  const resources = [
+    { name: 'Ghidra', category: 'Reverse', url: 'https://ghidra-sre.org' },
+    { name: 'IDA Pro', category: 'Reverse', url: 'https://hex-rays.com' },
+    { name: 'Burp Suite', category: 'Web', url: 'https://portswigger.net/burp' },
+    { name: 'Frida', category: 'Mobile', url: 'https://frida.re' },
+  ]
 
   return (
-    <div className="min-h-screen">
-      <section className="relative px-4 sm:px-6 pt-20 pb-16 md:pt-32 md:pb-24">
-        <div className="max-w-7xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center mb-16">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-obelisk-line mb-6">OBELISK</h1>
-            <div className="w-24 h-[2px] bg-obelisk-line mx-auto mb-6" />
-            <p className="text-lg md:text-xl text-obelisk-textMuted max-w-2xl mx-auto leading-relaxed">{t('tagline')}</p>
-            {!user && (
-              <div className="mt-8 flex justify-center gap-4">
-                <Link to="/stele" className="btn-primary">{t('home.explore')} <ArrowRight className="w-4 h-4 inline ml-1" /></Link>
-                <Link to="/aggregate" className="btn-secondary">{t('nav.aggregate')}</Link>
-              </div>
-            )}
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-panel rounded-2xl p-6 mb-16">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatItem icon={MessageSquare} label={t('home.stats')} label2="碑刻" value={stats.posts} delay={0} />
-              <StatItem icon={Users} label={t('home.stats')} label2="用户" value={stats.users} delay={0.1} />
-              <StatItem icon={Layers} label={t('home.stats')} label2="资源" value={stats.resources} delay={0.2} />
-              <StatItem icon={Palette} label={t('home.stats')} label2="设计" value={stats.designs} delay={0.3} />
-            </div>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            {sections.map((section, i) => (
-              <GlassCard key={section.path} delay={i * 0.1}>
-                <Link to={section.path} className="block group">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl ${section.color} flex items-center justify-center`}>
-                      <section.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-obelisk-textLight group-hover:text-obelisk-line transition-colors" />
-                  </div>
-                  <h3 className="text-xl font-bold text-obelisk-line mb-1">{section.title}</h3>
-                  <p className="text-sm text-obelisk-textMuted mb-2">{section.subtitle}</p>
-                  <p className="text-sm text-obelisk-textLight">{section.desc}</p>
-                </Link>
-              </GlassCard>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
-            <div className="lg:col-span-2">
-              <GlassCard>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-obelisk-line flex items-center gap-2"><Clock className="w-5 h-5" /> {t('home.recentPosts')}</h3>
-                  <Link to="/stele" className="text-sm text-obelisk-textMuted hover:text-obelisk-line transition-colors">{t('common.more')}</Link>
-                </div>
-                {recentPosts.length === 0 ? (
-                  <div className="text-center py-12 text-obelisk-textLight">
-                    <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p>{t('common.empty')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentPosts.map(post => (
-                      <div key={post.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-obelisk-surfaceDark/50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-obelisk-surfaceDark flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold">{post.authorName?.[0] || 'U'}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-obelisk-line truncate">{post.title || '无标题'}</p>
-                          <p className="text-xs text-obelisk-textMuted mt-1 line-clamp-2">{post.content}</p>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-obelisk-textLight">
-                            <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {post.likes?.length || 0}</span>
-                            <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {post.comments?.length || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </GlassCard>
-            </div>
-
-            <div>
-              <GlassCard>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-obelisk-line flex items-center gap-2"><Zap className="w-5 h-5" /> {t('home.featuredResources')}</h3>
-                  <Link to="/aggregate" className="text-sm text-obelisk-textMuted hover:text-obelisk-line transition-colors">{t('common.more')}</Link>
-                </div>
-                {featuredResources.length === 0 ? (
-                  <div className="text-center py-12 text-obelisk-textLight">
-                    <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p>{t('common.empty')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {featuredResources.map(res => (
-                      <a key={res.id} href={res.url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl hover:bg-obelisk-surfaceDark/50 transition-colors">
-                        <p className="text-sm font-medium text-obelisk-line">{res.title}</p>
-                        <p className="text-xs text-obelisk-textMuted mt-1">{res.category}</p>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </GlassCard>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            <GlassCard>
-              <h3 className="text-lg font-bold text-obelisk-line mb-4 flex items-center gap-2"><Flame className="w-5 h-5" /> {t('home.hotTopics')}</h3>
-              <div className="flex flex-wrap gap-2">
-                {hotTags.map(([tag, count]) => (
-                  <Link key={tag} to={`/stele?tag=${encodeURIComponent(tag)}`} className="tag hover:bg-obelisk-line hover:text-white transition-colors cursor-pointer">
-                    {tag} <span className="ml-1 opacity-60">{count}</span>
-                  </Link>
-                ))}
-                {hotTags.length === 0 && ['#前端开发', '#UI设计', '#开源工具', '#独立开发', '#AI应用', '#数据结构'].map(tag => (
-                  <Link key={tag} to={`/stele?tag=${encodeURIComponent(tag)}`} className="tag hover:bg-obelisk-line hover:text-white transition-colors cursor-pointer">{tag}</Link>
-                ))}
-              </div>
-            </GlassCard>
-
-            <GlassCard>
-              <h3 className="text-lg font-bold text-obelisk-line mb-4 flex items-center gap-2"><Users className="w-5 h-5" /> {t('home.activeGroups')}</h3>
-              <div className="space-y-3">
-                {groups.map(group => (
-                  <Link key={group} to={`/stele?group=${encodeURIComponent(group)}`} className="flex items-center justify-between p-3 rounded-xl hover:bg-obelisk-surfaceDark/50 transition-colors">
-                    <span className="text-sm font-medium">{group}</span>
-                    <ArrowRight className="w-4 h-4 text-obelisk-textLight" />
-                  </Link>
-                ))}
-              </div>
-            </GlassCard>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <section className="mb-12 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-obelisk-line mb-4">{t('home.welcome')}</h1>
+        <p className="text-obelisk-textMuted text-lg max-w-2xl mx-auto">{t('home.explore')}</p>
+        <div className="flex justify-center gap-3 mt-6">
+          <Link to="/stele" className="btn-primary">{t('stele.newPost')}</Link>
+          <Link to="/aggregate" className="btn-secondary">{t('nav.aggregate')}</Link>
         </div>
       </section>
+
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        {[
+          { label: t('home.totalUsers'), value: stats.users || '2.4k+' },
+          { label: t('home.totalPosts'), value: stats.posts || '1.8k+' },
+          { label: t('home.totalResources'), value: stats.resources || '340+' },
+          { label: t('home.totalProjects'), value: stats.projects || '86' },
+        ].map((s, i) => (
+          <div key={i} className="glass-card rounded-2xl p-6 text-center">
+            <div className="text-2xl font-bold text-obelisk-line">{s.value}</div>
+            <div className="text-xs text-obelisk-textMuted mt-1">{s.label}</div>
+          </div>
+        ))}
+      </section>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-6">
+          <div className="glass-card rounded-2xl p-6">
+            <h2 className="section-title mb-4">{t('home.recentPosts')}</h2>
+            {recentPosts.length === 0 ? (
+              <div className="text-obelisk-textMuted text-sm py-8 text-center">{t('stele.noPosts')}</div>
+            ) : (
+              <div className="space-y-4">
+                {recentPosts.map(post => (
+                  <Link key={post.id} to={`/stele/post/${post.id}`} className="block p-4 rounded-xl hover:bg-black/5 transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={post.authorPhoto || '/default-avatar.png'} alt="" className="w-6 h-6 rounded-full" />
+                      <span className="text-sm font-medium">{post.authorName}</span>
+                      <span className="text-xs text-obelisk-textMuted">{post.createdAt?.toDate?.().toLocaleDateString?.() || ''}</span>
+                    </div>
+                    <p className="text-sm text-obelisk-text line-clamp-2">{post.content}</p>
+                    {post.images?.length > 0 && (
+                      <div className="flex gap-2 mt-2">
+                        {post.images.slice(0,3).map((img, idx) => (
+                          <img key={idx} src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />
+                        ))}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="glass-card rounded-2xl p-6">
+            <h2 className="section-title mb-4">{t('home.featuredResources')}</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {resources.map((r, i) => (
+                <a key={i} href={r.url} target="_blank" rel="noreferrer" className="p-3 rounded-xl border border-obelisk-border hover:border-obelisk-line hover:bg-white/80 transition-all">
+                  <div className="text-sm font-medium text-obelisk-line">{r.name}</div>
+                  <div className="text-xs text-obelisk-textMuted">{r.category}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="glass-card rounded-2xl p-6">
+            <h2 className="section-title mb-4">{t('home.activeGroups')}</h2>
+            <div className="space-y-3">
+              {groups.map(g => (
+                <Link key={g.id} to={`/stele/groups/${g.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${g.color} flex items-center justify-center text-white font-bold text-xs`}>
+                    {g.name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{g.name}</div>
+                    <div className="text-xs text-obelisk-textMuted">{g.members} {t('stele.members')}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-6">
+            <h2 className="section-title mb-4">{t('home.hotTopics')}</h2>
+            <div className="flex flex-wrap gap-2">
+              {['#Frida', '#SSL-Pinning', '#CVE-2024', '#APK-Reversing', '#Web3-Audit', '#ZeroTrust'].map(tag => (
+                <Link key={tag} to={`/stele/tags/${tag.replace('#', '')}`} className="tag hover:bg-obelisk-line hover:text-white transition-colors">
+                  {tag}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

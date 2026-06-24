@@ -1,130 +1,128 @@
-import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../auth/AuthProvider.jsx'
-import { useI18n } from '../i18n.js'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, User, LogIn, LogOut, Shield, Globe } from 'lucide-react'
+import { useI18n } from '../i18n.jsx'
+import { useAuth } from '../hooks/useAuth.jsx'
+import { useState, useRef, useEffect } from 'react'
 
 export default function Navbar() {
-  const { user, isAdmin, login, logout } = useAuth()
-  const { t, toggleLang, lang } = useI18n()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const { t, lang, toggleLang } = useI18n()
+  const { user, login, logout, isAdmin } = useAuth()
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
+    function handleClick(e) {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const handleLogin = async () => {
-    try { await login() } catch (e) { alert(t('auth.login') + '失败: ' + e.message) }
-  }
-
-  const navItems = [
-    { path: '/', label: t('nav.home') },
-    { path: '/stele', label: t('nav.stele') },
-    { path: '/aggregate', label: t('nav.aggregate') },
-    { path: '/index', label: t('nav.index') },
-    { path: '/design', label: t('nav.design') },
+  const navLinks = [
+    { to: '/', label: t('nav.home') },
+    { to: '/stele', label: t('nav.stele') },
+    { to: '/aggregate', label: t('nav.aggregate') },
+    { to: '/index', label: t('nav.index') },
+    { to: '/labs', label: t('nav.labs') },
+    { to: '/projects', label: t('nav.projects') },
+    { to: '/writeups', label: t('nav.writeups') },
   ]
 
+  const isActive = (to) => {
+    if (to === '/') return location.pathname === '/'
+    return location.pathname.startsWith(to)
+  }
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled ? 'glass-panel shadow-sm' : 'bg-transparent'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-obelisk-line rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">O</span>
-            </div>
-            <span className="font-bold text-lg tracking-tight text-obelisk-line hidden sm:block">{t('siteName')}</span>
-          </Link>
+    <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-obelisk-glassBorder">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-obelisk-line rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">O</span>
+          </div>
+          <span className="font-bold text-lg tracking-tight text-obelisk-line">{t('siteName')}</span>
+        </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map(item => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === item.path ? 'bg-obelisk-line text-white' : 'text-obelisk-textMuted hover:text-obelisk-line hover:bg-obelisk-surfaceDark'
-                }`}
+        <div className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive(link.to)
+                  ? 'bg-obelisk-line text-white'
+                  : 'text-obelisk-textMuted hover:text-obelisk-line hover:bg-black/5'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleLang}
+            className="px-3 py-1.5 text-xs font-medium rounded-full border border-obelisk-border hover:bg-black/5 transition-colors"
+          >
+            {lang === 'zh' ? 'EN' : '中文'}
+          </button>
+
+          {user ? (
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-black/5 transition-colors"
               >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleLang}
-              className="p-2 rounded-lg hover:bg-obelisk-surfaceDark transition-colors"
-              title="Language"
-            >
-              <Globe className="w-4 h-4 text-obelisk-textMuted" />
-            </button>
-
-            {user ? (
-              <div className="flex items-center gap-2">
+                <img src={user.photoURL || '/default-avatar.png'} alt="" className="w-7 h-7 rounded-full object-cover" />
                 {isAdmin && (
-                  <Link to="/admin" className="p-2 rounded-lg bg-obelisk-line text-white" title="Admin">
-                    <Shield className="w-4 h-4" />
-                  </Link>
+                  <span className="text-[10px] font-bold bg-obelisk-line text-white px-1.5 py-0.5 rounded">{t('auth.adminBadge')}</span>
                 )}
-                <Link to="/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-obelisk-surfaceDark transition-colors">
-                  <img src={user.photoURL || '/default-avatar.png'} alt="" className="w-7 h-7 rounded-full bg-obelisk-surfaceDark" />
-                  <span className="text-sm font-medium hidden sm:block">{user.displayName}</span>
-                </Link>
-                <button onClick={logout} className="p-2 rounded-lg hover:bg-obelisk-surfaceDark transition-colors" title={t('auth.logout')}>
-                  <LogOut className="w-4 h-4 text-obelisk-textMuted" />
-                </button>
-              </div>
-            ) : (
-              <button onClick={handleLogin} className="btn-primary text-sm py-2 px-4 flex items-center gap-2">
-                <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('auth.login')}</span>
               </button>
-            )}
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 glass-panel rounded-xl shadow-xl border border-obelisk-glassBorder py-1">
+                  <div className="px-4 py-2 border-b border-obelisk-border">
+                    <p className="text-sm font-medium text-obelisk-line truncate">{user.displayName}</p>
+                    <p className="text-xs text-obelisk-textMuted truncate">{user.email}</p>
+                    {isAdmin && <p className="text-[10px] text-emerald-600 font-bold mt-1">{t('auth.rootAccess')}</p>}
+                  </div>
+                  <Link to="/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm hover:bg-black/5">{t('nav.profile')}</Link>
+                  <Link to="/settings" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm hover:bg-black/5">{t('nav.settings')}</Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm hover:bg-black/5">{t('nav.admin')}</Link>
+                  )}
+                  <button onClick={() => { logout(); setProfileOpen(false) }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-black/5">{t('auth.logout')}</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={login} className="btn-primary text-sm py-2 px-4">{t('auth.login')}</button>
+          )}
 
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-obelisk-surfaceDark transition-colors"
-            >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 rounded-lg hover:bg-black/5">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
         </div>
       </div>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass-panel border-t border-obelisk-border overflow-hidden"
-          >
-            <div className="px-4 py-3 space-y-1">
-              {navItems.map(item => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-lg text-sm font-medium ${
-                    location.pathname === item.path ? 'bg-obelisk-line text-white' : 'text-obelisk-text'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <Link to="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">{t('nav.profile')}</Link>
-              <Link to="/settings" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-sm text-obelisk-text">{t('nav.settings')}</Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {menuOpen && (
+        <div className="md:hidden glass-panel border-t border-obelisk-glassBorder px-4 py-2">
+          {navLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              onClick={() => setMenuOpen(false)}
+              className={`block px-3 py-2 rounded-lg text-sm font-medium my-1 ${
+                isActive(link.to) ? 'bg-obelisk-line text-white' : 'text-obelisk-textMuted'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </nav>
   )
 }

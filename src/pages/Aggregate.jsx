@@ -1,284 +1,193 @@
-import { useState, useEffect } from 'react'
-import { db } from '../firebase.js'
-import { useAuth } from '../auth/AuthProvider.jsx'
-import { useI18n } from '../i18n.js'
-import GlassCard from '../components/GlassCard.jsx'
-import { 
-  collection, addDoc, getDocs, query, orderBy, where, 
-  serverTimestamp, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove 
-} from 'firebase/firestore'
-import { 
-  Search, Plus, Globe, ExternalLink, Bookmark, BookmarkCheck, 
-  Grid, List, X, Upload, FileJson, Trash2, Star
-} from 'lucide-react'
-
-const CATEGORIES = [
-  { id: 'all', name: '全部', icon: Grid },
-  { id: 'dev', name: '开发工具', icon: Star },
-  { id: 'design', name: '设计资源', icon: Star },
-  { id: 'docs', name: '技术文档', icon: Star },
-  { id: 'media', name: '媒体素材', icon: Star },
-  { id: 'ai', name: 'AI 工具', icon: Star },
-  { id: 'infra', name: '基础设施', icon: Star },
-  { id: 'learn', name: '学习资源', icon: Star },
-]
-
-const DEFAULT_RESOURCES = [
-  { title: 'GitHub', url: 'https://github.com', category: 'dev', desc: '全球最大的代码托管平台', tags: ['git', '开源'] },
-  { title: 'GitLab', url: 'https://gitlab.com', category: 'dev', desc: 'DevOps 一体化平台', tags: ['git', 'CI/CD'] },
-  { title: 'Stack Overflow', url: 'https://stackoverflow.com', category: 'dev', desc: '开发者问答社区', tags: ['问答', '社区'] },
-  { title: 'Vercel', url: 'https://vercel.com', category: 'dev', desc: '前端部署平台', tags: ['部署', 'Serverless'] },
-  { title: 'Netlify', url: 'https://netlify.com', category: 'dev', desc: '静态网站托管', tags: ['部署', 'JAMstack'] },
-  { title: 'CodePen', url: 'https://codepen.io', category: 'dev', desc: '前端代码演示', tags: ['演示', 'CSS'] },
-  { title: 'JSFiddle', url: 'https://jsfiddle.net', category: 'dev', desc: '在线代码编辑器', tags: ['编辑器', '测试'] },
-  { title: 'Figma', url: 'https://figma.com', category: 'design', desc: '协作界面设计工具', tags: ['UI', '设计'] },
-  { title: 'Sketch', url: 'https://sketch.com', category: 'design', desc: 'Mac 矢量设计工具', tags: ['UI', '矢量'] },
-  { title: 'Adobe XD', url: 'https://adobe.com/products/xd.html', category: 'design', desc: 'Adobe 原型设计工具', tags: ['原型', 'Adobe'] },
-  { title: 'Canva', url: 'https://canva.com', category: 'design', desc: '在线平面设计工具', tags: ['平面', '模板'] },
-  { title: 'Dribbble', url: 'https://dribbble.com', category: 'design', desc: '设计师作品展示', tags: ['灵感', '社区'] },
-  { title: 'Behance', url: 'https://behance.net', category: 'design', desc: '创意作品展示平台', tags: ['作品集', 'Adobe'] },
-  { title: 'MDN Web Docs', url: 'https://developer.mozilla.org', category: 'docs', desc: 'Web 技术权威文档', tags: ['文档', '参考'] },
-  { title: 'DevDocs', url: 'https://devdocs.io', category: 'docs', desc: '聚合 API 文档', tags: ['API', '速查'] },
-  { title: 'W3Schools', url: 'https://w3schools.com', category: 'docs', desc: 'Web 开发教程', tags: ['教程', '入门'] },
-  { title: 'CSS-Tricks', url: 'https://css-tricks.com', category: 'docs', desc: 'CSS 技巧与教程', tags: ['CSS', '技巧'] },
-  { title: 'Smashing Magazine', url: 'https://smashingmagazine.com', category: 'docs', desc: '前端与设计杂志', tags: ['杂志', '前端'] },
-  { title: 'Unsplash', url: 'https://unsplash.com', category: 'media', desc: '高质量免费图片', tags: ['图片', '免费'] },
-  { title: 'Pexels', url: 'https://pexels.com', category: 'media', desc: '免费素材图片视频', tags: ['图片', '视频'] },
-  { title: 'Pixabay', url: 'https://pixabay.com', category: 'media', desc: '免版税素材库', tags: ['图片', '矢量'] },
-  { title: 'Flaticon', url: 'https://flaticon.com', category: 'media', desc: '免费矢量图标', tags: ['图标', '矢量'] },
-  { title: 'Iconfont', url: 'https://iconfont.cn', category: 'media', desc: '阿里巴巴矢量图标库', tags: ['图标', '中文'] },
-  { title: 'ChatGPT', url: 'https://chat.openai.com', category: 'ai', desc: 'OpenAI 对话模型', tags: ['AI', '对话'] },
-  { title: 'Claude', url: 'https://claude.ai', category: 'ai', desc: 'Anthropic AI 助手', tags: ['AI', '助手'] },
-  { title: 'Midjourney', url: 'https://midjourney.com', category: 'ai', desc: 'AI 图像生成', tags: ['AI', '图像'] },
-  { title: 'Stable Diffusion', url: 'https://stability.ai', category: 'ai', desc: '开源 AI 绘画模型', tags: ['AI', '开源'] },
-  { title: 'Hugging Face', url: 'https://huggingface.co', category: 'ai', desc: 'AI 模型与数据集社区', tags: ['AI', 'ML'] },
-  { title: 'Docker Hub', url: 'https://hub.docker.com', category: 'infra', desc: '容器镜像仓库', tags: ['Docker', '容器'] },
-  { title: 'Kubernetes', url: 'https://kubernetes.io', category: 'infra', desc: '容器编排平台', tags: ['K8s', '编排'] },
-  { title: 'Terraform', url: 'https://terraform.io', category: 'infra', desc: '基础设施即代码', tags: ['IaC', '云'] },
-  { title: 'AWS', url: 'https://aws.amazon.com', category: 'infra', desc: '亚马逊云服务', tags: ['云', 'AWS'] },
-  { title: 'Cloudflare', url: 'https://cloudflare.com', category: 'infra', desc: 'CDN 与边缘计算', tags: ['CDN', 'DNS'] },
-  { title: 'freeCodeCamp', url: 'https://freecodecamp.org', category: 'learn', desc: '免费编程学习平台', tags: ['学习', '免费'] },
-  { title: 'Coursera', url: 'https://coursera.org', category: 'learn', desc: '在线课程平台', tags: ['课程', '大学'] },
-  { title: 'LeetCode', url: 'https://leetcode.com', category: 'learn', desc: '算法刷题平台', tags: ['算法', '面试'] },
-  { title: 'HackerRank', url: 'https://hackerrank.com', category: 'learn', desc: '编程挑战平台', tags: ['挑战', '技能'] },
-  { title: 'Exercism', url: 'https://exercism.org', category: 'learn', desc: '免费编程练习', tags: ['练习', '导师'] },
-]
+import { useState } from 'react'
+import { useI18n } from '../i18n.jsx'
+import { useAuth } from '../hooks/useAuth.jsx'
 
 export default function Aggregate() {
-  const { user } = useAuth()
   const { t } = useI18n()
-  const [resources, setResources] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('all')
-  const [viewMode, setViewMode] = useState('grid')
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [showImportModal, setShowImportModal] = useState(false)
+  const { user } = useAuth()
+  const [category, setCategory] = useState('all')
+  const [search, setSearch] = useState('')
+  const [bookmarks, setBookmarks] = useState(new Set())
 
-  const [newTitle, setNewTitle] = useState('')
-  const [newUrl, setNewUrl] = useState('')
-  const [newCategory, setNewCategory] = useState('dev')
-  const [newDesc, setNewDesc] = useState('')
-  const [newTags, setNewTags] = useState('')
-  const [importText, setImportText] = useState('')
+  const resources = [
+    // Dev Tools
+    { name: 'VS Code', url: 'https://code.visualstudio.com', cat: 'dev', desc: '微软开源编辑器，插件生态丰富' },
+    { name: 'JetBrains Suite', url: 'https://jetbrains.com', cat: 'dev', desc: 'IDEA/PyCharm/GoLand 全家桶' },
+    { name: 'Sublime Text', url: 'https://sublimetext.com', cat: 'dev', desc: '轻量级高速文本编辑器' },
+    { name: 'Neovim', url: 'https://neovim.io', cat: 'dev', desc: 'Vim 重构版，Lua 配置' },
+    { name: 'Docker', url: 'https://docker.com', cat: 'dev', desc: '容器化平台' },
+    { name: 'Kubernetes', url: 'https://kubernetes.io', cat: 'dev', desc: '容器编排系统' },
+    { name: 'Git', url: 'https://git-scm.com', cat: 'dev', desc: '分布式版本控制' },
+    { name: 'GitHub', url: 'https://github.com', cat: 'dev', desc: '代码托管与协作' },
+    { name: 'GitLab', url: 'https://gitlab.com', cat: 'dev', desc: '自托管 DevOps 平台' },
+    { name: 'Postman', url: 'https://postman.com', cat: 'dev', desc: 'API 开发与测试' },
+    { name: 'Insomnia', url: 'https://insomnia.rest', cat: 'dev', desc: '开源 API 客户端' },
+    { name: 'Wireshark', url: 'https://wireshark.org', cat: 'dev', desc: '网络协议分析器' },
+    { name: 'tcpdump', url: 'https://tcpdump.org', cat: 'dev', desc: '命令行抓包工具' },
+    { name: 'Nmap', url: 'https://nmap.org', cat: 'dev', desc: '网络扫描与发现' },
+    { name: 'Masscan', url: 'https://github.com/robertdavidgraham/masscan', cat: 'dev', desc: '互联网规模端口扫描' },
 
-  useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        let q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'))
-        if (activeCategory !== 'all') q = query(q, where('category', '==', activeCategory))
-        const snap = await getDocs(q)
-        const dbItems = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    // Security
+    { name: 'Ghidra', url: 'https://ghidra-sre.org', cat: 'security', desc: 'NSA 开源逆向工程框架' },
+    { name: 'IDA Pro', url: 'https://hex-rays.com', cat: 'security', desc: '行业标杆反汇编器' },
+    { name: 'Binary Ninja', url: 'https://binary.ninja', cat: 'security', desc: '现代逆向工程平台' },
+    { name: 'x64dbg', url: 'https://x64dbg.com', cat: 'security', desc: 'Windows 开源调试器' },
+    { name: 'OllyDbg', url: 'https://ollydbg.de', cat: 'security', desc: '经典 Ring3 调试器' },
+    { name: 'Frida', url: 'https://frida.re', cat: 'security', desc: '动态代码插桩工具包' },
+    { name: ' objection', url: 'https://github.com/sensepost/objection', cat: 'security', desc: 'Frida 移动端运行时探索' },
+    { name: 'Burp Suite', url: 'https://portswigger.net/burp', cat: 'security', desc: 'Web 渗透测试平台' },
+    { name: 'OWASP ZAP', url: 'https://zaproxy.org', cat: 'security', desc: '开源 Web 漏洞扫描器' },
+    { name: 'Metasploit', url: 'https://metasploit.com', cat: 'security', desc: '渗透测试框架' },
+    { name: 'Cobalt Strike', url: 'https://cobaltstrike.com', cat: 'security', desc: '红队协同作战平台' },
+    { name: 'BloodHound', url: 'https://bloodhound.readthedocs.io', cat: 'security', desc: 'Active Directory 攻击路径分析' },
+    { name: 'Mimikatz', url: 'https://github.com/gentilkiwi/mimikatz', cat: 'security', desc: 'Windows 凭证提取神器' },
+    { name: 'Volatility', url: 'https://volatilityfoundation.org', cat: 'security', desc: '内存取证框架' },
+    { name: 'YARA', url: 'https://virustotal.github.io/yara', cat: 'security', desc: '恶意软件模式匹配' },
+    { name: 'Cuckoo Sandbox', url: 'https://cuckoosandbox.org', cat: 'security', desc: '自动化恶意软件分析' },
+    { name: 'REMnux', url: 'https://remnux.org', cat: 'security', desc: '恶意软件分析 Linux 发行版' },
+    { name: 'Kali Linux', url: 'https://kali.org', cat: 'security', desc: '渗透测试发行版' },
+    { name: 'Parrot OS', url: 'https://parrotsec.org', cat: 'security', desc: '安全与隐私发行版' },
+    { name: 'BlackArch', url: 'https://blackarch.org', cat: 'security', desc: 'Arch 安全工具仓库' },
 
-        // 合并默认数据
-        const defaults = DEFAULT_RESOURCES.map((r, i) => ({ ...r, id: `default-${i}`, isDefault: true }))
-        const merged = activeCategory === 'all' ? [...defaults, ...dbItems] : dbItems
-        setResources(merged)
-        setLoading(false)
-      } catch (e) {
-        console.error(e)
-        setResources(DEFAULT_RESOURCES.map((r, i) => ({ ...r, id: `default-${i}`, isDefault: true })))
-        setLoading(false)
-      }
-    }
-    fetchResources()
-  }, [activeCategory])
+    // AI
+    { name: 'ChatGPT', url: 'https://chat.openai.com', cat: 'ai', desc: 'OpenAI 对话模型' },
+    { name: 'Claude', url: 'https://claude.ai', cat: 'ai', desc: 'Anthropic AI 助手' },
+    { name: 'GitHub Copilot', url: 'https://github.com/copilot', cat: 'ai', desc: 'AI 编程助手' },
+    { name: 'Cursor', url: 'https://cursor.sh', cat: 'ai', desc: 'AI 优先代码编辑器' },
+    { name: 'Hugging Face', url: 'https://huggingface.co', cat: 'ai', desc: 'ML 模型与数据集社区' },
+    { name: 'Ollama', url: 'https://ollama.com', cat: 'ai', desc: '本地大模型运行' },
+    { name: 'LM Studio', url: 'https://lmstudio.ai', cat: 'ai', desc: '本地 LLM 桌面客户端' },
+    { name: 'Midjourney', url: 'https://midjourney.com', cat: 'ai', desc: 'AI 图像生成' },
+    { name: 'Stable Diffusion', url: 'https://stability.ai', cat: 'ai', desc: '开源文生图模型' },
+    { name: 'Runway', url: 'https://runwayml.com', cat: 'ai', desc: 'AI 视频生成与编辑' },
 
-  const handleAddResource = async () => {
-    if (!newTitle.trim() || !newUrl.trim()) return
-    try {
-      await addDoc(collection(db, 'resources'), {
-        title: newTitle, url: newUrl, category: newCategory, description: newDesc,
-        tags: newTags.split(/[,\s]+/).filter(Boolean),
-        authorId: user?.uid || '', authorName: user?.displayName || '匿名',
-        likes: [], collects: [], createdAt: serverTimestamp()
-      })
-      setNewTitle(''); setNewUrl(''); setNewDesc(''); setNewTags(''); setShowAddModal(false)
-      const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'))
-      const snap = await getDocs(q)
-      setResources([...DEFAULT_RESOURCES.map((r, i) => ({ ...r, id: `default-${i}`, isDefault: true })), ...snap.docs.map(d => ({ id: d.id, ...d.data() }))])
-    } catch (e) { alert('添加失败: ' + e.message) }
-  }
+    // Design
+    { name: 'Figma', url: 'https://figma.com', cat: 'design', desc: '协作界面设计工具' },
+    { name: 'Sketch', url: 'https://sketch.com', cat: 'design', desc: 'macOS 矢量设计' },
+    { name: 'Adobe XD', url: 'https://adobe.com/xd', cat: 'design', desc: 'UX/UI 设计原型' },
+    { name: 'Blender', url: 'https://blender.org', cat: 'design', desc: '开源 3D 创作套件' },
+    { name: 'Dribbble', url: 'https://dribbble.com', cat: 'design', desc: '设计师作品社区' },
+    { name: 'Behance', url: 'https://behance.net', cat: 'design', desc: 'Adobe 创意作品展示' },
+    { name: 'Unsplash', url: 'https://unsplash.com', cat: 'design', desc: '高质量免费图库' },
+    { name: 'Iconify', url: 'https://iconify.design', cat: 'design', desc: '统一图标框架' },
 
-  const handleImport = async () => {
-    try {
-      const lines = importText.trim().split('\n')
-      const items = []
-      for (const line of lines) {
-        const parts = line.split(',').map(s => s.trim())
-        if (parts.length >= 2) {
-          items.push({ title: parts[0], url: parts[1], category: parts[2] || 'dev', description: parts[3] || '', tags: parts[4] ? parts[4].split(/[,\s]+/) : [], authorId: user?.uid || '', authorName: user?.displayName || '匿名', likes: [], collects: [], createdAt: serverTimestamp() })
-        }
-      }
-      for (const item of items) await addDoc(collection(db, 'resources'), item)
-      setImportText(''); setShowImportModal(false); alert(`成功导入 ${items.length} 条资源`)
-      const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'))
-      const snap = await getDocs(q)
-      setResources([...DEFAULT_RESOURCES.map((r, i) => ({ ...r, id: `default-${i}`, isDefault: true })), ...snap.docs.map(d => ({ id: d.id, ...d.data() }))])
-    } catch (e) { alert('导入失败: ' + e.message) }
-  }
+    // Docs
+    { name: 'MDN Web Docs', url: 'https://developer.mozilla.org', cat: 'docs', desc: 'Web 技术权威文档' },
+    { name: 'DevDocs.io', url: 'https://devdocs.io', cat: 'docs', desc: '聚合 API 文档速查' },
+    { name: 'OWASP', url: 'https://owasp.org', cat: 'docs', desc: 'Web 安全标准与指南' },
+    { name: 'CVE Details', url: 'https://cvedetails.com', cat: 'docs', desc: 'CVE 漏洞数据库' },
+    { name: 'NIST', url: 'https://nvd.nist.gov', cat: 'docs', desc: '美国国家漏洞库' },
+    { name: 'Exploit-DB', url: 'https://exploit-db.com', cat: 'docs', desc: '漏洞利用代码库' },
+    { name: 'PayloadsAllTheThings', url: 'https://github.com/swisskyrepo/PayloadsAllTheThings', cat: 'docs', desc: '渗透测试 Payload 集合' },
+    { name: 'HackTricks', url: 'https://book.hacktricks.xyz', cat: 'docs', desc: '渗透测试知识库' },
+    { name: 'CTF Wiki', url: 'https://ctf-wiki.org', cat: 'docs', desc: 'CTF 竞赛知识百科' },
+    { name: 'Linux Kernel Docs', url: 'https://docs.kernel.org', cat: 'docs', desc: 'Linux 内核官方文档' },
 
-  const handleCollect = async (id, isCollected) => {
-    if (!user) { alert('请先登录'); return }
-    try {
-      const ref = doc(db, 'resources', id)
-      await updateDoc(ref, { collects: isCollected ? arrayRemove(user.uid) : arrayUnion(user.uid) })
-      setResources(prev => prev.map(r => r.id === id ? { ...r, collects: isCollected ? (r.collects || []).filter(u => u !== user.uid) : [...(r.collects || []), user.uid] } : r))
-    } catch (e) { console.error(e) }
-  }
+    // Learning
+    { name: 'TryHackMe', url: 'https://tryhackme.com', cat: 'learn', desc: '网络安全学习平台' },
+    { name: 'HackTheBox', url: 'https://hackthebox.com', cat: 'learn', desc: '渗透训练实验室' },
+    { name: 'Pwnable.kr', url: 'https://pwnable.kr', cat: 'learn', desc: 'Pwn 入门靶场' },
+    { name: 'Pwnable.tw', url: 'https://pwnable.tw', cat: 'learn', desc: '台湾 Pwn 靶场' },
+    { name: 'Root-Me', url: 'https://root-me.org', cat: 'learn', desc: '法国网络安全挑战' },
+    { name: 'OverTheWire', url: 'https://overthewire.org', cat: 'learn', desc: 'Linux 安全游戏' },
+    { name: 'Cryptohack', url: 'https://cryptohack.org', cat: 'learn', desc: '密码学学习平台' },
+    { name: 'PicoCTF', url: 'https://picoctf.org', cat: 'learn', desc: 'Carnegie Mellon CTF' },
+    { name: 'CTFtime', url: 'https://ctftime.org', cat: 'learn', desc: 'CTF 赛事日历' },
+    { name: 'PortSwigger Academy', url: 'https://portswigger.net/web-security', cat: 'learn', desc: 'Web 安全免费课程' },
+    { name: 'OffSec', url: 'https://offsec.com', cat: 'learn', desc: 'OSCP/OSWE 认证培训' },
+    { name: 'SANS', url: 'https://sans.org', cat: 'learn', desc: '信息安全培训与认证' },
+    { name: 'Coursera', url: 'https://coursera.org', cat: 'learn', desc: '在线课程平台' },
+    { name: 'freeCodeCamp', url: 'https://freecodecamp.org', cat: 'learn', desc: '免费编程学习' },
 
-  const handleDelete = async (id) => {
-    if (!confirm('确定删除？')) return
-    try { await deleteDoc(doc(db, 'resources', id)); setResources(prev => prev.filter(r => r.id !== id)) } catch (e) { alert('删除失败') }
-  }
+    // OSINT
+    { name: 'Shodan', url: 'https://shodan.io', cat: 'osint', desc: '物联网搜索引擎' },
+    { name: 'Censys', url: 'https://censys.io', cat: 'osint', desc: '互联网资产测绘' },
+    { name: 'Maltego', url: 'https://maltego.com', cat: 'osint', desc: '开源情报可视化' },
+    { name: 'theHarvester', url: 'https://github.com/laramies/theHarvester', cat: 'osint', desc: '子域名与邮箱收集' },
+    { name: 'SpiderFoot', url: 'https://spiderfoot.net', cat: 'osint', desc: '自动化 OSINT 框架' },
+
+    // Crypto
+    { name: 'CyberChef', url: 'https://gchq.github.io/CyberChef', cat: 'crypto', desc: 'GCHQ 数据转换工具' },
+    { name: 'Cryptool', url: 'https://cryptool.org', cat: 'crypto', desc: '密码学教学软件' },
+    { name: 'Hashcat', url: 'https://hashcat.net', cat: 'crypto', desc: '世界上最快的密码恢复' },
+    { name: 'John the Ripper', url: 'https://openwall.com/john', cat: 'crypto', desc: '密码破解工具' },
+  ]
+
+  const categories = [
+    { key: 'all', label: t('aggregate.all') },
+    { key: 'dev', label: t('aggregate.dev') },
+    { key: 'security', label: t('aggregate.security') },
+    { key: 'ai', label: t('aggregate.ai') },
+    { key: 'design', label: t('aggregate.design') },
+    { key: 'docs', label: t('aggregate.docs') },
+    { key: 'learn', label: t('aggregate.learn') },
+    { key: 'osint', label: t('aggregate.osint') },
+    { key: 'crypto', label: t('aggregate.crypto') },
+  ]
 
   const filtered = resources.filter(r => {
-    const q = searchQuery.toLowerCase()
-    return !q || (r.title?.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q) || r.tags?.some(t => t.toLowerCase().includes(q)))
+    if (category !== 'all' && r.cat !== category) return false
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase()) && !r.desc.toLowerCase().includes(search.toLowerCase())) return false
+    return true
   })
 
+  function toggleBookmark(name) {
+    setBookmarks(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="section-title">{t('nav.aggregate')}</h1>
-            <p className="section-subtitle">精选资源索引与导航</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="btn-secondary text-sm py-2 px-3">
-              {viewMode === 'grid' ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
-            </button>
-            {user && (
-              <>
-                <button onClick={() => setShowImportModal(true)} className="btn-secondary text-sm py-2 px-3 flex items-center gap-1"><Upload className="w-4 h-4" /> 导入</button>
-                <button onClick={() => setShowAddModal(true)} className="btn-primary text-sm py-2 px-3 flex items-center gap-1"><Plus className="w-4 h-4" /> 添加</button>
-              </>
-            )}
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="glass-card rounded-2xl p-6 mb-6">
+        <h1 className="text-2xl font-bold text-obelisk-line">{t('aggregate.title')}</h1>
+        <div className="mt-4 flex gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('aggregate.search')}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-obelisk-border text-sm focus:outline-none focus:border-obelisk-line"
+          />
         </div>
-
-        <div className="glass-panel rounded-2xl p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-obelisk-textLight" />
-              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('aggregate.search')} className="input-field pl-10" />
-            </div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {CATEGORIES.map(cat => (
-                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${activeCategory === cat.id ? 'bg-obelisk-line text-white' : 'bg-obelisk-surfaceDark text-obelisk-textMuted'}`}>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12"><div className="w-8 h-8 border-2 border-obelisk-line border-t-transparent rounded-full animate-spin mx-auto" /></div>
-        ) : filtered.length === 0 ? (
-          <GlassCard>
-            <div className="text-center py-16">
-              <Globe className="w-16 h-16 mx-auto mb-4 text-obelisk-border" />
-              <p className="text-obelisk-textMuted">{t('common.empty')}</p>
-            </div>
-          </GlassCard>
-        ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
-            {filtered.map((res, i) => (
-              <GlassCard key={res.id} delay={i * 0.03} className={viewMode === 'list' ? 'flex items-center gap-4' : ''}>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="tag text-xs">{res.category}</span>
-                      {res.isDefault && <span className="tag text-xs bg-obelisk-line text-white">推荐</span>}
-                      {res.tags?.map(t => <span key={t} className="tag text-xs">{t}</span>)}
-                    </div>
-                  </div>
-                  <a href={res.url} target="_blank" rel="noopener noreferrer" className="group">
-                    <h3 className="font-bold text-obelisk-line group-hover:underline flex items-center gap-2">{res.title}<ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
-                  </a>
-                  <p className="text-sm text-obelisk-textMuted mt-1 line-clamp-2">{res.description}</p>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-obelisk-border">
-                    <div className="flex items-center gap-3 text-xs text-obelisk-textLight">
-                      <span>{res.authorName || 'OBELISK'}</span>
-                      <span>{res.collects?.length || 0} 收藏</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleCollect(res.id, res.collects?.includes(user?.uid))} className="p-1.5 rounded-lg hover:bg-obelisk-surfaceDark transition-colors">
-                        {res.collects?.includes(user?.uid) ? <BookmarkCheck className="w-4 h-4 text-amber-500" /> : <Bookmark className="w-4 h-4 text-obelisk-textLight" />}
-                      </button>
-                      {(user?.uid === res.authorId || user?.uid === 'nCZLU2r9YfXVTrQ79EJqWJxPPT03') && !res.isDefault && (
-                        <button onClick={() => handleDelete(res.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4 text-red-400" /></button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        )}
       </div>
 
-      {showAddModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
-          <div className="glass-panel rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold">{t('aggregate.add')}</h3>
-              <button onClick={() => setShowAddModal(false)}><X className="w-5 h-5" /></button>
-            </div>
-            <div className="space-y-3">
-              <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="资源名称" className="input-field" />
-              <input type="url" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="URL 地址" className="input-field" />
-              <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="input-field">
-                {CATEGORIES.filter(c => c.id !== 'all').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="描述" rows={3} className="input-field resize-none" />
-              <input type="text" value={newTags} onChange={e => setNewTags(e.target.value)} placeholder="标签，用逗号分隔" className="input-field" />
-              <div className="flex gap-3">
-                <button onClick={() => setShowAddModal(false)} className="btn-secondary flex-1">{t('common.cancel')}</button>
-                <button onClick={handleAddResource} disabled={!newTitle.trim() || !newUrl.trim()} className="btn-primary flex-1">{t('common.save')}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {categories.map(c => (
+          <button
+            key={c.key}
+            onClick={() => setCategory(c.key)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              category === c.key ? 'bg-obelisk-line text-white' : 'bg-white border border-obelisk-border text-obelisk-textMuted hover:bg-black/5'
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
 
-      {showImportModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setShowImportModal(false)}>
-          <div className="glass-panel rounded-2xl p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold flex items-center gap-2"><FileJson className="w-5 h-5" /> {t('aggregate.import')}</h3>
-              <button onClick={() => setShowImportModal(false)}><X className="w-5 h-5" /></button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map((r, i) => (
+          <div key={i} className="glass-card rounded-2xl p-5 hover:bg-white/80 transition-colors group">
+            <div className="flex items-start justify-between mb-2">
+              <a href={r.url} target="_blank" rel="noreferrer" className="font-semibold text-obelisk-line hover:underline">{r.name}</a>
+              <button onClick={() => toggleBookmark(r.name)} className="text-obelisk-textMuted hover:text-amber-500 transition-colors">
+                <svg className={`w-5 h-5 ${bookmarks.has(r.name) ? 'fill-amber-400 text-amber-400' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+              </button>
             </div>
-            <p className="text-sm text-obelisk-textMuted mb-3">格式：名称, URL, 分类, 描述, 标签</p>
-            <textarea value={importText} onChange={e => setImportText(e.target.value)} placeholder="粘贴数据..." rows={8} className="input-field resize-none font-mono text-sm" />
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setShowImportModal(false)} className="btn-secondary flex-1">{t('common.cancel')}</button>
-              <button onClick={handleImport} disabled={!importText.trim()} className="btn-primary flex-1">{t('aggregate.import')}</button>
+            <p className="text-xs text-obelisk-textMuted">{r.desc}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-obelisk-surfaceDark text-obelisk-textMuted uppercase">{r.cat}</span>
             </div>
           </div>
-        </div>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="glass-card rounded-2xl p-12 text-center text-obelisk-textMuted">{t('settings.empty')}</div>
       )}
     </div>
   )

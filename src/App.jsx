@@ -1,71 +1,61 @@
-import { useState, lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
-import SplashScreen from './components/SplashScreen.jsx'
-import Navbar from './components/Navbar.jsx'
-import StructureLines from './components/StructureLines.jsx'
-import Footer from './components/Footer.jsx'
-import { useAuth } from './auth/AuthProvider.jsx'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { I18nProvider } from './i18n.jsx'
+import Layout from './components/Layout.jsx'
+import Home from './pages/Home.jsx'
+import SteleLayout from './pages/Stele/SteleLayout.jsx'
+import AllFeed from './pages/Stele/AllFeed.jsx'
+import FollowingFeed from './pages/Stele/FollowingFeed.jsx'
+import TrendingFeed from './pages/Stele/TrendingFeed.jsx'
+import GroupsList from './pages/Stele/GroupsList.jsx'
+import GroupDetail from './pages/Stele/GroupDetail.jsx'
+import PostDetail from './pages/Stele/PostDetail.jsx'
+import NewPost from './pages/Stele/NewPost.jsx'
+import Aggregate from './pages/Aggregate.jsx'
+import IndexPage from './pages/IndexPage.jsx'
+import Design from './pages/Design.jsx'
+import Labs from './pages/Labs.jsx'
+import Projects from './pages/Projects.jsx'
+import Writeups from './pages/Writeups.jsx'
+import Profile from './pages/Profile.jsx'
+import Admin from './pages/Admin.jsx'
+import Settings from './pages/Settings.jsx'
+import { useAuth } from './hooks/useAuth.jsx'
 
-const Home = lazy(() => import('./pages/Home.jsx'))
-const Stele = lazy(() => import('./pages/Stele.jsx'))
-const Aggregate = lazy(() => import('./pages/Aggregate.jsx'))
-const Index = lazy(() => import('./pages/Index.jsx'))
-const Design = lazy(() => import('./pages/Design.jsx'))
-const Profile = lazy(() => import('./pages/Profile.jsx'))
-const Admin = lazy(() => import('./pages/Admin.jsx'))
-const Settings = lazy(() => import('./pages/Settings.jsx'))
-
-function PageWrapper({ children }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-function LoadingFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-obelisk-line border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+function AdminGuard({ children }) {
+  const { user, isAdmin } = useAuth()
+  if (!user) return <Navigate to="/" replace />
+  if (!isAdmin) return <Navigate to="/" replace />
+  return children
 }
 
 export default function App() {
-  const [splashDone, setSplashDone] = useState(false)
-  const { loading } = useAuth()
-
-  if (!splashDone || loading) {
-    return <SplashScreen onComplete={() => setSplashDone(true)} />
-  }
-
   return (
-    <div className="min-h-screen relative">
-      <StructureLines />
-      <Navbar />
-
-      <main className="relative z-10 pt-16">
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-            <Route path="/stele" element={<PageWrapper><Stele /></PageWrapper>} />
-            <Route path="/aggregate" element={<PageWrapper><Aggregate /></PageWrapper>} />
-            <Route path="/index" element={<PageWrapper><Index /></PageWrapper>} />
-            <Route path="/design" element={<PageWrapper><Design /></PageWrapper>} />
-            <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
-            <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
-            <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
-          </Routes>
-        </Suspense>
-      </main>
-
-      <Footer />
-    </div>
+    <I18nProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/stele" element={<SteleLayout />}>
+            <Route index element={<AllFeed />} />
+            <Route path="following" element={<FollowingFeed />} />
+            <Route path="trending" element={<TrendingFeed />} />
+            <Route path="groups" element={<GroupsList />} />
+            <Route path="groups/:id" element={<GroupDetail />} />
+            <Route path="tags/:tag" element={<AllFeed />} />
+          </Route>
+          <Route path="/stele/post/:id" element={<PostDetail />} />
+          <Route path="/stele/new" element={<NewPost />} />
+          <Route path="/aggregate" element={<Aggregate />} />
+          <Route path="/index" element={<IndexPage />} />
+          <Route path="/design" element={<Design />} />
+          <Route path="/labs" element={<Labs />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/writeups" element={<Writeups />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+    </I18nProvider>
   )
 }
