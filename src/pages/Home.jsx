@@ -9,16 +9,24 @@ export default function Home() {
   const { t } = useI18n()
   const { user } = useAuth()
   const [recentPosts, setRecentPosts] = useState([])
-  const [stats, setStats] = useState({ users: 0, posts: 0, resources: 0, projects: 0 })
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     async function load() {
       try {
         const postsSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(5)))
-        setRecentPosts(postsSnap.docs.map(d => ({ id: d.id, ...d.data() })))
-      } catch {}
+        if (!cancelled) {
+          setRecentPosts(postsSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+        }
+      } catch (e) {
+        console.error('Home load error:', e)
+      } finally {
+        if (!cancelled) setLoaded(true)
+      }
     }
     load()
+    return () => { cancelled = true }
   }, [])
 
   const groups = [
@@ -48,10 +56,10 @@ export default function Home() {
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
         {[
-          { label: t('home.totalUsers'), value: stats.users || '2.4k+' },
-          { label: t('home.totalPosts'), value: stats.posts || '1.8k+' },
-          { label: t('home.totalResources'), value: stats.resources || '340+' },
-          { label: t('home.totalProjects'), value: stats.projects || '86' },
+          { label: t('home.totalUsers'), value: '2.4k+' },
+          { label: t('home.totalPosts'), value: '1.8k+' },
+          { label: t('home.totalResources'), value: '340+' },
+          { label: t('home.totalProjects'), value: '86' },
         ].map((s, i) => (
           <div key={i} className="glass-card rounded-2xl p-6 text-center">
             <div className="text-2xl font-bold text-obelisk-line">{s.value}</div>
@@ -64,7 +72,9 @@ export default function Home() {
         <div className="md:col-span-2 space-y-6">
           <div className="glass-card rounded-2xl p-6">
             <h2 className="section-title mb-4">{t('home.recentPosts')}</h2>
-            {recentPosts.length === 0 ? (
+            {!loaded ? (
+              <div className="text-obelisk-textMuted text-sm py-8 text-center">{t('settings.loading')}</div>
+            ) : recentPosts.length === 0 ? (
               <div className="text-obelisk-textMuted text-sm py-8 text-center">{t('stele.noPosts')}</div>
             ) : (
               <div className="space-y-4">
@@ -73,7 +83,9 @@ export default function Home() {
                     <div className="flex items-center gap-2 mb-2">
                       <img src={post.authorPhoto || '/default-avatar.png'} alt="" className="w-6 h-6 rounded-full" />
                       <span className="text-sm font-medium">{post.authorName}</span>
-                      <span className="text-xs text-obelisk-textMuted">{post.createdAt?.toDate?.().toLocaleDateString?.() || ''}</span>
+                      <span className="text-xs text-obelisk-textMuted">
+                        {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : ''}
+                      </span>
                     </div>
                     <p className="text-sm text-obelisk-text line-clamp-2">{post.content}</p>
                     {post.images?.length > 0 && (
