@@ -112,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       authReady,
       initError,
       firebaseConfigured: status.configured,
+      firebaseMissing: status.missing,
     }}>
       {children}
     </AuthContext.Provider>

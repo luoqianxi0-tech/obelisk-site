@@ -15,7 +15,7 @@ export const BeiKeMine = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (!user || !db) { setLoading(false); return; }
     const q = query(
       collection(db, 'posts'),
       where('authorId', '==', user.uid),
@@ -29,6 +29,7 @@ export const BeiKeMine = () => {
   }, [user]);
 
   const deletePost = async (id) => {
+    if (!db) return;
     if (confirm(t('common.confirmDelete'))) {
       await deleteDoc(doc(db, 'posts', id));
     }

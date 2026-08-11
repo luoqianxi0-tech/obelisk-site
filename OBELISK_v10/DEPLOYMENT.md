@@ -32,6 +32,18 @@ dist/
 
 ## 1. Vercel 部署（推荐）
 
+### 1.0 ⚠️ 目录结构：项目在仓库的子目录 `OBELISK_v10/` 里
+
+仓库根目录没有 `package.json`，Vercel 从仓库根导入时会「找不到项目」，构建产物为空 → 访问就是 404 / 白屏。
+两种任选其一即可（**仓库根的 [../vercel.json](../vercel.json) 已经帮你做好了方案 A**）：
+
+- **方案 A（默认，已配置）**：保持 Vercel 项目的 **Root Directory = 仓库根**，根目录的 `vercel.json` 会执行
+  `npm --prefix OBELISK_v10 install` / `npm --prefix OBELISK_v10 run build`，输出目录为 `OBELISK_v10/dist`。
+- **方案 B**：Vercel Dashboard → Project → Settings → General → **Root Directory** 填 `OBELISK_v10` → Save → Redeploy。
+  此时生效的是本目录下的 `vercel.json`。
+
+改完之后必须 **Redeploy 且不要勾选 Use existing Build Cache**。
+
 ### 1.1 核心配置文件：`vercel.json`（本项目已生成）
 
 根目录已生成 [vercel.json](vercel.json)，内容包含：

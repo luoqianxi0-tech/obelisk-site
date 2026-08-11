@@ -24,7 +24,7 @@ import { Settings } from './pages/Settings';
 const AppShell = () => {
   const [splashDone, setSplashDone] = useState(false);
   const [forceSkipSplash, setForceSkipSplash] = useState(false);
-  const { authReady, loading, firebaseConfigured, initError } = useAuth();
+  const { authReady, loading, firebaseConfigured, initError, firebaseMissing } = useAuth();
 
   const handleSplashComplete = useCallback(() => {
     setSplashDone(true);
@@ -96,8 +96,13 @@ const AppShell = () => {
           <div className="glass rounded-lg p-4 border-l-2 border-black/40">
             <div className="text-xs font-medium tracking-wide mb-1">Firebase 未配置</div>
             <p className="text-xs text-black/50 leading-relaxed mb-2">
-              当前使用的是占位凭证，登录与数据持久化功能不可用。请在 .env 中填入真实配置后刷新。
+              缺少 Firebase 环境变量，登录与数据持久化功能不可用。本地请在 .env 中填写，部署平台请在环境变量设置中填写后重新部署。
             </p>
+            {firebaseMissing?.length > 0 && (
+              <p className="text-[10px] font-mono text-black/40 break-all mb-2">
+                {firebaseMissing.map(key => `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`).join(', ')}
+              </p>
+            )}
             {initError && initError !== 'FIREBASE_NOT_CONFIGURED' && (
               <p className="text-[10px] font-mono text-black/40 break-all">
                 {initError}
