@@ -15,7 +15,7 @@ export const BeiKeFollowing = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (!user || !db) { setLoading(false); return; }
     const q = query(
       collection(db, 'posts'),
       where('authorId', '==', user.uid),

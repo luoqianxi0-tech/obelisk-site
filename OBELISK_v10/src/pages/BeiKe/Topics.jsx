@@ -13,6 +13,7 @@ export const BeiKeTopics = () => {
   const [trending, setTrending] = useState([]);
 
   useEffect(() => {
+    if (!db) return;
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       const posts = snap.docs.map(d => d.data());
@@ -27,7 +28,7 @@ export const BeiKeTopics = () => {
       const all = Object.entries(tagCounts).map(([name, count]) => ({ name, count, likes: tagLikes[name] || 0 }));
       setTopics(all.sort((a, b) => b.count - a.count));
       setTrending(all.sort((a, b) => b.likes - a.likes).slice(0, 5));
-    });
+    }, (err) => console.error('[Topics] 订阅失败：', err));
     return unsub;
   }, []);
 
