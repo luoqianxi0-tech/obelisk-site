@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*')
+          && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    function isValidAvatar() {
+      return request.resource.contentType.matches('image/.*')
+          && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isValidAvatar();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    match /posts/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isValidImage();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    match /circle/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isValidImage();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    match /admin/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}
