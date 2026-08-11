@@ -1,0 +1,105 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId
+                     && request.resource.data.keys().hasOnly(
+                          ['displayName', 'email', 'photoURL', 'createdAt', 'isAdmin']
+                        )
+                     && request.resource.data.createdAt is timestamp
+                     && request.resource.data.isAdmin == false;
+      allow update: if isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                      ['displayName', 'photoURL', 'bio', 'website']
+                   );
+      allow delete: if isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                     && request.resource.data.authorId == request.auth.uid
+                     && request.resource.data.authorName is string
+                     && request.resource.data.content is string
+                     && request.resource.data.content.size() <= 5000
+                     && request.resource.data.keys().hasOnly(
+                          ['content', 'authorId', 'authorName', 'authorPhoto',
+                           'tags', 'imageUrl', 'likes', 'comments',
+                           'bookmarks', 'createdAt']
+                        )
+                     && request.resource.data.likes is list
+                     && request.resource.data.likes.size() == 0
+                     && request.resource.data.bookmarks is list
+                     && request.resource.data.bookmarks.size() == 0
+                     && request.resource.data.comments == 0
+                     && request.resource.data.createdAt is timestamp;
+      allow update: if (isOwner(resource.data.authorId)
+                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                              ['content', 'tags', 'imageUrl']
+                            ))
+                    || (isSignedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                        && request.resource.data.likes is list)
+                    || (isSignedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookmarks'])
+                        && request.resource.data.bookmarks is list);
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                     && request.resource.data.authorId == request.auth.uid
+                     && request.resource.data.content is string
+                     && request.resource.data.content.size() <= 1000
+                     && request.resource.data.postId is string
+                     && request.resource.data.createdAt is timestamp;
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+    }
+
+    match /topics/{topicId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /circle/{category}/{entryId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isOwner(resource.data.authorId) || isAdmin();
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+    }
+
+    match /follows/{followId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.followerId == request.auth.uid;
+      allow delete: if isOwner(resource.data.followerId) || isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
