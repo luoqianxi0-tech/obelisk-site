@@ -1,7 +1,7 @@
 {
-  "installCommand": "npm --prefix OBELISK_v10 install",
-  "buildCommand": "npm --prefix OBELISK_v10 run build",
-  "outputDirectory": "OBELISK_v10/dist",
+  "installCommand": "npm --prefix OBELISK_v11_Fixed install",
+  "buildCommand": "npm --prefix OBELISK_v11_Fixed run build",
+  "outputDirectory": "OBELISK_v11_Fixed/dist",
   "rewrites": [
     {
       "source": "/((?!assets/|.*\\..*).*)",
