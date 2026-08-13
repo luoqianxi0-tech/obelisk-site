@@ -13,7 +13,6 @@ import { BeiKeFollowing } from './pages/BeiKe/Following';
 import { BeiKeMine } from './pages/BeiKe/Mine';
 import { BeiKeTopics } from './pages/BeiKe/Topics';
 import { Circle } from './pages/Circle';
-import { CircleRange } from './pages/Circle/Range';
 import { CircleProjects } from './pages/Circle/Projects';
 import { CircleVuln } from './pages/Circle/Vuln';
 import { CircleNotes } from './pages/Circle/Notes';
@@ -29,10 +28,8 @@ const AppShell = () => {
   const [splashDone, setSplashDone] = useState(false);
   const [forceSkip, setForceSkip] = useState(false);
   const { authReady, loading, firebaseConfigured, initError, firebaseMissing } = useAuth();
-
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
   useEffect(() => { const t = setTimeout(() => setForceSkip(true), 5000); return () => clearTimeout(t); }, []);
-
   const showSplash = !splashDone && !forceSkip;
   return (
     <>
@@ -59,7 +56,6 @@ const AppShell = () => {
             <Route path="/beike/mine" element={<BeiKeMine />} />
             <Route path="/beike/topics" element={<BeiKeTopics />} />
             <Route path="/circle" element={<Circle />} />
-            <Route path="/circle/range" element={<CircleRange />} />
             <Route path="/circle/projects" element={<CircleProjects />} />
             <Route path="/circle/vuln" element={<CircleVuln />} />
             <Route path="/circle/notes" element={<CircleNotes />} />

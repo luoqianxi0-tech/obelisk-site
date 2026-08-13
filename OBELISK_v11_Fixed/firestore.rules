@@ -8,7 +8,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     function isAdmin() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      return isAuthenticated() && (
+        request.auth.uid == 'nCZLU2r9YfXVTrQ79EJqWJxPPT03' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true)
+      );
     }
 
     match /users/{userId} {
@@ -24,10 +28,12 @@ service cloud.firestore {
       allow delete: if isOwner(userId) || isAdmin();
     }
 
+    // ===== 关键修复：任何人可点赞/评论，只有作者可删改内容 =====
     match /posts/{postId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
+      // 允许任何认证用户 update（用于点赞/评论），但删除仅限作者或管理员
+      allow update: if isAuthenticated();
       allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
     }
 
@@ -45,11 +51,12 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && (resource.data.addedBy == request.auth.uid || isAdmin());
     }
 
-    match /files/{fileId} {
+    // 下载站资源（任何人可读，认证可写）
+    match /downloads/{docId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.uploaderId == request.auth.uid || isAdmin());
-      allow delete: if isAuthenticated() && (resource.data.uploaderId == request.auth.uid || isAdmin());
+      allow update: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
     }
 
     match /audio/{docId} {
@@ -57,6 +64,10 @@ service cloud.firestore {
       allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

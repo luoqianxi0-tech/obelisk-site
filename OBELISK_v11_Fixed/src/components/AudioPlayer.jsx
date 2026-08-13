@@ -16,8 +16,7 @@ export const AudioPlayer = () => {
     if (!db) return;
     const q = query(collection(db, 'audio'), where('active', '==', true));
     const unsub = onSnapshot(q, (snap) => {
-      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setPlaylist(items);
+      setPlaylist(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, []);
@@ -53,7 +52,6 @@ export const AudioPlayer = () => {
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[10px] rounded-full flex items-center justify-center">{playlist.length}</span>
         </button>
       </div>
-
       <AnimatePresence>
         {showList && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
